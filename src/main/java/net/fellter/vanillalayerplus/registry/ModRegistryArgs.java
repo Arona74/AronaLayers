@@ -3,8 +3,10 @@ package net.fellter.vanillalayerplus.registry;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import net.fellter.vanillalayerplus.block.Layer3DBlock;
 import net.fellter.vanillalayerplus.block.ModBlocks;
 import net.minecraft.block.Block;
+import net.minecraft.registry.Registries;
 
 /**
  * Gameplay registry args (stripping, tilling, flattening, oxidation, fuel...).
@@ -143,5 +145,22 @@ public final class ModRegistryArgs {
 
 		putInRegistryArgs(ModBlocks.COAL_LAYER, new RegistryArgs().fuel(RegistryArgs.FUEL_COAL_BLOCK));
 		putInRegistryArgs(ModBlocks.DRIED_KELP_LAYER, new RegistryArgs().fuel(RegistryArgs.FUEL_DRIED_KELP_BLOCK));
+
+		register3DLayerArgs();
+	}
+
+	// 3D layers render like their base layer, but don't inherit tool interactions or fuel.
+	private static void register3DLayerArgs() {
+		Registries.BLOCK.forEach(block -> {
+			if (block instanceof Layer3DBlock layer3D && REGISTRY_ARGS.containsKey(layer3D.getBaseLayer())) {
+				RegistryArgs base = REGISTRY_ARGS.get(layer3D.getBaseLayer());
+				RegistryArgs args = new RegistryArgs();
+				args.transparent = base.transparent;
+				args.translucent = base.translucent;
+				args.grassTinted = base.grassTinted;
+				args.foliageTinted = base.foliageTinted;
+				putInRegistryArgs(block, args);
+			}
+		});
 	}
 }

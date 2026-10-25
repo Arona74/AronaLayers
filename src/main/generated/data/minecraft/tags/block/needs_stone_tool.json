@@ -41,6 +41,12 @@
     "vanillalayerplus:lapis_ore_layer",
     "vanillalayerplus:deepslate_lapis_ore_layer",
     "vanillalayerplus:raw_iron_layer",
-    "vanillalayerplus:raw_copper_layer"
+    "vanillalayerplus:raw_copper_layer",
+    "vanillalayerplus:iron_ore_3d_layer",
+    "vanillalayerplus:deepslate_iron_ore_3d_layer",
+    "vanillalayerplus:copper_ore_3d_layer",
+    "vanillalayerplus:deepslate_copper_ore_3d_layer",
+    "vanillalayerplus:lapis_ore_3d_layer",
+    "vanillalayerplus:deepslate_lapis_ore_3d_layer"
   ]
 }

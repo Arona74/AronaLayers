@@ -3,7 +3,9 @@ package net.fellter.vanillalayerplus.datagen;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -13,6 +15,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 
 import net.fellter.vanillalayerplus.VanillaLayerPlus;
+import net.fellter.vanillalayerplus.block.Layer3DBlock;
 import net.fellter.vanillalayerplus.block.LayerBlock;
 import net.fellter.vanillalayerplus.registry.Args;
 import net.fellter.vanillalayerplus.registry.DatagenArgs;
@@ -45,43 +48,57 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
 			Identifier identifier = Registries.BLOCK.getId(block);
 			if (block instanceof LayerBlock && Args.DATAGEN_ARGS.containsKey(block)) {
 				getTagBuilder(ModTags.LAYERS).add(identifier);
-				DatagenArgs args = Args.DATAGEN_ARGS.get(block);
-
-				for (TagKey<Block> blockTagKey : args.blockTags) {
-					getTagBuilder(blockTagKey).add(identifier);
-				}
-
-				if (args.parentBlock != null) {
-					Identifier parent = Registries.BLOCK.getId(args.parentBlock);
-
-					for (int i = 0; i < TOOL_TIER_TAGS.size(); i++) {
-						if (tierMembers.get(i).contains(parent)) {
-							getTagBuilder(TOOL_TIER_TAGS.get(i)).add(identifier);
-						}
-					}
-				}
+				addInheritedTags(identifier, Args.DATAGEN_ARGS.get(block), tierMembers);
+			} else if (block instanceof Layer3DBlock layer3D && Args.DATAGEN_ARGS.containsKey(layer3D.getBaseLayer())) {
+				// A 3D layer is mined like its base layer.
+				getTagBuilder(ModTags.LAYERS_3D).add(identifier);
+				addInheritedTags(identifier, Args.DATAGEN_ARGS.get(layer3D.getBaseLayer()), tierMembers);
 			}
 		});
 	}
 
+	private void addInheritedTags(Identifier identifier, DatagenArgs args, List<Set<Identifier>> tierMembers) {
+		for (TagKey<Block> blockTagKey : args.blockTags) {
+			getTagBuilder(blockTagKey).add(identifier);
+		}
+
+		if (args.parentBlock != null) {
+			Identifier parent = Registries.BLOCK.getId(args.parentBlock);
+
+			for (int i = 0; i < TOOL_TIER_TAGS.size(); i++) {
+				if (tierMembers.get(i).contains(parent)) {
+					getTagBuilder(TOOL_TIER_TAGS.get(i)).add(identifier);
+				}
+			}
+		}
+	}
+
 	// Vanilla tags are not bound during datagen, so read the tag file shipped in the
-	// Minecraft jar instead, following "#tag" references.
+	// Minecraft jar instead, following "#tag" references. Every copy on the classpath is
+	// merged: this mod's own previously generated file has the same path and could
+	// otherwise hide the vanilla one.
 	private static Set<Identifier> readVanillaBlockTag(Identifier tag) {
 		Set<Identifier> blocks = new HashSet<>();
 		String path = "data/" + tag.getNamespace() + "/tags/block/" + tag.getPath() + ".json";
 
-		try (InputStream stream = Block.class.getClassLoader().getResourceAsStream(path)) {
-			if (stream == null) {
+		try {
+			List<URL> files = Collections.list(Block.class.getClassLoader().getResources(path));
+
+			if (files.isEmpty()) {
 				throw new IllegalStateException("Vanilla block tag not found: " + path);
 			}
 
-			for (JsonElement value : JsonParser.parseReader(new InputStreamReader(stream, StandardCharsets.UTF_8)).getAsJsonObject().getAsJsonArray("values")) {
-				String entry = value.isJsonObject() ? value.getAsJsonObject().get("id").getAsString() : value.getAsString();
+			for (URL file : files) {
+				try (InputStream stream = file.openStream()) {
+					for (JsonElement value : JsonParser.parseReader(new InputStreamReader(stream, StandardCharsets.UTF_8)).getAsJsonObject().getAsJsonArray("values")) {
+						String entry = value.isJsonObject() ? value.getAsJsonObject().get("id").getAsString() : value.getAsString();
 
-				if (entry.startsWith("#")) {
-					blocks.addAll(readVanillaBlockTag(Identifier.of(entry.substring(1))));
-				} else {
-					blocks.add(Identifier.of(entry));
+						if (entry.startsWith("#")) {
+							blocks.addAll(readVanillaBlockTag(Identifier.of(entry.substring(1))));
+						} else {
+							blocks.add(Identifier.of(entry));
+						}
+					}
 				}
 			}
 		} catch (IOException e) {

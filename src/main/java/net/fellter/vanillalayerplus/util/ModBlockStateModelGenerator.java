@@ -1,5 +1,10 @@
 package net.fellter.vanillalayerplus.util;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+
+import net.fellter.vanillalayerplus.block.Layer3DBlock;
+
 import net.minecraft.block.Block;
 import net.minecraft.data.client.*;
 import net.minecraft.state.property.Properties;
@@ -52,6 +57,119 @@ public class ModBlockStateModelGenerator {
 		Identifier id7 = ModModels.LAYER_13.upload(layerBlock, textureMap, bsmg.modelCollector);
 		bsmg.blockStateCollector.accept(createLayerBlockState(layerBlock, id, id2, id3, id4, id5, id6, id7, ModelIds.getBlockModelId(fullBlock)));
 		bsmg.registerParentedItemModel(layerBlock, id);
+	}
+
+	/**
+	 * Registers the models and blockstate of a 3D layer. Models are built for the north facing
+	 * and rotated for the others. Full states (either value at 8) use {@code fullBlock}.
+	 */
+	public static void registerLayer3DBlock(Layer3DBlock block, Identifier fullBlock, BlockStateModelGenerator bsmg, TextureMap textureMap) {
+		Identifier[][] models = new Identifier[8][8];
+
+		for (int layers = 0; layers <= 7; layers++) {
+			for (int width = 1; width <= 7; width++) {
+				models[layers][width] = ModModels.LAYER_3D[layers][width].upload(block, textureMap, bsmg.modelCollector);
+			}
+		}
+
+		bsmg.blockStateCollector.accept(VariantsBlockStateSupplier.create(block)
+				.coordinate(BlockStateVariantMap.create(Layer3DBlock.HORIZONTAL_FACING, Layer3DBlock.VERTICAL_LAYERS, Layer3DBlock.HORIZONTAL_LAYERS)
+						.register((facing, layers, width) -> {
+							if (layers == 8 || width == 8) {
+								return v(fullBlock);
+							}
+
+							BlockStateVariant variant = v(models[layers][width]).put(VariantSettings.UVLOCK, true);
+							return switch (facing) {
+								case EAST -> variant.put(VariantSettings.Y, VariantSettings.Rotation.R90);
+								case SOUTH -> variant.put(VariantSettings.Y, VariantSettings.Rotation.R180);
+								case WEST -> variant.put(VariantSettings.Y, VariantSettings.Rotation.R270);
+								default -> variant;
+							};
+						})));
+		bsmg.registerParentedItemModel(block, models[4][4]);
+	}
+
+	/**
+	 * Writes the 3D layer template models: a floor layer {@code vertical layers} high merged with
+	 * a wall layer {@code horizontal layers} thick against the north side.
+	 */
+	public static void registerLayer3DTemplates(BlockStateModelGenerator bsmg) {
+		for (int layers = 0; layers <= 7; layers++) {
+			for (int width = 1; width <= 7; width++) {
+				int h = layers * 2;
+				int d = width * 2;
+				bsmg.modelCollector.accept(ModModels.layer3DTemplateId(layers, width), () -> layer3DTemplate(h, d));
+			}
+		}
+	}
+
+	// Two elements that don't overlap: the wall (full height, d deep) and the floor in front of it
+	// (h high, from d to the south edge). The floor has no north face, it would be inside the wall.
+	// A pure wall layer (h = 0) has no floor element. UVs match the ones Minecraft derives from the
+	// element bounds, so textures line up with full blocks.
+	private static JsonObject layer3DTemplate(int h, int d) {
+		JsonArray elements = new JsonArray();
+
+		JsonObject wall = new JsonObject();
+		wall.add("down", face(0, 16 - d, 16, 16, "#bottom", "down"));
+		wall.add("up", face(0, 0, 16, d, "#top", "up"));
+		wall.add("north", face(0, 0, 16, 16, "#side", "north"));
+		wall.add("south", face(0, 0, 16, 16, "#side", null));
+		wall.add("west", face(0, 0, d, 16, "#side", "west"));
+		wall.add("east", face(16 - d, 0, 16, 16, "#side", "east"));
+		elements.add(element(vec(0, 0, 0), vec(16, 16, d), wall));
+
+		if (h > 0) {
+			JsonObject floor = new JsonObject();
+			floor.add("down", face(0, 0, 16, 16 - d, "#bottom", "down"));
+			floor.add("up", face(0, d, 16, 16, "#top", null));
+			floor.add("south", face(0, 16 - h, 16, 16, "#side", "south"));
+			floor.add("west", face(d, 16 - h, 16, 16, "#side", "west"));
+			floor.add("east", face(0, 16 - h, 16 - d, 16, "#side", "east"));
+			elements.add(element(vec(0, 0, d), vec(16, h, 16), floor));
+		}
+
+		JsonObject textures = new JsonObject();
+		textures.addProperty("particle", "#side");
+
+		JsonObject json = new JsonObject();
+		json.addProperty("parent", "block/block");
+		json.add("textures", textures);
+		json.add("elements", elements);
+		return json;
+	}
+
+	private static JsonObject element(JsonArray from, JsonArray to, JsonObject faces) {
+		JsonObject element = new JsonObject();
+		element.add("from", from);
+		element.add("to", to);
+		element.add("faces", faces);
+		return element;
+	}
+
+	// Every face is tinted like in the regular layer templates, so tinted blocks color fully.
+	private static JsonObject face(int u1, int v1, int u2, int v2, String texture, String cullface) {
+		JsonObject face = new JsonObject();
+		face.add("uv", vec(u1, v1, u2, v2));
+		face.addProperty("texture", texture);
+
+		if (cullface != null) {
+			face.addProperty("cullface", cullface);
+		}
+
+		face.addProperty("tintindex", 0);
+		return face;
+	}
+
+	private static JsonArray vec(int... values) {
+		JsonArray array = new JsonArray();
+
+		for (int value : values) {
+			array.add(value);
+		}
+
+		return array;
 	}
 
 	public static BlockStateSupplier createLayerBlockState(Block layerBlock,

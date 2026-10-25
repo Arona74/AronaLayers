@@ -3,6 +3,7 @@ package net.fellter.vanillalayerplus.datagen;
 import java.util.concurrent.CompletableFuture;
 
 import net.fellter.vanillalayerplus.VanillaLayerPlus;
+import net.fellter.vanillalayerplus.block.Layer3DBlock;
 import net.fellter.vanillalayerplus.block.LayerBlock;
 import net.fellter.vanillalayerplus.registry.Args;
 import net.fellter.vanillalayerplus.registry.DatagenArgs;
@@ -38,8 +39,36 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
 				} else if (block instanceof LayerBlock) {
 					addDrop(block, layerDrops(block));
 				}
+			} else if (block instanceof Layer3DBlock layer3D && Args.DATAGEN_ARGS.containsKey(layer3D.getBaseLayer())) {
+				addDrop(block, layer3DDrops(layer3D, Args.DATAGEN_ARGS.get(layer3D.getBaseLayer()).needsSilkTouch));
 			}
 		});
+	}
+
+	// A 3D layer drops its base layer item, as many as its volume in layers, rounded up. In
+	// 1/64ths of a block, the floor is 8 * vertical and the wall above it horizontal * (8 - vertical).
+	private LootTable.Builder layer3DDrops(Layer3DBlock block, boolean needsSilkTouch) {
+		LeafEntry.Builder<?> entry = ItemEntry.builder(block.getBaseLayer());
+
+		for (int layers = 0; layers <= 8; layers++) {
+			for (int horizontalLayers = 1; horizontalLayers <= 8; horizontalLayers++) {
+				int volume = 8 * layers + horizontalLayers * (8 - layers);
+				int count = (volume + 7) / 8;
+				entry.apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(count))
+						.conditionally(BlockStatePropertyLootCondition.builder(block)
+								.properties(net.minecraft.predicate.StatePredicate.Builder.create()
+										.exactMatch(Layer3DBlock.VERTICAL_LAYERS, layers)
+										.exactMatch(Layer3DBlock.HORIZONTAL_LAYERS, horizontalLayers))));
+			}
+		}
+
+		LootPool.Builder pool = LootPool.builder().rolls(ConstantLootNumberProvider.create(1.0F));
+
+		if (needsSilkTouch) {
+			return LootTable.builder().pool(pool.conditionally(this.createSilkTouchCondition()).with(entry));
+		}
+
+		return LootTable.builder().pool(pool.with(this.applyExplosionDecay(block, entry)));
 	}
 
 	private LootTable.Builder silkTouchDrops(Block drop) {

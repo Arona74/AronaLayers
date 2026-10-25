@@ -3,6 +3,7 @@ package net.fellter.vanillalayerplus.datagen;
 import java.util.concurrent.CompletableFuture;
 
 import net.fellter.vanillalayerplus.VanillaLayerPlus;
+import net.fellter.vanillalayerplus.block.Layer3DBlock;
 import net.fellter.vanillalayerplus.registry.Args;
 
 import net.minecraft.registry.Registries;
@@ -23,14 +24,14 @@ public class ModLanguageProvider extends FabricLanguageProvider {
 	@Override
 	public void generateTranslations(RegistryWrapper.WrapperLookup wrapperLookup, TranslationBuilder translationBuilder) {
 		Registries.BLOCK.stream().filter(VanillaLayerPlus::isNamespaced).forEach(block -> {
-			if (Args.DATAGEN_ARGS.containsKey(block)) {
+			if (Args.DATAGEN_ARGS.containsKey(block) || block instanceof Layer3DBlock) {
 				Identifier identifier = Registries.BLOCK.getId(block);
 				String[] var10000 = identifier.getPath().split("_");
 				StringBuilder stringBuilder = new StringBuilder();
 				String var10001;
 
 				for (String string : var10000) {
-					stringBuilder.append(StringUtil.capitalize(string)).append(" ");
+					stringBuilder.append(string.equals("3d") ? "3D" : StringUtil.capitalize(string)).append(" ");
 				}
 
 				var10001 = stringBuilder.delete(stringBuilder.length() - 1, stringBuilder.length()).toString();
@@ -39,5 +40,6 @@ public class ModLanguageProvider extends FabricLanguageProvider {
 		});
 
 		translationBuilder.add(RegistryKey.of(RegistryKeys.ITEM_GROUP, Identifier.of(VanillaLayerPlus.MOD_ID, "vlp")), "Vanilla+ Layers");
+		translationBuilder.add(RegistryKey.of(RegistryKeys.ITEM_GROUP, Identifier.of(VanillaLayerPlus.MOD_ID, "vlp_3d")), "Vanilla+ 3D Layers");
 	}
 }

@@ -465,6 +465,48 @@ public class ModBlocks {
 	public static final Block BEDROCK_LAYER = registerBlock("bedrock_layer", LayerBlock::new, AbstractBlock.Settings.copy(Blocks.BEDROCK));
 	public static final Block TARGET_LAYER = registerBlock("target_layer", LayerBlock::new, AbstractBlock.Settings.copy(Blocks.TARGET));
 
+	// 3D layers: terrain layers that are also partial horizontally (see Layer3DBlock)
+	public static final Block PACKED_ICE_3D_LAYER = register3DLayer("packed_ice_3d_layer", PACKED_ICE_LAYER, AbstractBlock.Settings.copy(Blocks.PACKED_ICE));
+	public static final Block STONE_3D_LAYER = register3DLayer("stone_3d_layer", STONE_LAYER, AbstractBlock.Settings.copy(Blocks.STONE));
+	public static final Block GRANITE_3D_LAYER = register3DLayer("granite_3d_layer", GRANITE_LAYER, AbstractBlock.Settings.copy(Blocks.GRANITE));
+	public static final Block DIORITE_3D_LAYER = register3DLayer("diorite_3d_layer", DIORITE_LAYER, AbstractBlock.Settings.copy(Blocks.DIORITE));
+	public static final Block ANDESITE_3D_LAYER = register3DLayer("andesite_3d_layer", ANDESITE_LAYER, AbstractBlock.Settings.copy(Blocks.ANDESITE));
+	public static final Block DEEPSLATE_3D_LAYER = register3DLayer("deepslate_3d_layer", DEEPSLATE_LAYER, AbstractBlock.Settings.copy(Blocks.DEEPSLATE));
+	public static final Block TUFF_3D_LAYER = register3DLayer("tuff_3d_layer", TUFF_LAYER, AbstractBlock.Settings.copy(Blocks.TUFF));
+	public static final Block CALCITE_3D_LAYER = register3DLayer("calcite_3d_layer", CALCITE_LAYER, AbstractBlock.Settings.copy(Blocks.CALCITE));
+	public static final Block SANDSTONE_3D_LAYER = register3DLayer("sandstone_3d_layer", SANDSTONE_LAYER, AbstractBlock.Settings.copy(Blocks.SANDSTONE));
+	public static final Block RED_SANDSTONE_3D_LAYER = register3DLayer("red_sandstone_3d_layer", RED_SANDSTONE_LAYER, AbstractBlock.Settings.copy(Blocks.RED_SANDSTONE));
+	public static final Block TERRACOTTA_3D_LAYER = register3DLayer("terracotta_3d_layer", TERRACOTTA_LAYER, AbstractBlock.Settings.copy(Blocks.TERRACOTTA));
+	public static final Block NETHERRACK_3D_LAYER = register3DLayer("netherrack_3d_layer", NETHERRACK_LAYER, AbstractBlock.Settings.copy(Blocks.NETHERRACK));
+	public static final Block BASALT_3D_LAYER = register3DLayer("basalt_3d_layer", BASALT_LAYER, AbstractBlock.Settings.copy(Blocks.BASALT));
+	public static final Block BLACKSTONE_3D_LAYER = register3DLayer("blackstone_3d_layer", BLACKSTONE_LAYER, AbstractBlock.Settings.copy(Blocks.BLACKSTONE));
+	public static final Block END_STONE_3D_LAYER = register3DLayer("end_stone_3d_layer", END_STONE_LAYER, AbstractBlock.Settings.copy(Blocks.END_STONE));
+
+	public static final Block COAL_ORE_3D_LAYER = register3DLayer("coal_ore_3d_layer", COAL_ORE_LAYER, AbstractBlock.Settings.copy(Blocks.COAL_ORE));
+	public static final Block DEEPSLATE_COAL_ORE_3D_LAYER = register3DLayer("deepslate_coal_ore_3d_layer", DEEPSLATE_COAL_ORE_LAYER, AbstractBlock.Settings.copy(Blocks.DEEPSLATE_COAL_ORE));
+	public static final Block IRON_ORE_3D_LAYER = register3DLayer("iron_ore_3d_layer", IRON_ORE_LAYER, AbstractBlock.Settings.copy(Blocks.IRON_ORE));
+	public static final Block DEEPSLATE_IRON_ORE_3D_LAYER = register3DLayer("deepslate_iron_ore_3d_layer", DEEPSLATE_IRON_ORE_LAYER, AbstractBlock.Settings.copy(Blocks.DEEPSLATE_IRON_ORE));
+	public static final Block COPPER_ORE_3D_LAYER = register3DLayer("copper_ore_3d_layer", COPPER_ORE_LAYER, AbstractBlock.Settings.copy(Blocks.COPPER_ORE));
+	public static final Block DEEPSLATE_COPPER_ORE_3D_LAYER = register3DLayer("deepslate_copper_ore_3d_layer", DEEPSLATE_COPPER_ORE_LAYER, AbstractBlock.Settings.copy(Blocks.DEEPSLATE_COPPER_ORE));
+	public static final Block GOLD_ORE_3D_LAYER = register3DLayer("gold_ore_3d_layer", GOLD_ORE_LAYER, AbstractBlock.Settings.copy(Blocks.GOLD_ORE));
+	public static final Block DEEPSLATE_GOLD_ORE_3D_LAYER = register3DLayer("deepslate_gold_ore_3d_layer", DEEPSLATE_GOLD_ORE_LAYER, AbstractBlock.Settings.copy(Blocks.DEEPSLATE_GOLD_ORE));
+	// Redstone ore's light level reads its "lit" property, which 3D layers don't have.
+	public static final Block REDSTONE_ORE_3D_LAYER = register3DLayer("redstone_ore_3d_layer", REDSTONE_ORE_LAYER, AbstractBlock.Settings.copy(Blocks.REDSTONE_ORE).luminance(state -> 0));
+	public static final Block DEEPSLATE_REDSTONE_ORE_3D_LAYER = register3DLayer("deepslate_redstone_ore_3d_layer", DEEPSLATE_REDSTONE_ORE_LAYER, AbstractBlock.Settings.copy(Blocks.DEEPSLATE_REDSTONE_ORE).luminance(state -> 0));
+	public static final Block EMERALD_ORE_3D_LAYER = register3DLayer("emerald_ore_3d_layer", EMERALD_ORE_LAYER, AbstractBlock.Settings.copy(Blocks.EMERALD_ORE));
+	public static final Block DEEPSLATE_EMERALD_ORE_3D_LAYER = register3DLayer("deepslate_emerald_ore_3d_layer", DEEPSLATE_EMERALD_ORE_LAYER, AbstractBlock.Settings.copy(Blocks.DEEPSLATE_EMERALD_ORE));
+	public static final Block LAPIS_ORE_3D_LAYER = register3DLayer("lapis_ore_3d_layer", LAPIS_ORE_LAYER, AbstractBlock.Settings.copy(Blocks.LAPIS_ORE));
+	public static final Block DEEPSLATE_LAPIS_ORE_3D_LAYER = register3DLayer("deepslate_lapis_ore_3d_layer", DEEPSLATE_LAPIS_ORE_LAYER, AbstractBlock.Settings.copy(Blocks.DEEPSLATE_LAPIS_ORE));
+	public static final Block DIAMOND_ORE_3D_LAYER = register3DLayer("diamond_ore_3d_layer", DIAMOND_ORE_LAYER, AbstractBlock.Settings.copy(Blocks.DIAMOND_ORE));
+	public static final Block DEEPSLATE_DIAMOND_ORE_3D_LAYER = register3DLayer("deepslate_diamond_ore_3d_layer", DEEPSLATE_DIAMOND_ORE_LAYER, AbstractBlock.Settings.copy(Blocks.DEEPSLATE_DIAMOND_ORE));
+	public static final Block NETHER_GOLD_ORE_3D_LAYER = register3DLayer("nether_gold_ore_3d_layer", NETHER_GOLD_ORE_LAYER, AbstractBlock.Settings.copy(Blocks.NETHER_GOLD_ORE));
+	public static final Block NETHER_QUARTZ_ORE_3D_LAYER = register3DLayer("nether_quartz_ore_3d_layer", NETHER_QUARTZ_ORE_LAYER, AbstractBlock.Settings.copy(Blocks.NETHER_QUARTZ_ORE));
+	public static final Block ANCIENT_DEBRIS_3D_LAYER = register3DLayer("ancient_debris_3d_layer", ANCIENT_DEBRIS_LAYER, AbstractBlock.Settings.copy(Blocks.ANCIENT_DEBRIS));
+
+	private static Block register3DLayer(String name, Block baseLayer, AbstractBlock.@NotNull Settings settings) {
+		return registerBlock(name, s -> new Layer3DBlock(baseLayer, s), settings);
+	}
+
 	private static Block registerBlock(String name, @NotNull Function<AbstractBlock.Settings, Block> function, AbstractBlock.@NotNull Settings settings) {
 		Block block = function.apply(settings);
 		Registry.register(Registries.ITEM, Identifier.of(VanillaLayerPlus.MOD_ID, name), new BlockItem(block, new Item.Settings()));

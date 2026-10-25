@@ -1,6 +1,7 @@
 package net.fellter.vanillalayerplus.item;
 
 import net.fellter.vanillalayerplus.VanillaLayerPlus;
+import net.fellter.vanillalayerplus.block.Layer3DBlock;
 import net.fellter.vanillalayerplus.block.ModBlocks;
 
 import net.minecraft.item.ItemGroup;
@@ -422,6 +423,12 @@ public class ModItemGroups {
 						entries.add(ModBlocks.BEDROCK_LAYER);
 						entries.add(ModBlocks.TARGET_LAYER);
 					}).build());
+
+	public static final ItemGroup VLP_3D_GROUP = Registry.register(Registries.ITEM_GROUP,
+			Identifier.of(VanillaLayerPlus.MOD_ID, "vlp_3d"),
+			FabricItemGroup.builder().displayName(Text.translatable("itemgroup.vanillalayerplus_3d"))
+					.icon(() -> new ItemStack(ModBlocks.STONE_3D_LAYER)).entries((displayContext, entries) ->
+							Registries.BLOCK.stream().filter(block -> block instanceof Layer3DBlock).forEach(entries::add)).build());
 
 	public static void registerItemGroups() {
 	}

@@ -1,15 +1,18 @@
 package net.fellter.vanillalayerplus.datagen;
 
 import net.fellter.vanillalayerplus.VanillaLayerPlus;
+import net.fellter.vanillalayerplus.block.Layer3DBlock;
 import net.fellter.vanillalayerplus.block.LayerBlock;
 import net.fellter.vanillalayerplus.block.ModBlocks;
 import net.fellter.vanillalayerplus.item.ModItems;
 import net.fellter.vanillalayerplus.registry.Args;
 import net.fellter.vanillalayerplus.registry.DatagenArgs;
 
+import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.data.client.BlockStateModelGenerator;
 import net.minecraft.data.client.ItemModelGenerator;
+import net.minecraft.data.client.ModelIds;
 import net.minecraft.data.client.Models;
 import net.minecraft.data.client.TextureMap;
 import net.minecraft.registry.Registries;
@@ -18,6 +21,8 @@ import net.minecraft.util.Identifier;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricModelProvider;
 
+import static net.fellter.vanillalayerplus.util.ModBlockStateModelGenerator.registerLayer3DBlock;
+import static net.fellter.vanillalayerplus.util.ModBlockStateModelGenerator.registerLayer3DTemplates;
 import static net.fellter.vanillalayerplus.util.ModBlockStateModelGenerator.registerLayerBlock;
 import static net.fellter.vanillalayerplus.util.ModBlockStateModelGenerator.registerLayerBlockY15;
 
@@ -47,6 +52,14 @@ public class ModModelProvider extends FabricModelProvider {
 					}
 				}
 			}
+		});
+
+		registerLayer3DTemplates(bsmg);
+		Registries.BLOCK.stream().filter(block -> block instanceof Layer3DBlock).forEach(block -> {
+			Layer3DBlock layer3D = (Layer3DBlock) block;
+			DatagenArgs args = Args.DATAGEN_ARGS.get(layer3D.getBaseLayer());
+			Block fullBlock = args.fullTextureBlock != null ? args.fullTextureBlock : args.parentBlock;
+			registerLayer3DBlock(layer3D, ModelIds.getBlockModelId(fullBlock), bsmg, args.textureMap);
 		});
 	}
 
