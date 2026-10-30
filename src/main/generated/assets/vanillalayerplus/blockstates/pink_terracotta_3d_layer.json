@@ -1,0 +1,1260 @@
+{
+  "variants": {
+    "horizontal_facing=east,horizontal_layers=1,vertical_layers=0": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_0_width_2",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=1,vertical_layers=1": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_2_width_2",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=1,vertical_layers=2": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_4_width_2",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=1,vertical_layers=3": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_6_width_2",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=1,vertical_layers=4": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_8_width_2",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=1,vertical_layers=5": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_10_width_2",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=1,vertical_layers=6": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_12_width_2",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=1,vertical_layers=7": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_14_width_2",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=1,vertical_layers=8": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=east,horizontal_layers=2,vertical_layers=0": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_0_width_4",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=2,vertical_layers=1": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_2_width_4",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=2,vertical_layers=2": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_4_width_4",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=2,vertical_layers=3": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_6_width_4",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=2,vertical_layers=4": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_8_width_4",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=2,vertical_layers=5": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_10_width_4",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=2,vertical_layers=6": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_12_width_4",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=2,vertical_layers=7": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_14_width_4",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=2,vertical_layers=8": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=east,horizontal_layers=3,vertical_layers=0": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_0_width_6",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=3,vertical_layers=1": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_2_width_6",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=3,vertical_layers=2": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_4_width_6",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=3,vertical_layers=3": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_6_width_6",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=3,vertical_layers=4": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_8_width_6",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=3,vertical_layers=5": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_10_width_6",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=3,vertical_layers=6": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_12_width_6",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=3,vertical_layers=7": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_14_width_6",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=3,vertical_layers=8": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=east,horizontal_layers=4,vertical_layers=0": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_0_width_8",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=4,vertical_layers=1": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_2_width_8",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=4,vertical_layers=2": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_4_width_8",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=4,vertical_layers=3": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_6_width_8",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=4,vertical_layers=4": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_8_width_8",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=4,vertical_layers=5": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_10_width_8",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=4,vertical_layers=6": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_12_width_8",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=4,vertical_layers=7": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_14_width_8",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=4,vertical_layers=8": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=east,horizontal_layers=5,vertical_layers=0": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_0_width_10",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=5,vertical_layers=1": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_2_width_10",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=5,vertical_layers=2": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_4_width_10",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=5,vertical_layers=3": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_6_width_10",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=5,vertical_layers=4": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_8_width_10",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=5,vertical_layers=5": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_10_width_10",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=5,vertical_layers=6": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_12_width_10",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=5,vertical_layers=7": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_14_width_10",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=5,vertical_layers=8": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=east,horizontal_layers=6,vertical_layers=0": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_0_width_12",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=6,vertical_layers=1": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_2_width_12",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=6,vertical_layers=2": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_4_width_12",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=6,vertical_layers=3": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_6_width_12",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=6,vertical_layers=4": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_8_width_12",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=6,vertical_layers=5": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_10_width_12",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=6,vertical_layers=6": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_12_width_12",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=6,vertical_layers=7": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_14_width_12",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=6,vertical_layers=8": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=east,horizontal_layers=7,vertical_layers=0": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_0_width_14",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=7,vertical_layers=1": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_2_width_14",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=7,vertical_layers=2": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_4_width_14",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=7,vertical_layers=3": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_6_width_14",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=7,vertical_layers=4": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_8_width_14",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=7,vertical_layers=5": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_10_width_14",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=7,vertical_layers=6": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_12_width_14",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=7,vertical_layers=7": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_14_width_14",
+      "uvlock": true,
+      "y": 90
+    },
+    "horizontal_facing=east,horizontal_layers=7,vertical_layers=8": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=east,horizontal_layers=8,vertical_layers=0": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=east,horizontal_layers=8,vertical_layers=1": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=east,horizontal_layers=8,vertical_layers=2": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=east,horizontal_layers=8,vertical_layers=3": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=east,horizontal_layers=8,vertical_layers=4": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=east,horizontal_layers=8,vertical_layers=5": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=east,horizontal_layers=8,vertical_layers=6": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=east,horizontal_layers=8,vertical_layers=7": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=east,horizontal_layers=8,vertical_layers=8": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=north,horizontal_layers=1,vertical_layers=0": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_0_width_2",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=1,vertical_layers=1": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_2_width_2",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=1,vertical_layers=2": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_4_width_2",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=1,vertical_layers=3": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_6_width_2",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=1,vertical_layers=4": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_8_width_2",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=1,vertical_layers=5": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_10_width_2",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=1,vertical_layers=6": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_12_width_2",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=1,vertical_layers=7": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_14_width_2",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=1,vertical_layers=8": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=north,horizontal_layers=2,vertical_layers=0": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_0_width_4",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=2,vertical_layers=1": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_2_width_4",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=2,vertical_layers=2": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_4_width_4",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=2,vertical_layers=3": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_6_width_4",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=2,vertical_layers=4": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_8_width_4",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=2,vertical_layers=5": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_10_width_4",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=2,vertical_layers=6": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_12_width_4",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=2,vertical_layers=7": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_14_width_4",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=2,vertical_layers=8": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=north,horizontal_layers=3,vertical_layers=0": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_0_width_6",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=3,vertical_layers=1": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_2_width_6",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=3,vertical_layers=2": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_4_width_6",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=3,vertical_layers=3": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_6_width_6",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=3,vertical_layers=4": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_8_width_6",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=3,vertical_layers=5": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_10_width_6",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=3,vertical_layers=6": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_12_width_6",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=3,vertical_layers=7": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_14_width_6",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=3,vertical_layers=8": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=north,horizontal_layers=4,vertical_layers=0": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_0_width_8",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=4,vertical_layers=1": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_2_width_8",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=4,vertical_layers=2": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_4_width_8",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=4,vertical_layers=3": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_6_width_8",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=4,vertical_layers=4": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_8_width_8",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=4,vertical_layers=5": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_10_width_8",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=4,vertical_layers=6": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_12_width_8",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=4,vertical_layers=7": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_14_width_8",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=4,vertical_layers=8": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=north,horizontal_layers=5,vertical_layers=0": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_0_width_10",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=5,vertical_layers=1": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_2_width_10",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=5,vertical_layers=2": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_4_width_10",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=5,vertical_layers=3": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_6_width_10",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=5,vertical_layers=4": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_8_width_10",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=5,vertical_layers=5": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_10_width_10",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=5,vertical_layers=6": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_12_width_10",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=5,vertical_layers=7": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_14_width_10",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=5,vertical_layers=8": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=north,horizontal_layers=6,vertical_layers=0": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_0_width_12",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=6,vertical_layers=1": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_2_width_12",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=6,vertical_layers=2": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_4_width_12",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=6,vertical_layers=3": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_6_width_12",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=6,vertical_layers=4": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_8_width_12",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=6,vertical_layers=5": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_10_width_12",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=6,vertical_layers=6": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_12_width_12",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=6,vertical_layers=7": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_14_width_12",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=6,vertical_layers=8": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=north,horizontal_layers=7,vertical_layers=0": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_0_width_14",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=7,vertical_layers=1": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_2_width_14",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=7,vertical_layers=2": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_4_width_14",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=7,vertical_layers=3": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_6_width_14",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=7,vertical_layers=4": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_8_width_14",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=7,vertical_layers=5": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_10_width_14",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=7,vertical_layers=6": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_12_width_14",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=7,vertical_layers=7": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_14_width_14",
+      "uvlock": true
+    },
+    "horizontal_facing=north,horizontal_layers=7,vertical_layers=8": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=north,horizontal_layers=8,vertical_layers=0": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=north,horizontal_layers=8,vertical_layers=1": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=north,horizontal_layers=8,vertical_layers=2": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=north,horizontal_layers=8,vertical_layers=3": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=north,horizontal_layers=8,vertical_layers=4": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=north,horizontal_layers=8,vertical_layers=5": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=north,horizontal_layers=8,vertical_layers=6": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=north,horizontal_layers=8,vertical_layers=7": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=north,horizontal_layers=8,vertical_layers=8": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=south,horizontal_layers=1,vertical_layers=0": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_0_width_2",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=1,vertical_layers=1": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_2_width_2",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=1,vertical_layers=2": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_4_width_2",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=1,vertical_layers=3": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_6_width_2",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=1,vertical_layers=4": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_8_width_2",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=1,vertical_layers=5": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_10_width_2",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=1,vertical_layers=6": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_12_width_2",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=1,vertical_layers=7": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_14_width_2",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=1,vertical_layers=8": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=south,horizontal_layers=2,vertical_layers=0": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_0_width_4",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=2,vertical_layers=1": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_2_width_4",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=2,vertical_layers=2": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_4_width_4",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=2,vertical_layers=3": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_6_width_4",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=2,vertical_layers=4": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_8_width_4",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=2,vertical_layers=5": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_10_width_4",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=2,vertical_layers=6": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_12_width_4",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=2,vertical_layers=7": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_14_width_4",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=2,vertical_layers=8": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=south,horizontal_layers=3,vertical_layers=0": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_0_width_6",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=3,vertical_layers=1": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_2_width_6",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=3,vertical_layers=2": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_4_width_6",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=3,vertical_layers=3": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_6_width_6",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=3,vertical_layers=4": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_8_width_6",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=3,vertical_layers=5": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_10_width_6",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=3,vertical_layers=6": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_12_width_6",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=3,vertical_layers=7": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_14_width_6",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=3,vertical_layers=8": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=south,horizontal_layers=4,vertical_layers=0": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_0_width_8",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=4,vertical_layers=1": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_2_width_8",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=4,vertical_layers=2": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_4_width_8",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=4,vertical_layers=3": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_6_width_8",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=4,vertical_layers=4": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_8_width_8",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=4,vertical_layers=5": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_10_width_8",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=4,vertical_layers=6": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_12_width_8",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=4,vertical_layers=7": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_14_width_8",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=4,vertical_layers=8": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=south,horizontal_layers=5,vertical_layers=0": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_0_width_10",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=5,vertical_layers=1": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_2_width_10",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=5,vertical_layers=2": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_4_width_10",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=5,vertical_layers=3": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_6_width_10",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=5,vertical_layers=4": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_8_width_10",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=5,vertical_layers=5": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_10_width_10",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=5,vertical_layers=6": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_12_width_10",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=5,vertical_layers=7": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_14_width_10",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=5,vertical_layers=8": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=south,horizontal_layers=6,vertical_layers=0": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_0_width_12",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=6,vertical_layers=1": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_2_width_12",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=6,vertical_layers=2": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_4_width_12",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=6,vertical_layers=3": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_6_width_12",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=6,vertical_layers=4": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_8_width_12",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=6,vertical_layers=5": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_10_width_12",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=6,vertical_layers=6": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_12_width_12",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=6,vertical_layers=7": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_14_width_12",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=6,vertical_layers=8": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=south,horizontal_layers=7,vertical_layers=0": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_0_width_14",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=7,vertical_layers=1": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_2_width_14",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=7,vertical_layers=2": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_4_width_14",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=7,vertical_layers=3": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_6_width_14",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=7,vertical_layers=4": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_8_width_14",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=7,vertical_layers=5": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_10_width_14",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=7,vertical_layers=6": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_12_width_14",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=7,vertical_layers=7": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_14_width_14",
+      "uvlock": true,
+      "y": 180
+    },
+    "horizontal_facing=south,horizontal_layers=7,vertical_layers=8": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=south,horizontal_layers=8,vertical_layers=0": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=south,horizontal_layers=8,vertical_layers=1": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=south,horizontal_layers=8,vertical_layers=2": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=south,horizontal_layers=8,vertical_layers=3": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=south,horizontal_layers=8,vertical_layers=4": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=south,horizontal_layers=8,vertical_layers=5": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=south,horizontal_layers=8,vertical_layers=6": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=south,horizontal_layers=8,vertical_layers=7": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=south,horizontal_layers=8,vertical_layers=8": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=west,horizontal_layers=1,vertical_layers=0": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_0_width_2",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=1,vertical_layers=1": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_2_width_2",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=1,vertical_layers=2": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_4_width_2",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=1,vertical_layers=3": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_6_width_2",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=1,vertical_layers=4": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_8_width_2",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=1,vertical_layers=5": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_10_width_2",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=1,vertical_layers=6": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_12_width_2",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=1,vertical_layers=7": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_14_width_2",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=1,vertical_layers=8": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=west,horizontal_layers=2,vertical_layers=0": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_0_width_4",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=2,vertical_layers=1": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_2_width_4",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=2,vertical_layers=2": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_4_width_4",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=2,vertical_layers=3": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_6_width_4",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=2,vertical_layers=4": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_8_width_4",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=2,vertical_layers=5": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_10_width_4",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=2,vertical_layers=6": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_12_width_4",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=2,vertical_layers=7": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_14_width_4",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=2,vertical_layers=8": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=west,horizontal_layers=3,vertical_layers=0": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_0_width_6",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=3,vertical_layers=1": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_2_width_6",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=3,vertical_layers=2": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_4_width_6",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=3,vertical_layers=3": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_6_width_6",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=3,vertical_layers=4": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_8_width_6",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=3,vertical_layers=5": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_10_width_6",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=3,vertical_layers=6": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_12_width_6",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=3,vertical_layers=7": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_14_width_6",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=3,vertical_layers=8": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=west,horizontal_layers=4,vertical_layers=0": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_0_width_8",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=4,vertical_layers=1": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_2_width_8",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=4,vertical_layers=2": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_4_width_8",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=4,vertical_layers=3": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_6_width_8",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=4,vertical_layers=4": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_8_width_8",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=4,vertical_layers=5": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_10_width_8",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=4,vertical_layers=6": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_12_width_8",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=4,vertical_layers=7": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_14_width_8",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=4,vertical_layers=8": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=west,horizontal_layers=5,vertical_layers=0": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_0_width_10",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=5,vertical_layers=1": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_2_width_10",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=5,vertical_layers=2": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_4_width_10",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=5,vertical_layers=3": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_6_width_10",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=5,vertical_layers=4": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_8_width_10",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=5,vertical_layers=5": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_10_width_10",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=5,vertical_layers=6": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_12_width_10",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=5,vertical_layers=7": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_14_width_10",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=5,vertical_layers=8": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=west,horizontal_layers=6,vertical_layers=0": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_0_width_12",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=6,vertical_layers=1": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_2_width_12",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=6,vertical_layers=2": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_4_width_12",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=6,vertical_layers=3": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_6_width_12",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=6,vertical_layers=4": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_8_width_12",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=6,vertical_layers=5": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_10_width_12",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=6,vertical_layers=6": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_12_width_12",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=6,vertical_layers=7": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_14_width_12",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=6,vertical_layers=8": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=west,horizontal_layers=7,vertical_layers=0": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_0_width_14",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=7,vertical_layers=1": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_2_width_14",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=7,vertical_layers=2": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_4_width_14",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=7,vertical_layers=3": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_6_width_14",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=7,vertical_layers=4": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_8_width_14",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=7,vertical_layers=5": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_10_width_14",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=7,vertical_layers=6": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_12_width_14",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=7,vertical_layers=7": {
+      "model": "vanillalayerplus:block/pink_terracotta_3d_layer_height_14_width_14",
+      "uvlock": true,
+      "y": 270
+    },
+    "horizontal_facing=west,horizontal_layers=7,vertical_layers=8": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=west,horizontal_layers=8,vertical_layers=0": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=west,horizontal_layers=8,vertical_layers=1": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=west,horizontal_layers=8,vertical_layers=2": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=west,horizontal_layers=8,vertical_layers=3": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=west,horizontal_layers=8,vertical_layers=4": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=west,horizontal_layers=8,vertical_layers=5": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=west,horizontal_layers=8,vertical_layers=6": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=west,horizontal_layers=8,vertical_layers=7": {
+      "model": "minecraft:block/pink_terracotta"
+    },
+    "horizontal_facing=west,horizontal_layers=8,vertical_layers=8": {
+      "model": "minecraft:block/pink_terracotta"
+    }
+  }
+}
