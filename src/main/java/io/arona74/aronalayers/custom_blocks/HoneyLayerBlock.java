@@ -3,7 +3,6 @@ package io.arona74.aronalayers.custom_blocks;
 import io.arona74.aronalayers.block.LayerBlock;
 import io.arona74.aronalayers.compat.Compat;
 
-import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -70,7 +69,7 @@ public class HoneyLayerBlock extends LayerBlock {
 
 	private void triggerAdvancement(Entity entity, BlockPos pos) {
 		if (entity instanceof ServerPlayer && entity.level().getGameTime() % 20L == 0L) {
-			CriteriaTriggers.HONEY_BLOCK_SLIDE.trigger((ServerPlayer) entity, entity.level().getBlockState(pos));
+			Compat.triggerHoneySlide((ServerPlayer) entity, entity.level().getBlockState(pos));
 		}
 	}
 

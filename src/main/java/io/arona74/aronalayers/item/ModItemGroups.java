@@ -119,6 +119,17 @@ public class ModItemGroups {
 						entries.accept(ModBlocks.TUFF_BRICKS_LAYER);
 						entries.accept(ModBlocks.CHISELED_TUFF_BRICKS_LAYER);
 
+						acceptIfPresent(entries, ModBlocks.CINNABAR_LAYER);
+						acceptIfPresent(entries, ModBlocks.POLISHED_CINNABAR_LAYER);
+						acceptIfPresent(entries, ModBlocks.CINNABAR_BRICKS_LAYER);
+						acceptIfPresent(entries, ModBlocks.CHISELED_CINNABAR_LAYER);
+
+						acceptIfPresent(entries, ModBlocks.SULFUR_LAYER);
+						acceptIfPresent(entries, ModBlocks.POTENT_SULFUR_LAYER);
+						acceptIfPresent(entries, ModBlocks.POLISHED_SULFUR_LAYER);
+						acceptIfPresent(entries, ModBlocks.SULFUR_BRICKS_LAYER);
+						acceptIfPresent(entries, ModBlocks.CHISELED_SULFUR_LAYER);
+
 						entries.accept(ModBlocks.BRICKS_LAYER);
 						entries.accept(ModBlocks.PACKED_MUD_LAYER);
 						entries.accept(ModBlocks.MUD_BRICKS_LAYER);

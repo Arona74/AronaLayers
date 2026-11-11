@@ -1,0 +1,17 @@
+{
+  "parent": "aronalayers:blockmodels/layer_height_6",
+  "textures": {
+    "bottom": {
+      "force_translucent": true,
+      "sprite": "minecraft:block/ice"
+    },
+    "side": {
+      "force_translucent": true,
+      "sprite": "minecraft:block/ice"
+    },
+    "top": {
+      "force_translucent": true,
+      "sprite": "minecraft:block/ice"
+    }
+  }
+}

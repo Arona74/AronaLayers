@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_bone_layer": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aronalayers:bone_layer"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "aronalayers:bone_block_from_bone_layer"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_bone_layer"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aronalayers:bone_block_from_bone_layer"
+    ]
+  }
+}

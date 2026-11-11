@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_hay_layer": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aronalayers:hay_layer"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "aronalayers:hay_block_from_hay_layer"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_hay_layer"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aronalayers:hay_block_from_hay_layer"
+    ]
+  }
+}

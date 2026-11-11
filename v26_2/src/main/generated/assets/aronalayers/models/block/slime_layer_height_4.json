@@ -1,0 +1,17 @@
+{
+  "parent": "aronalayers:blockmodels/layer_height_4",
+  "textures": {
+    "bottom": {
+      "force_translucent": true,
+      "sprite": "minecraft:block/slime_block"
+    },
+    "side": {
+      "force_translucent": true,
+      "sprite": "minecraft:block/slime_block"
+    },
+    "top": {
+      "force_translucent": true,
+      "sprite": "minecraft:block/slime_block"
+    }
+  }
+}

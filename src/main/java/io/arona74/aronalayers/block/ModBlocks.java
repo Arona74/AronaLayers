@@ -146,6 +146,17 @@ public class ModBlocks {
 	public static final Block TUFF_BRICKS_LAYER = registerBlock("tuff_bricks_layer", LayerBlock::new, Compat.copyOf("tuff_bricks"));
 	public static final Block CHISELED_TUFF_BRICKS_LAYER = registerBlock("chiseled_tuff_bricks_layer", LayerBlock::new, Compat.copyOf("chiseled_tuff_bricks"));
 
+	public static final Block CINNABAR_LAYER = registerIfPresent("cinnabar_layer", "cinnabar", LayerBlock::new, () -> Compat.copyOf("cinnabar"));
+	public static final Block POLISHED_CINNABAR_LAYER = registerIfPresent("polished_cinnabar_layer", "polished_cinnabar", LayerBlock::new, () -> Compat.copyOf("polished_cinnabar"));
+	public static final Block CINNABAR_BRICKS_LAYER = registerIfPresent("cinnabar_bricks_layer", "cinnabar_bricks", LayerBlock::new, () -> Compat.copyOf("cinnabar_bricks"));
+	public static final Block CHISELED_CINNABAR_LAYER = registerIfPresent("chiseled_cinnabar_layer", "chiseled_cinnabar", LayerBlock::new, () -> Compat.copyOf("chiseled_cinnabar"));
+
+	public static final Block SULFUR_LAYER = registerIfPresent("sulfur_layer", "sulfur", LayerBlock::new, () -> Compat.copyOf("sulfur"));
+	public static final Block POTENT_SULFUR_LAYER = registerIfPresent("potent_sulfur_layer", "potent_sulfur", LayerBlock::new, () -> Compat.copyOf("potent_sulfur"));
+	public static final Block POLISHED_SULFUR_LAYER = registerIfPresent("polished_sulfur_layer", "polished_sulfur", LayerBlock::new, () -> Compat.copyOf("polished_sulfur"));
+	public static final Block SULFUR_BRICKS_LAYER = registerIfPresent("sulfur_bricks_layer", "sulfur_bricks", LayerBlock::new, () -> Compat.copyOf("sulfur_bricks"));
+	public static final Block CHISELED_SULFUR_LAYER = registerIfPresent("chiseled_sulfur_layer", "chiseled_sulfur", LayerBlock::new, () -> Compat.copyOf("chiseled_sulfur"));
+
 	public static final Block BRICKS_LAYER = registerBlock("bricks_layer", LayerBlock::new, Compat.copyOf("bricks"));
 	public static final Block PACKED_MUD_LAYER = registerBlock("packed_mud_layer", LayerBlock::new, Compat.copyOf("packed_mud"));
 	public static final Block MUD_BRICKS_LAYER = registerBlock("mud_bricks_layer", LayerBlock::new, Compat.copyOf("mud_bricks"));

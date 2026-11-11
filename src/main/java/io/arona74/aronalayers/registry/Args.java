@@ -120,6 +120,16 @@ public final class Args {
 		putInDatagenArgs(ModBlocks.POLISHED_TUFF_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_PICKAXE).parentBlock("polished_tuff").textureMap(Textures.all("polished_tuff")).stonecutting("tuff"));
 		putInDatagenArgs(ModBlocks.TUFF_BRICKS_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_PICKAXE).parentBlock("tuff_bricks").textureMap(Textures.all("tuff_bricks")).stonecutting("polished_tuff", "tuff"));
 		putInDatagenArgs(ModBlocks.CHISELED_TUFF_BRICKS_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_PICKAXE).parentBlock("chiseled_tuff_bricks").textureMap(blockAndTopForEnds("chiseled_tuff_bricks")).stonecutting("polished_tuff", "tuff_bricks"));
+		putIfPresent(ModBlocks.CINNABAR_LAYER, () -> new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_PICKAXE).parentBlock("cinnabar").textureMap(Textures.all("cinnabar")).stonecutting());
+		putIfPresent(ModBlocks.POLISHED_CINNABAR_LAYER, () -> new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_PICKAXE).parentBlock("polished_cinnabar").textureMap(Textures.all("polished_cinnabar")).stonecutting("cinnabar"));
+		putIfPresent(ModBlocks.CINNABAR_BRICKS_LAYER, () -> new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_PICKAXE).parentBlock("cinnabar_bricks").textureMap(Textures.all("cinnabar_bricks")).stonecutting("cinnabar", "polished_cinnabar"));
+		putIfPresent(ModBlocks.CHISELED_CINNABAR_LAYER, () -> new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_PICKAXE).parentBlock("chiseled_cinnabar").textureMap(Textures.all("chiseled_cinnabar")).stonecutting("cinnabar"));
+
+		putIfPresent(ModBlocks.SULFUR_LAYER, () -> new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_PICKAXE).parentBlock("sulfur").textureMap(Textures.all("sulfur")).stonecutting());
+		putIfPresent(ModBlocks.POTENT_SULFUR_LAYER, () -> new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_PICKAXE).parentBlock("potent_sulfur").textureMap(Textures.all("potent_sulfur")));
+		putIfPresent(ModBlocks.POLISHED_SULFUR_LAYER, () -> new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_PICKAXE).parentBlock("polished_sulfur").textureMap(Textures.all("polished_sulfur")).stonecutting("sulfur"));
+		putIfPresent(ModBlocks.SULFUR_BRICKS_LAYER, () -> new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_PICKAXE).parentBlock("sulfur_bricks").textureMap(Textures.all("sulfur_bricks")).stonecutting("sulfur", "polished_sulfur"));
+		putIfPresent(ModBlocks.CHISELED_SULFUR_LAYER, () -> new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_PICKAXE).parentBlock("chiseled_sulfur").textureMap(Textures.all("chiseled_sulfur")).stonecutting("sulfur"));
 		putInDatagenArgs(ModBlocks.BRICKS_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_PICKAXE).parentBlock("bricks").textureMap(Textures.all("bricks")).stonecutting());
 		putInDatagenArgs(ModBlocks.PACKED_MUD_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_PICKAXE).parentBlock("packed_mud").textureMap(Textures.all("packed_mud")));
 		putInDatagenArgs(ModBlocks.MUD_BRICKS_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_PICKAXE).parentBlock("mud_bricks").textureMap(Textures.all("mud_bricks")).stonecutting());
