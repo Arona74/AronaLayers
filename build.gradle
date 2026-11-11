@@ -1,3 +1,4 @@
 // Root project: aggregator only.
-// All build logic lives in the version subprojects (v1_21_1/, ...), which compile the shared
-// src/ tree together with their own src/ for what differs between Minecraft versions.
+// All build logic lives in the loader subprojects of each Minecraft version (v1_21_1/fabric/, ...).
+// Each compiles the shared src/main/ tree, its loader's src/<loader>/ tree, and its version's
+// common/ folder (code and generated data shared by both loaders) together with its own src/.

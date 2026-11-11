@@ -7,6 +7,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 
 import io.arona74.aronalayers.compat.Compat;
+import io.arona74.aronalayers.platform.Platform;
 import io.arona74.aronalayers.AronaLayers;
 import io.arona74.aronalayers.block.ModBlocks;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -20,7 +21,7 @@ public class ModRegistries {
 				RegistryArgs registryArgs = ModRegistryArgs.REGISTRY_ARGS.get(block);
 
 				if (BuiltInRegistries.BLOCK.getKey(block).getNamespace().equals(AronaLayers.MOD_ID) && registryArgs.stripped != null) {
-					Compat.registerStripping(block, registryArgs.stripped);
+					Platform.registerStripping(block, registryArgs.stripped);
 				}
 			}
 		});
@@ -33,7 +34,7 @@ public class ModRegistries {
 				RegistryArgs args = ModRegistryArgs.REGISTRY_ARGS.get(block);
 
 				if (identifier.getNamespace().equals(AronaLayers.MOD_ID) && args.tilled != null) {
-					Compat.registerTilling(block, args.tilled);
+					Platform.registerTilling(block, args.tilled);
 				}
 			}
 		});
@@ -60,7 +61,7 @@ public class ModRegistries {
 	private static void blockToFlattened(Block input, Block flattened) {
 		Objects.requireNonNull(input, "input block cannot be null");
 		Objects.requireNonNull(flattened, "flattened block state cannot be null");
-		Compat.registerFlattening(input, flattened);
+		Platform.registerFlattening(input, flattened);
 	}
 
 	private static void flattenedToBlock(Block flattened, Block output) {
@@ -79,24 +80,24 @@ public class ModRegistries {
 				RegistryArgs registryArgs = ModRegistryArgs.REGISTRY_ARGS.get(block);
 
 				if (BuiltInRegistries.BLOCK.getKey(block).getNamespace().equals(AronaLayers.MOD_ID) && registryArgs.oxidizables != null) {
-					Compat.registerOxidizable(block, registryArgs.exposed);
-					Compat.registerOxidizable(registryArgs.exposed, registryArgs.weathered);
-					Compat.registerOxidizable(registryArgs.weathered, registryArgs.oxidized);
+					Platform.registerOxidizable(block, registryArgs.exposed);
+					Platform.registerOxidizable(registryArgs.exposed, registryArgs.weathered);
+					Platform.registerOxidizable(registryArgs.weathered, registryArgs.oxidized);
 
-					Compat.registerWaxable(block, registryArgs.waxed);
-					Compat.registerWaxable(registryArgs.exposed, registryArgs.exposedWaxed);
-					Compat.registerWaxable(registryArgs.weathered, registryArgs.weatheredWaxed);
-					Compat.registerWaxable(registryArgs.oxidized, registryArgs.oxidizedWaxed);
+					Platform.registerWaxable(block, registryArgs.waxed);
+					Platform.registerWaxable(registryArgs.exposed, registryArgs.exposedWaxed);
+					Platform.registerWaxable(registryArgs.weathered, registryArgs.weatheredWaxed);
+					Platform.registerWaxable(registryArgs.oxidized, registryArgs.oxidizedWaxed);
 				}
 			}
 		});
 	}
 
-	// A layer burns 1/8 as long as its parent block, see Compat.registerLayerFuel.
+	// A layer burns 1/8 as long as its parent block, see Platform.registerLayerFuel.
 	public static void registerFuel() {
 		ModRegistryArgs.REGISTRY_ARGS.forEach((block, args) -> {
 			if (args.fuel != null) {
-				Compat.registerLayerFuel(block, args.fuel);
+				Platform.registerLayerFuel(block, args.fuel);
 			}
 		});
 	}

@@ -1,0 +1,79 @@
+plugins {
+	id 'net.fabricmc.fabric-loom-remap' version "${loom_version}"
+	id 'maven-publish'
+}
+
+version = rootProject.mod_version + "+mc${minecraft_version}"
+group = rootProject.maven_group
+
+base {
+	archivesName = rootProject.archives_base_name + '-fabric'
+}
+
+// Sources, most specific first:
+// - src/                      Fabric code for this Minecraft version (Platform, datagen, client)
+// - ../common/src/            this Minecraft version's code for every loader (Compat, CompatBlock),
+//                             its resources, and the generated data (written by this subproject's
+//                             datagen, read by every loader)
+// - root src/fabric/          Fabric code for every Minecraft version (entry points, tool mixins)
+// - root src/main/            code and resources for every Minecraft version and loader
+// The first copy of a file wins (see duplicatesStrategy below), so generated data comes last and
+// hand-made files override it.
+sourceSets {
+	main {
+		java {
+			srcDirs += [file('../common/src/main/java'), rootProject.file('src/fabric/java'), rootProject.file('src/main/java')]
+			// 1.20.1's AxeItem has no evaluateNewBlockState: MixinAxeItemUseOn in this
+			// subproject replaces the shared axe mixin.
+			exclude 'io/arona74/aronalayers/mixin/tool/MixinAxeItem.java'
+		}
+		resources {
+			srcDirs = [file('src/main/resources'), file('../common/src/main/resources'), rootProject.file('src/fabric/resources'), rootProject.file('src/main/resources'), file('../common/src/main/generated')]
+		}
+	}
+}
+
+fabricApi {
+	configureDataGeneration {
+		client = true
+		// Added above, after the hand-made resources, instead of first.
+		addToResources = false
+		outputDirectory = file('../common/src/main/generated')
+	}
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${minecraft_version}"
+	mappings loom.officialMojangMappings()
+	modImplementation "net.fabricmc:fabric-loader:${loader_version}"
+	modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
+}
+
+processResources {
+	inputs.property 'version', project.version
+	filesMatching('fabric.mod.json') {
+		expand 'version': project.version
+	}
+	// Hand-made resources in src/main/resources take precedence over generated ones.
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+tasks.withType(Jar).configureEach {
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 17
+}
+
+java {
+	withSourcesJar()
+	sourceCompatibility = JavaVersion.VERSION_17
+	targetCompatibility = JavaVersion.VERSION_17
+}
+
+jar {
+	from(rootProject.file('LICENSE')) {
+		rename { "${it}_${rootProject.archives_base_name}" }
+	}
+}
