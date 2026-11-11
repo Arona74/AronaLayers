@@ -1,0 +1,71 @@
+plugins {
+	id 'net.fabricmc.fabric-loom-remap' version "${loom_version}"
+	id 'maven-publish'
+}
+
+version = rootProject.mod_version + "+mc${minecraft_version}"
+group = rootProject.maven_group
+
+base {
+	archivesName = rootProject.archives_base_name
+}
+
+// Pull shared Java source and resources from the root src/ tree.
+// Version-specific code and resources go in this subproject's own src/, and generated data
+// lives in src/main/generated here, since its format differs between Minecraft versions.
+// The first copy of a file wins (see duplicatesStrategy below), so the order is: this version's
+// resources, then shared resources, then generated data, which hand-made files override.
+sourceSets {
+	main {
+		java {
+			srcDirs += rootProject.file('src/main/java')
+		}
+		resources {
+			srcDirs = [file('src/main/resources'), rootProject.file('src/main/resources'), file('src/main/generated')]
+		}
+	}
+}
+
+fabricApi {
+	configureDataGeneration {
+		client = true
+		// Added above, after the hand-made resources, instead of first.
+		addToResources = false
+	}
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${minecraft_version}"
+	mappings loom.officialMojangMappings()
+	modImplementation "net.fabricmc:fabric-loader:${loader_version}"
+	modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
+}
+
+processResources {
+	inputs.property 'version', project.version
+	filesMatching('fabric.mod.json') {
+		expand 'version': project.version
+	}
+	// Hand-made resources in src/main/resources take precedence over generated ones.
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+tasks.withType(Jar).configureEach {
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 21
+}
+
+java {
+	withSourcesJar()
+	sourceCompatibility = JavaVersion.VERSION_21
+	targetCompatibility = JavaVersion.VERSION_21
+}
+
+jar {
+	from(rootProject.file('LICENSE')) {
+		rename { "${it}_${rootProject.archives_base_name}" }
+	}
+}
