@@ -1,0 +1,40 @@
+{
+  "values": {
+    "aronalayers:chiseled_copper_layer": {
+      "next_oxidation_stage": "aronalayers:exposed_chiseled_copper_layer"
+    },
+    "aronalayers:copper_grate_layer": {
+      "next_oxidation_stage": "aronalayers:exposed_copper_grate_layer"
+    },
+    "aronalayers:copper_layer": {
+      "next_oxidation_stage": "aronalayers:exposed_copper_layer"
+    },
+    "aronalayers:cut_copper_layer": {
+      "next_oxidation_stage": "aronalayers:exposed_cut_copper_layer"
+    },
+    "aronalayers:exposed_chiseled_copper_layer": {
+      "next_oxidation_stage": "aronalayers:weathered_chiseled_copper_layer"
+    },
+    "aronalayers:exposed_copper_grate_layer": {
+      "next_oxidation_stage": "aronalayers:weathered_copper_grate_layer"
+    },
+    "aronalayers:exposed_copper_layer": {
+      "next_oxidation_stage": "aronalayers:weathered_copper_layer"
+    },
+    "aronalayers:exposed_cut_copper_layer": {
+      "next_oxidation_stage": "aronalayers:weathered_cut_copper_layer"
+    },
+    "aronalayers:weathered_chiseled_copper_layer": {
+      "next_oxidation_stage": "aronalayers:oxidized_chiseled_copper_layer"
+    },
+    "aronalayers:weathered_copper_grate_layer": {
+      "next_oxidation_stage": "aronalayers:oxidized_copper_grate_layer"
+    },
+    "aronalayers:weathered_copper_layer": {
+      "next_oxidation_stage": "aronalayers:oxidized_copper_layer"
+    },
+    "aronalayers:weathered_cut_copper_layer": {
+      "next_oxidation_stage": "aronalayers:oxidized_cut_copper_layer"
+    }
+  }
+}

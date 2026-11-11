@@ -21,6 +21,7 @@ public class AronaLayersDataGenerator implements DataGeneratorEntrypoint {
 		pack.addProvider(ModRecipeProvider::new);
 		pack.addProvider(ModLootTableProvider::new);
 		pack.addProvider(ModLanguageProvider::new);
+		pack.addProvider(ModNeoForgeDataMapProvider::new);
 
 		FabricDataGenerator.Pack reverseRecipesPack = fabricDataGenerator.createBuiltinResourcePack(net.minecraft.resources.Identifier.fromNamespaceAndPath(AronaLayers.MOD_ID, AronaLayers.REVERSE_RECIPES_PACK));
 		reverseRecipesPack.addProvider(ModReverseRecipeProvider::new);

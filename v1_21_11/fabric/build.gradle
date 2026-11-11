@@ -53,6 +53,8 @@ processResources {
 	}
 	// Hand-made resources in src/main/resources take precedence over generated ones.
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+	// NeoForge data maps, written by this datagen for the NeoForge jar.
+	exclude 'data/neoforge/**'
 }
 
 tasks.withType(Jar).configureEach {
