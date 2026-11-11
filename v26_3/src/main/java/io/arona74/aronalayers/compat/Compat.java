@@ -10,14 +10,21 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.EnchantmentTags;
 import net.minecraft.tags.TagKey;
+import net.minecraft.util.ParticleUtils;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.attribute.EnvironmentAttributes;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.vehicle.boat.AbstractBoat;
@@ -25,10 +32,15 @@ import net.minecraft.world.entity.vehicle.minecart.AbstractMinecart;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CookingFuel;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.BucketPickup;
+import net.minecraft.world.level.block.WeatheringCopper;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.blockpredicates.BlockPredicate;
@@ -202,5 +214,32 @@ public final class Compat {
 	/** Whether breaking ice on top of this block leaves water, like vanilla ice. */
 	public static boolean iceMeltsAbove(BlockState below) {
 		return below.is(BlockTags.ICE_MELTS_WHEN_DESTROYED_ABOVE);
+	}
+
+	public static void spawnParticleBelow(Level level, BlockPos pos, RandomSource random, ParticleOptions particle) {
+		ParticleUtils.spawnParticleBelow(level, pos, random, particle);
+	}
+
+	/** Whether mining ice with this tool keeps it from melting (silk touch). */
+	public static boolean preventsIceMelting(ItemStack tool) {
+		return EnchantmentHelper.hasTag(tool, EnchantmentTags.PREVENTS_ICE_MELTING);
+	}
+
+	/** Random tick of an oxidizing block: may move it to its next oxidation stage. */
+	public static void changeOverTime(WeatheringCopper block, BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+		block.changeOverTime(state, level, pos, random);
+	}
+
+	public static void playSpongeAbsorb(Level level, BlockPos pos) {
+		level.playSound(null, pos, SoundEvents.SPONGE_ABSORB, SoundSource.BLOCKS, 1.0F, 1.0F);
+	}
+
+	public static void playWetSpongeDries(Level level, BlockPos pos) {
+		level.playSound(null, pos, SoundEvents.WET_SPONGE_DRIES, SoundSource.BLOCKS, 1.0F, (1.0F + level.getRandom().nextFloat() * 0.2F) * 0.7F);
+	}
+
+	/** Takes the fluid out of a fluid block or waterlogged block, as a sponge does. */
+	public static ItemStack pickupFluid(BucketPickup block, LevelAccessor level, BlockPos pos, BlockState state) {
+		return block.pickupBlock(null, level, pos, state);
 	}
 }

@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "key": {
+    "L": {
+      "item": "aronalayers:stripped_bamboo_block_layer"
+    }
+  },
+  "pattern": [
+    "LLL",
+    "L L",
+    "LLL"
+  ],
+  "result": {
+    "item": "minecraft:stripped_bamboo_block"
+  },
+  "show_notification": true
+}

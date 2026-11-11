@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "W": {
+      "item": "minecraft:polished_basalt"
+    }
+  },
+  "pattern": [
+    " W",
+    "W "
+  ],
+  "result": {
+    "count": 16,
+    "item": "aronalayers:polished_basalt_layer"
+  },
+  "show_notification": true
+}

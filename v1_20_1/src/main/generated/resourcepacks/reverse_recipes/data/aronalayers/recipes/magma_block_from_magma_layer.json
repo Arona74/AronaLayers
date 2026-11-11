@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "key": {
+    "L": {
+      "item": "aronalayers:magma_layer"
+    }
+  },
+  "pattern": [
+    "LLL",
+    "L L",
+    "LLL"
+  ],
+  "result": {
+    "item": "minecraft:magma_block"
+  },
+  "show_notification": true
+}

@@ -1,0 +1,35 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "aronalayers:yellow_terracotta_from_yellow_terracotta_layer"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_yellow_terracotta_layer": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "aronalayers:yellow_terracotta_layer"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_yellow_terracotta_layer",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aronalayers:yellow_terracotta_from_yellow_terracotta_layer"
+    ]
+  },
+  "sends_telemetry_event": false
+}

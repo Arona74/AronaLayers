@@ -36,7 +36,7 @@ public class FlattenableLayerBlock extends LayerBlock {
 	}
 
 	@Override
-	protected BlockState onShapeUpdate(BlockState state, Direction direction, BlockState neighborState, LevelReader world, BlockPos pos, BlockPos neighborPos, Ticks ticks, RandomSource random) {
+	public BlockState onShapeUpdate(BlockState state, Direction direction, BlockState neighborState, LevelReader world, BlockPos pos, BlockPos neighborPos, Ticks ticks, RandomSource random) {
 		if (direction == Direction.UP) {
 			ticks.block(pos, this, 1);
 		}
@@ -45,7 +45,7 @@ public class FlattenableLayerBlock extends LayerBlock {
 	}
 
 	@Override
-	protected void tick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
+	public void tick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
 		// LayerBlock schedules a tick when support is lost so the layer can fall. That
 		// tick arrives here, so without this the block would be left floating instead.
 		// Handle it first: setToDirt would throw on the air left behind.
@@ -77,7 +77,7 @@ public class FlattenableLayerBlock extends LayerBlock {
 	}
 
 	@Override
-	protected VoxelShape getBlockSupportShape(BlockState state, BlockGetter world, BlockPos pos) {
+	public VoxelShape getBlockSupportShape(BlockState state, BlockGetter world, BlockPos pos) {
 		Direction direction = state.getValue(FACING);
 		VoxelShape voxel;
 		switch (direction) {
@@ -87,19 +87,19 @@ public class FlattenableLayerBlock extends LayerBlock {
 			case NORTH -> voxel = NORTH_LAYERS_TO_SHAPE_15[state.getValue(LAYERS)];
 			case UP -> voxel = CEILING_LAYERS_TO_SHAPE_15[state.getValue(LAYERS)];
 			case DOWN -> voxel = FLOOR_LAYERS_TO_SHAPE_15[state.getValue(LAYERS)];
-			default -> throw new MatchException(null, null);
+			default -> throw new IllegalStateException("unreachable");
 		}
 
 		return voxel;
 	}
 
 	@Override
-	protected VoxelShape getCollisionShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
+	public VoxelShape getCollisionShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
 		return getBlockSupportShape(state, world, pos);
 	}
 
 	@Override
-	protected VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
+	public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
 		return getBlockSupportShape(state, world, pos);
 	}
 

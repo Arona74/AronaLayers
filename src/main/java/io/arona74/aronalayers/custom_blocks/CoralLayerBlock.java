@@ -24,7 +24,7 @@ public class CoralLayerBlock extends LayerBlock {
 		this.dead = dead;
 	}
 
-	protected void tick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
+	public void tick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
 		// See FlattenableLayerBlock: the base class schedules a tick when support is
 		// lost, and that tick lands here, so it has to be handled before the coral
 		// death check or the block ends up floating.
@@ -38,7 +38,7 @@ public class CoralLayerBlock extends LayerBlock {
 		}
 	}
 
-	protected BlockState onShapeUpdate(BlockState state, Direction direction, BlockState neighborState, LevelReader world, BlockPos pos, BlockPos neighborPos, Ticks ticks, RandomSource random) {
+	public BlockState onShapeUpdate(BlockState state, Direction direction, BlockState neighborState, LevelReader world, BlockPos pos, BlockPos neighborPos, Ticks ticks, RandomSource random) {
 		if (!this.isInWater(world, pos)) {
 			ticks.block(pos, this, 60 + random.nextInt(40));
 		}
@@ -46,7 +46,7 @@ public class CoralLayerBlock extends LayerBlock {
 		return super.onShapeUpdate(state, direction, neighborState, world, pos, neighborPos, ticks, random);
 	}
 
-	protected boolean isInWater(BlockGetter world, BlockPos pos) {
+	public boolean isInWater(BlockGetter world, BlockPos pos) {
 		for (Direction direction : Direction.values()) {
 			FluidState fluidState = world.getFluidState(pos.relative(direction));
 

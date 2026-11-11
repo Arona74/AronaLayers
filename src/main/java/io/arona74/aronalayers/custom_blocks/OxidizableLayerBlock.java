@@ -1,5 +1,6 @@
 package io.arona74.aronalayers.custom_blocks;
 
+import io.arona74.aronalayers.compat.Compat;
 import io.arona74.aronalayers.block.LayerBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -15,11 +16,11 @@ public class OxidizableLayerBlock extends LayerBlock implements WeatheringCopper
 		this.oxidationLevel = oxidationLevel;
 	}
 
-	protected void randomTick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
-		this.changeOverTime(state, world, pos, random);
+	public void randomTick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
+		Compat.changeOverTime(this, state, world, pos, random);
 	}
 
-	protected boolean isRandomlyTicking(BlockState state) {
+	public boolean isRandomlyTicking(BlockState state) {
 		return WeatheringCopper.getNext(state.getBlock()).isPresent();
 	}
 

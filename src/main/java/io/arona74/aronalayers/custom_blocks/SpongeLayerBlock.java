@@ -1,5 +1,6 @@
 package io.arona74.aronalayers.custom_blocks;
 
+import io.arona74.aronalayers.compat.Compat;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashSet;
@@ -14,8 +15,6 @@ import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -31,21 +30,21 @@ public class SpongeLayerBlock extends LayerBlock {
 		super(settings);
 	}
 
-	protected void onPlace(BlockState state, Level world, BlockPos pos, BlockState oldState, boolean notify) {
+	public void onPlace(BlockState state, Level world, BlockPos pos, BlockState oldState, boolean notify) {
 		if (!oldState.is(state.getBlock())) {
 			this.update(world, pos);
 		}
 	}
 
-	protected void onNeighborChanged(BlockState state, Level world, BlockPos pos, Block sourceBlock, boolean notify) {
+	public void onNeighborChanged(BlockState state, Level world, BlockPos pos, Block sourceBlock, boolean notify) {
 		this.update(world, pos);
 		super.onNeighborChanged(state, world, pos, sourceBlock, notify);
 	}
 
-	protected void update(Level world, BlockPos pos) {
+	public void update(Level world, BlockPos pos) {
 		if (this.absorbWater(world, pos)) {
 			world.setBlock(pos, ModBlocks.WET_SPONGE_LAYER.withPropertiesOf(world.getBlockState(pos)).setValue(WATERLOGGED, false), 2);
-			world.playSound(null, pos, SoundEvents.SPONGE_ABSORB, SoundSource.BLOCKS, 1.0F, 1.0F);
+			Compat.playSpongeAbsorb(world, pos);
 		}
 	}
 
@@ -80,7 +79,7 @@ public class SpongeLayerBlock extends LayerBlock {
 				boolean drained = false;
 
 				if (block instanceof BucketPickup fluidDrainable) {
-					if (!fluidDrainable.pickupBlock(null, world, neighborPos, blockState).isEmpty()) {
+					if (!Compat.pickupFluid(fluidDrainable, world, neighborPos, blockState).isEmpty()) {
 						drained = true;
 					}
 				}

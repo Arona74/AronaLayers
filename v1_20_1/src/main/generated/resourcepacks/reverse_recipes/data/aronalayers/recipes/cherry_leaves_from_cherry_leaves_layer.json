@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "key": {
+    "L": {
+      "item": "aronalayers:cherry_leaves_layer"
+    }
+  },
+  "pattern": [
+    "LLL",
+    "L L",
+    "LLL"
+  ],
+  "result": {
+    "item": "minecraft:cherry_leaves"
+  },
+  "show_notification": true
+}

@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "W": {
+      "item": "minecraft:dripstone_block"
+    }
+  },
+  "pattern": [
+    " W",
+    "W "
+  ],
+  "result": {
+    "count": 16,
+    "item": "aronalayers:dripstone_layer"
+  },
+  "show_notification": true
+}

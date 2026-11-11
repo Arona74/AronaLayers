@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "key": {
+    "L": {
+      "item": "aronalayers:deepslate_tiles_layer"
+    }
+  },
+  "pattern": [
+    "LLL",
+    "L L",
+    "LLL"
+  ],
+  "result": {
+    "item": "minecraft:deepslate_tiles"
+  },
+  "show_notification": true
+}

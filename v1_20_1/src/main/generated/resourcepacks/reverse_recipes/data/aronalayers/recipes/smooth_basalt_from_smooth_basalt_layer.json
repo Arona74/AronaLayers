@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "key": {
+    "L": {
+      "item": "aronalayers:smooth_basalt_layer"
+    }
+  },
+  "pattern": [
+    "LLL",
+    "L L",
+    "LLL"
+  ],
+  "result": {
+    "item": "minecraft:smooth_basalt"
+  },
+  "show_notification": true
+}

@@ -69,6 +69,11 @@ public abstract class CompatBlock extends Block {
 		super.playerDestroy(level, player, pos, state, blockEntity, tool);
 	}
 
+	/** Whether mobs can path through this block. */
+	public boolean canPathfind(BlockState state, PathComputationType type) {
+		return super.isPathfindable(state, type);
+	}
+
 	/** For waterloggable blocks: whether a fluid can be placed in this block. */
 	protected boolean canHoldFluid(BlockGetter level, BlockPos pos, BlockState state, Fluid fluid) {
 		return false;
@@ -115,6 +120,11 @@ public abstract class CompatBlock extends Block {
 	@Override
 	protected final void neighborChanged(BlockState state, Level level, BlockPos pos, Block sourceBlock, BlockPos sourcePos, boolean movedByPiston) {
 		onNeighborChanged(state, level, pos, sourceBlock, movedByPiston);
+	}
+
+	@Override
+	protected final boolean isPathfindable(BlockState state, PathComputationType type) {
+		return canPathfind(state, type);
 	}
 
 	@Override

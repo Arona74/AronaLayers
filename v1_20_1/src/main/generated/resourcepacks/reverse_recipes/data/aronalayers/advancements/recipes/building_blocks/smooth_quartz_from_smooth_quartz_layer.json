@@ -1,0 +1,35 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_smooth_quartz_layer": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "aronalayers:smooth_quartz_layer"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "aronalayers:smooth_quartz_from_smooth_quartz_layer"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_smooth_quartz_layer",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aronalayers:smooth_quartz_from_smooth_quartz_layer"
+    ]
+  },
+  "sends_telemetry_event": false
+}

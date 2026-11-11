@@ -20,6 +20,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.phys.BlockHitResult;
 
@@ -75,6 +76,11 @@ public abstract class CompatBlock extends Block {
 		super.playerDestroy(level, player, pos, state, blockEntity, tool);
 	}
 
+	/** Whether mobs can path through this block. */
+	public boolean canPathfind(BlockState state, PathComputationType type) {
+		return super.isPathfindable(state, type);
+	}
+
 	/** For waterloggable blocks: whether a fluid can be placed in this block. */
 	protected boolean canHoldFluid(BlockGetter level, BlockPos pos, BlockState state, Fluid fluid) {
 		return false;
@@ -116,6 +122,11 @@ public abstract class CompatBlock extends Block {
 	@Override
 	protected final void neighborChanged(BlockState state, Level level, BlockPos pos, Block sourceBlock, @Nullable Orientation orientation, boolean movedByPiston) {
 		onNeighborChanged(state, level, pos, sourceBlock, movedByPiston);
+	}
+
+	@Override
+	protected final boolean isPathfindable(BlockState state, PathComputationType type) {
+		return canPathfind(state, type);
 	}
 
 	@Override

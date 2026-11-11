@@ -141,10 +141,10 @@ public class ModBlocks {
 	public static final Block CRACKED_DEEPSLATE_TILES_LAYER = registerBlock("cracked_deepslate_tiles_layer", LayerBlock::new, Compat.copyOf("cracked_deepslate_tiles"));
 
 	public static final Block TUFF_LAYER = registerBlock("tuff_layer", LayerBlock::new, Compat.copyOf("tuff"));
-	public static final Block CHISELED_TUFF_LAYER = registerBlock("chiseled_tuff_layer", LayerBlock::new, Compat.copyOf("chiseled_tuff"));
-	public static final Block POLISHED_TUFF_LAYER = registerBlock("polished_tuff_layer", LayerBlock::new, Compat.copyOf("polished_tuff"));
-	public static final Block TUFF_BRICKS_LAYER = registerBlock("tuff_bricks_layer", LayerBlock::new, Compat.copyOf("tuff_bricks"));
-	public static final Block CHISELED_TUFF_BRICKS_LAYER = registerBlock("chiseled_tuff_bricks_layer", LayerBlock::new, Compat.copyOf("chiseled_tuff_bricks"));
+	public static final Block CHISELED_TUFF_LAYER = registerIfPresent("chiseled_tuff_layer", "chiseled_tuff", LayerBlock::new, () -> Compat.copyOf("chiseled_tuff"));
+	public static final Block POLISHED_TUFF_LAYER = registerIfPresent("polished_tuff_layer", "polished_tuff", LayerBlock::new, () -> Compat.copyOf("polished_tuff"));
+	public static final Block TUFF_BRICKS_LAYER = registerIfPresent("tuff_bricks_layer", "tuff_bricks", LayerBlock::new, () -> Compat.copyOf("tuff_bricks"));
+	public static final Block CHISELED_TUFF_BRICKS_LAYER = registerIfPresent("chiseled_tuff_bricks_layer", "chiseled_tuff_bricks", LayerBlock::new, () -> Compat.copyOf("chiseled_tuff_bricks"));
 
 	public static final Block CINNABAR_LAYER = registerIfPresent("cinnabar_layer", "cinnabar", LayerBlock::new, () -> Compat.copyOf("cinnabar"));
 	public static final Block POLISHED_CINNABAR_LAYER = registerIfPresent("polished_cinnabar_layer", "polished_cinnabar", LayerBlock::new, () -> Compat.copyOf("polished_cinnabar"));
@@ -217,43 +217,43 @@ public class ModBlocks {
 	public static final Block AMETHYST_LAYER = registerBlock("amethyst_layer", LayerBlock::new, Compat.copyOf("amethyst_block"));
 
 	public static final Block WAXED_COPPER_LAYER = registerBlock("waxed_copper_layer", LayerBlock::new, Compat.copyOf("waxed_copper_block"));
-	public static final Block WAXED_CHISELED_COPPER_LAYER = registerBlock("waxed_chiseled_copper_layer", LayerBlock::new, Compat.copyOf("waxed_chiseled_copper"));
-	public static final Block WAXED_COPPER_GRATE_LAYER = registerBlock("waxed_copper_grate_layer", LayerBlock::new, Compat.copyOf("waxed_copper_grate"));
+	public static final Block WAXED_CHISELED_COPPER_LAYER = registerIfPresent("waxed_chiseled_copper_layer", "waxed_chiseled_copper", LayerBlock::new, () -> Compat.copyOf("waxed_chiseled_copper"));
+	public static final Block WAXED_COPPER_GRATE_LAYER = registerIfPresent("waxed_copper_grate_layer", "waxed_copper_grate", LayerBlock::new, () -> Compat.copyOf("waxed_copper_grate"));
 	public static final Block WAXED_CUT_COPPER_LAYER = registerBlock("waxed_cut_copper_layer", LayerBlock::new, Compat.copyOf("waxed_cut_copper"));
 
 	public static final Block WAXED_EXPOSED_COPPER_LAYER = registerBlock("waxed_exposed_copper_layer", LayerBlock::new, Compat.copyOf("waxed_exposed_copper"));
-	public static final Block WAXED_EXPOSED_CHISELED_COPPER_LAYER = registerBlock("waxed_exposed_chiseled_copper_layer", LayerBlock::new, Compat.copyOf("waxed_exposed_chiseled_copper"));
-	public static final Block WAXED_EXPOSED_COPPER_GRATE_LAYER = registerBlock("waxed_exposed_copper_grate_layer", LayerBlock::new, Compat.copyOf("waxed_exposed_copper_grate"));
+	public static final Block WAXED_EXPOSED_CHISELED_COPPER_LAYER = registerIfPresent("waxed_exposed_chiseled_copper_layer", "waxed_exposed_chiseled_copper", LayerBlock::new, () -> Compat.copyOf("waxed_exposed_chiseled_copper"));
+	public static final Block WAXED_EXPOSED_COPPER_GRATE_LAYER = registerIfPresent("waxed_exposed_copper_grate_layer", "waxed_exposed_copper_grate", LayerBlock::new, () -> Compat.copyOf("waxed_exposed_copper_grate"));
 	public static final Block WAXED_EXPOSED_CUT_COPPER_LAYER = registerBlock("waxed_exposed_cut_copper_layer", LayerBlock::new, Compat.copyOf("waxed_exposed_cut_copper"));
 
 	public static final Block WAXED_WEATHERED_COPPER_LAYER = registerBlock("waxed_weathered_copper_layer", LayerBlock::new, Compat.copyOf("waxed_weathered_copper"));
-	public static final Block WAXED_WEATHERED_CHISELED_COPPER_LAYER = registerBlock("waxed_weathered_chiseled_copper_layer", LayerBlock::new, Compat.copyOf("waxed_weathered_chiseled_copper"));
-	public static final Block WAXED_WEATHERED_COPPER_GRATE_LAYER = registerBlock("waxed_weathered_copper_grate_layer", LayerBlock::new, Compat.copyOf("waxed_weathered_copper_grate"));
+	public static final Block WAXED_WEATHERED_CHISELED_COPPER_LAYER = registerIfPresent("waxed_weathered_chiseled_copper_layer", "waxed_weathered_chiseled_copper", LayerBlock::new, () -> Compat.copyOf("waxed_weathered_chiseled_copper"));
+	public static final Block WAXED_WEATHERED_COPPER_GRATE_LAYER = registerIfPresent("waxed_weathered_copper_grate_layer", "waxed_weathered_copper_grate", LayerBlock::new, () -> Compat.copyOf("waxed_weathered_copper_grate"));
 	public static final Block WAXED_WEATHERED_CUT_COPPER_LAYER = registerBlock("waxed_weathered_cut_copper_layer", LayerBlock::new, Compat.copyOf("waxed_weathered_cut_copper"));
 
 	public static final Block WAXED_OXIDIZED_COPPER_LAYER = registerBlock("waxed_oxidized_copper_layer", LayerBlock::new, Compat.copyOf("waxed_oxidized_copper"));
-	public static final Block WAXED_OXIDIZED_CHISELED_COPPER_LAYER = registerBlock("waxed_oxidized_chiseled_copper_layer", LayerBlock::new, Compat.copyOf("waxed_oxidized_chiseled_copper"));
-	public static final Block WAXED_OXIDIZED_COPPER_GRATE_LAYER = registerBlock("waxed_oxidized_copper_grate_layer", LayerBlock::new, Compat.copyOf("waxed_oxidized_copper_grate"));
+	public static final Block WAXED_OXIDIZED_CHISELED_COPPER_LAYER = registerIfPresent("waxed_oxidized_chiseled_copper_layer", "waxed_oxidized_chiseled_copper", LayerBlock::new, () -> Compat.copyOf("waxed_oxidized_chiseled_copper"));
+	public static final Block WAXED_OXIDIZED_COPPER_GRATE_LAYER = registerIfPresent("waxed_oxidized_copper_grate_layer", "waxed_oxidized_copper_grate", LayerBlock::new, () -> Compat.copyOf("waxed_oxidized_copper_grate"));
 	public static final Block WAXED_OXIDIZED_CUT_COPPER_LAYER = registerBlock("waxed_oxidized_cut_copper_layer", LayerBlock::new, Compat.copyOf("waxed_oxidized_cut_copper"));
 
 	public static final Block EXPOSED_COPPER_LAYER = registerBlock("exposed_copper_layer", settings -> new OxidizableLayerBlock(WeatheringCopper.WeatherState.EXPOSED, settings), Compat.copyOf("exposed_copper"));
-	public static final Block EXPOSED_CHISELED_COPPER_LAYER = registerBlock("exposed_chiseled_copper_layer", settings -> new OxidizableLayerBlock(WeatheringCopper.WeatherState.EXPOSED, settings), Compat.copyOf("exposed_chiseled_copper"));
-	public static final Block EXPOSED_COPPER_GRATE_LAYER = registerBlock("exposed_copper_grate_layer", settings -> new OxidizableLayerBlock(WeatheringCopper.WeatherState.EXPOSED, settings), Compat.copyOf("exposed_copper_grate"));
+	public static final Block EXPOSED_CHISELED_COPPER_LAYER = registerIfPresent("exposed_chiseled_copper_layer", "exposed_chiseled_copper", settings -> new OxidizableLayerBlock(WeatheringCopper.WeatherState.EXPOSED, settings), () -> Compat.copyOf("exposed_chiseled_copper"));
+	public static final Block EXPOSED_COPPER_GRATE_LAYER = registerIfPresent("exposed_copper_grate_layer", "exposed_copper_grate", settings -> new OxidizableLayerBlock(WeatheringCopper.WeatherState.EXPOSED, settings), () -> Compat.copyOf("exposed_copper_grate"));
 	public static final Block EXPOSED_CUT_COPPER_LAYER = registerBlock("exposed_cut_copper_layer", settings -> new OxidizableLayerBlock(WeatheringCopper.WeatherState.EXPOSED, settings), Compat.copyOf("exposed_cut_copper"));
 
 	public static final Block WEATHERED_COPPER_LAYER = registerBlock("weathered_copper_layer", settings -> new OxidizableLayerBlock(WeatheringCopper.WeatherState.WEATHERED, settings), Compat.copyOf("weathered_copper"));
-	public static final Block WEATHERED_CHISELED_COPPER_LAYER = registerBlock("weathered_chiseled_copper_layer", settings -> new OxidizableLayerBlock(WeatheringCopper.WeatherState.WEATHERED, settings), Compat.copyOf("weathered_chiseled_copper"));
-	public static final Block WEATHERED_COPPER_GRATE_LAYER = registerBlock("weathered_copper_grate_layer", settings -> new OxidizableLayerBlock(WeatheringCopper.WeatherState.WEATHERED, settings), Compat.copyOf("weathered_copper_grate"));
+	public static final Block WEATHERED_CHISELED_COPPER_LAYER = registerIfPresent("weathered_chiseled_copper_layer", "weathered_chiseled_copper", settings -> new OxidizableLayerBlock(WeatheringCopper.WeatherState.WEATHERED, settings), () -> Compat.copyOf("weathered_chiseled_copper"));
+	public static final Block WEATHERED_COPPER_GRATE_LAYER = registerIfPresent("weathered_copper_grate_layer", "weathered_copper_grate", settings -> new OxidizableLayerBlock(WeatheringCopper.WeatherState.WEATHERED, settings), () -> Compat.copyOf("weathered_copper_grate"));
 	public static final Block WEATHERED_CUT_COPPER_LAYER = registerBlock("weathered_cut_copper_layer", settings -> new OxidizableLayerBlock(WeatheringCopper.WeatherState.WEATHERED, settings), Compat.copyOf("weathered_cut_copper"));
 
 	public static final Block OXIDIZED_COPPER_LAYER = registerBlock("oxidized_copper_layer", settings -> new OxidizableLayerBlock(WeatheringCopper.WeatherState.OXIDIZED, settings), Compat.copyOf("oxidized_copper"));
-	public static final Block OXIDIZED_CHISELED_COPPER_LAYER = registerBlock("oxidized_chiseled_copper_layer", settings -> new OxidizableLayerBlock(WeatheringCopper.WeatherState.OXIDIZED, settings), Compat.copyOf("oxidized_chiseled_copper"));
-	public static final Block OXIDIZED_COPPER_GRATE_LAYER = registerBlock("oxidized_copper_grate_layer", settings -> new OxidizableLayerBlock(WeatheringCopper.WeatherState.OXIDIZED, settings), Compat.copyOf("oxidized_copper_grate"));
+	public static final Block OXIDIZED_CHISELED_COPPER_LAYER = registerIfPresent("oxidized_chiseled_copper_layer", "oxidized_chiseled_copper", settings -> new OxidizableLayerBlock(WeatheringCopper.WeatherState.OXIDIZED, settings), () -> Compat.copyOf("oxidized_chiseled_copper"));
+	public static final Block OXIDIZED_COPPER_GRATE_LAYER = registerIfPresent("oxidized_copper_grate_layer", "oxidized_copper_grate", settings -> new OxidizableLayerBlock(WeatheringCopper.WeatherState.OXIDIZED, settings), () -> Compat.copyOf("oxidized_copper_grate"));
 	public static final Block OXIDIZED_CUT_COPPER_LAYER = registerBlock("oxidized_cut_copper_layer", settings -> new OxidizableLayerBlock(WeatheringCopper.WeatherState.OXIDIZED, settings), Compat.copyOf("oxidized_cut_copper"));
 
 	public static final Block COPPER_LAYER = registerBlock("copper_layer", settings -> new OxidizableLayerBlock(WeatheringCopper.WeatherState.UNAFFECTED, settings), Compat.copyOf("copper_block"));
-	public static final Block CHISELED_COPPER_LAYER = registerBlock("chiseled_copper_layer", settings -> new OxidizableLayerBlock(WeatheringCopper.WeatherState.UNAFFECTED, settings), Compat.copyOf("chiseled_copper"));
-	public static final Block COPPER_GRATE_LAYER = registerBlock("copper_grate_layer", settings -> new OxidizableLayerBlock(WeatheringCopper.WeatherState.UNAFFECTED, settings), Compat.copyOf("copper_grate"));
+	public static final Block CHISELED_COPPER_LAYER = registerIfPresent("chiseled_copper_layer", "chiseled_copper", settings -> new OxidizableLayerBlock(WeatheringCopper.WeatherState.UNAFFECTED, settings), () -> Compat.copyOf("chiseled_copper"));
+	public static final Block COPPER_GRATE_LAYER = registerIfPresent("copper_grate_layer", "copper_grate", settings -> new OxidizableLayerBlock(WeatheringCopper.WeatherState.UNAFFECTED, settings), () -> Compat.copyOf("copper_grate"));
 	public static final Block CUT_COPPER_LAYER = registerBlock("cut_copper_layer", settings -> new OxidizableLayerBlock(WeatheringCopper.WeatherState.UNAFFECTED, settings), Compat.copyOf("cut_copper"));
 
 	public static final Block WHITE_WOOL_LAYER = registerBlock("white_wool_layer", LayerBlock::new, Compat.copyOf("white_wool"));
@@ -378,7 +378,7 @@ public class ModBlocks {
 			return true;
 		}
 
-		protected void randomTick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
+		public void randomTick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
 			if (!canBeGrass(state, world, pos)) {
 				world.setBlockAndUpdate(pos, ModBlocks.DIRT_LAYER.withPropertiesOf(state));
 			}

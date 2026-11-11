@@ -11,6 +11,7 @@ pluginManagement {
 
 rootProject.name = 'aronalayers-blocks'
 
+include ':v1_20_1'
 include ':v1_21_1'
 include ':v1_21_11'
 include ':v26_1_2'

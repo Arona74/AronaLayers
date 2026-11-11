@@ -1,0 +1,35 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_granite_layer": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "aronalayers:granite_layer"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "aronalayers:granite_from_granite_layer"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_granite_layer",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aronalayers:granite_from_granite_layer"
+    ]
+  },
+  "sends_telemetry_event": false
+}

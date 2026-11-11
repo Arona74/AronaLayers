@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "W": {
+      "item": "minecraft:bedrock"
+    }
+  },
+  "pattern": [
+    " W",
+    "W "
+  ],
+  "result": {
+    "count": 16,
+    "item": "aronalayers:bedrock_layer"
+  },
+  "show_notification": true
+}

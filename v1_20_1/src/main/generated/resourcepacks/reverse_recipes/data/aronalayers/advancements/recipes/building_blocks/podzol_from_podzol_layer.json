@@ -1,0 +1,35 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_podzol_layer": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "aronalayers:podzol_layer"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "aronalayers:podzol_from_podzol_layer"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_podzol_layer",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aronalayers:podzol_from_podzol_layer"
+    ]
+  },
+  "sends_telemetry_event": false
+}

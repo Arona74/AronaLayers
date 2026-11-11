@@ -1,0 +1,35 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "aronalayers:white_concrete_powder_from_white_concrete_powder_layer"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_white_concrete_powder_layer": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "aronalayers:white_concrete_powder_layer"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_white_concrete_powder_layer",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aronalayers:white_concrete_powder_from_white_concrete_powder_layer"
+    ]
+  },
+  "sends_telemetry_event": false
+}

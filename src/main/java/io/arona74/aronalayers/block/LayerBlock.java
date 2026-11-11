@@ -58,7 +58,7 @@ public class LayerBlock extends CompatBlock implements SimpleWaterloggedBlock {
 		this.registerDefaultState(this.getStateDefinition().any().setValue(LAYERS, 1).setValue(WATERLOGGED, false).setValue(FACING, Direction.DOWN));
 	}
 
-	protected boolean canPathfindThrough(BlockState state, BlockGetter world, PathComputationType type) {
+	public boolean canPathfindThrough(BlockState state, BlockGetter world, PathComputationType type) {
 		if (Objects.requireNonNull(type) == PathComputationType.LAND && state.getValue(FACING) == Direction.DOWN) {
 			return state.getValue(LAYERS) < 5;
 		}
@@ -67,17 +67,17 @@ public class LayerBlock extends CompatBlock implements SimpleWaterloggedBlock {
 	}
 
 	@Override
-	protected VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
+	public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
 		return getBlockSupportShape(state, world, pos);
 	}
 
 	@Override
-	protected VoxelShape getCollisionShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
+	public VoxelShape getCollisionShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
 		return getBlockSupportShape(state, world, pos);
 	}
 
 	@Override
-	protected VoxelShape getBlockSupportShape(BlockState state, BlockGetter world, BlockPos pos) {
+	public VoxelShape getBlockSupportShape(BlockState state, BlockGetter world, BlockPos pos) {
 		Direction direction = state.getValue(FACING);
 		VoxelShape voxel;
 		switch (direction) {
@@ -87,29 +87,29 @@ public class LayerBlock extends CompatBlock implements SimpleWaterloggedBlock {
 			case NORTH -> voxel = NORTH_LAYERS_TO_SHAPE[state.getValue(LAYERS)];
 			case UP -> voxel = CEILING_LAYERS_TO_SHAPE[state.getValue(LAYERS)];
 			case DOWN -> voxel = FLOOR_LAYERS_TO_SHAPE[state.getValue(LAYERS)];
-			default -> throw new MatchException(null, null);
+			default -> throw new IllegalStateException("unreachable");
 		}
 
 		return voxel;
 	}
 
 	@Override
-	protected VoxelShape getVisualShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
+	public VoxelShape getVisualShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
 		return getShape(state, world, pos, context);
 	}
 
 	@Override
-	protected boolean useShapeForLightOcclusion(BlockState state) {
+	public boolean useShapeForLightOcclusion(BlockState state) {
 		return true;
 	}
 
 	@Override
-	protected float getShadeBrightness(BlockState state, BlockGetter world, BlockPos pos) {
+	public float getShadeBrightness(BlockState state, BlockGetter world, BlockPos pos) {
 		return state.getValue(LAYERS) == 8 ? 0.35f : 1.0f;
 	}
 
 	@Override
-	protected boolean canSurvive(BlockState state, LevelReader world, BlockPos pos) {
+	public boolean canSurvive(BlockState state, LevelReader world, BlockPos pos) {
 		for (Direction direction : UPDATE_SHAPE_ORDER) {
 			boolean canPlace = world.getBlockState(pos.relative(direction)).isFaceSturdy(world, pos, direction);
 			if (canPlace) return true;
@@ -131,7 +131,7 @@ public class LayerBlock extends CompatBlock implements SimpleWaterloggedBlock {
 	}
 
 	@Override
-	protected BlockState onShapeUpdate(BlockState state, Direction direction, BlockState neighborState, LevelReader world, BlockPos pos, BlockPos neighborPos, Ticks ticks, RandomSource random) {
+	public BlockState onShapeUpdate(BlockState state, Direction direction, BlockState neighborState, LevelReader world, BlockPos pos, BlockPos neighborPos, Ticks ticks, RandomSource random) {
 		if (!state.canSurvive(world, pos)) {
 			// Schedule a tick instead of immediately breaking, so the block can fall as an entity
 			ticks.block(pos, this, 2);
@@ -145,7 +145,7 @@ public class LayerBlock extends CompatBlock implements SimpleWaterloggedBlock {
 	}
 
 	@Override
-	protected void tick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
+	public void tick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
 		if (!state.canSurvive(world, pos)) {
 			if (FallingBlock.isFree(world.getBlockState(pos.below()))) {
 				FallingBlockEntity.fall(world, pos, state);
@@ -156,12 +156,12 @@ public class LayerBlock extends CompatBlock implements SimpleWaterloggedBlock {
 	}
 
 	@Override
-	protected boolean canHoldFluid(BlockGetter world, BlockPos pos, BlockState state, Fluid fluid) {
+	public boolean canHoldFluid(BlockGetter world, BlockPos pos, BlockState state, Fluid fluid) {
 		return state.getValue(BlockStateProperties.LAYERS) < 8;
 	}
 
 	@Override
-	protected ItemStack pickUpFluid(LevelAccessor world, BlockPos pos, BlockState state) {
+	public ItemStack pickUpFluid(LevelAccessor world, BlockPos pos, BlockState state) {
 		if (state.getValue(WATERLOGGED)) {
 			world.setBlock(pos, state.setValue(WATERLOGGED, false), 3);
 
@@ -176,7 +176,7 @@ public class LayerBlock extends CompatBlock implements SimpleWaterloggedBlock {
 	}
 
 	@Override
-	protected boolean canBeReplaced(BlockState state, BlockPlaceContext context) {
+	public boolean canBeReplaced(BlockState state, BlockPlaceContext context) {
 		int i = state.getValue(LAYERS);
 
 		if (context.getItemInHand().is(this.asItem()) && i < 8) {
@@ -206,11 +206,11 @@ public class LayerBlock extends CompatBlock implements SimpleWaterloggedBlock {
 	}
 
 	@Override
-	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+	public void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
 		builder.add(LAYERS, WATERLOGGED, FACING);
 	}
 
-	protected FluidState getFluidState(BlockState state) {
+	public FluidState getFluidState(BlockState state) {
 		if (state.getValue(BlockStateProperties.LAYERS) >= 8) {
 			return Fluids.EMPTY.defaultFluidState();
 		} else {

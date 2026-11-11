@@ -1,0 +1,35 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_purpur_layer": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "aronalayers:purpur_layer"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "aronalayers:purpur_block_from_purpur_layer"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_purpur_layer",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aronalayers:purpur_block_from_purpur_layer"
+    ]
+  },
+  "sends_telemetry_event": false
+}

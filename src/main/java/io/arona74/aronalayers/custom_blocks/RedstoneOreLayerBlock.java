@@ -27,7 +27,7 @@ public class RedstoneOreLayerBlock extends LayerBlock {
 		super(settings);
 	}
 
-	protected void attack(BlockState state, Level world, BlockPos pos, Player player) {
+	public void attack(BlockState state, Level world, BlockPos pos, Player player) {
 		light(state, world, pos);
 		super.attack(state, world, pos, player);
 	}
@@ -40,7 +40,7 @@ public class RedstoneOreLayerBlock extends LayerBlock {
 		super.stepOn(world, pos, state, entity);
 	}
 
-	protected InteractionResult onUse(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hit) {
+	public InteractionResult onUse(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hit) {
 		if (world.isClientSide()) {
 			spawnParticles(world, pos);
 		} else {
@@ -58,17 +58,17 @@ public class RedstoneOreLayerBlock extends LayerBlock {
 		}
 	}
 
-	protected boolean isRandomlyTicking(BlockState state) {
+	public boolean isRandomlyTicking(BlockState state) {
 		return state.getValue(LIT);
 	}
 
-	protected void randomTick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
+	public void randomTick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
 		if (state.getValue(LIT)) {
 			world.setBlock(pos, state.setValue(LIT, false), 3);
 		}
 	}
 
-	protected void spawnAfterBreak(BlockState state, ServerLevel world, BlockPos pos, ItemStack tool, boolean dropExperience) {
+	public void spawnAfterBreak(BlockState state, ServerLevel world, BlockPos pos, ItemStack tool, boolean dropExperience) {
 		super.spawnAfterBreak(state, world, pos, tool, dropExperience);
 
 		if (dropExperience) {
@@ -98,7 +98,7 @@ public class RedstoneOreLayerBlock extends LayerBlock {
 		}
 	}
 
-	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+	public void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
 		super.createBlockStateDefinition(builder);
 		builder.add(LIT);
 	}

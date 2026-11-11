@@ -1,0 +1,35 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_lime_concrete_powder_layer": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "aronalayers:lime_concrete_powder_layer"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "aronalayers:lime_concrete_powder_from_lime_concrete_powder_layer"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_lime_concrete_powder_layer",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aronalayers:lime_concrete_powder_from_lime_concrete_powder_layer"
+    ]
+  },
+  "sends_telemetry_event": false
+}

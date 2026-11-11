@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:stonecutting",
+  "count": 8,
+  "ingredient": {
+    "item": "minecraft:quartz_block"
+  },
+  "result": "aronalayers:chiseled_quartz_layer"
+}

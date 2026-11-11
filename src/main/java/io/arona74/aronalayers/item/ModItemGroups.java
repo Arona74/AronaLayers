@@ -114,10 +114,10 @@ public class ModItemGroups {
 						entries.accept(ModBlocks.CRACKED_DEEPSLATE_TILES_LAYER);
 
 						entries.accept(ModBlocks.TUFF_LAYER);
-						entries.accept(ModBlocks.CHISELED_TUFF_LAYER);
-						entries.accept(ModBlocks.POLISHED_TUFF_LAYER);
-						entries.accept(ModBlocks.TUFF_BRICKS_LAYER);
-						entries.accept(ModBlocks.CHISELED_TUFF_BRICKS_LAYER);
+						acceptIfPresent(entries, ModBlocks.CHISELED_TUFF_LAYER);
+						acceptIfPresent(entries, ModBlocks.POLISHED_TUFF_LAYER);
+						acceptIfPresent(entries, ModBlocks.TUFF_BRICKS_LAYER);
+						acceptIfPresent(entries, ModBlocks.CHISELED_TUFF_BRICKS_LAYER);
 
 						acceptIfPresent(entries, ModBlocks.CINNABAR_LAYER);
 						acceptIfPresent(entries, ModBlocks.POLISHED_CINNABAR_LAYER);
@@ -191,43 +191,43 @@ public class ModItemGroups {
 						entries.accept(ModBlocks.AMETHYST_LAYER);
 
 						entries.accept(ModBlocks.COPPER_LAYER);
-						entries.accept(ModBlocks.CHISELED_COPPER_LAYER);
-						entries.accept(ModBlocks.COPPER_GRATE_LAYER);
+						acceptIfPresent(entries, ModBlocks.CHISELED_COPPER_LAYER);
+						acceptIfPresent(entries, ModBlocks.COPPER_GRATE_LAYER);
 						entries.accept(ModBlocks.CUT_COPPER_LAYER);
 
 						entries.accept(ModBlocks.EXPOSED_COPPER_LAYER);
-						entries.accept(ModBlocks.EXPOSED_CHISELED_COPPER_LAYER);
-						entries.accept(ModBlocks.EXPOSED_COPPER_GRATE_LAYER);
+						acceptIfPresent(entries, ModBlocks.EXPOSED_CHISELED_COPPER_LAYER);
+						acceptIfPresent(entries, ModBlocks.EXPOSED_COPPER_GRATE_LAYER);
 						entries.accept(ModBlocks.EXPOSED_CUT_COPPER_LAYER);
 
 						entries.accept(ModBlocks.WEATHERED_COPPER_LAYER);
-						entries.accept(ModBlocks.WEATHERED_CHISELED_COPPER_LAYER);
-						entries.accept(ModBlocks.WEATHERED_COPPER_GRATE_LAYER);
+						acceptIfPresent(entries, ModBlocks.WEATHERED_CHISELED_COPPER_LAYER);
+						acceptIfPresent(entries, ModBlocks.WEATHERED_COPPER_GRATE_LAYER);
 						entries.accept(ModBlocks.WEATHERED_CUT_COPPER_LAYER);
 
 						entries.accept(ModBlocks.OXIDIZED_COPPER_LAYER);
-						entries.accept(ModBlocks.OXIDIZED_CHISELED_COPPER_LAYER);
-						entries.accept(ModBlocks.OXIDIZED_COPPER_GRATE_LAYER);
+						acceptIfPresent(entries, ModBlocks.OXIDIZED_CHISELED_COPPER_LAYER);
+						acceptIfPresent(entries, ModBlocks.OXIDIZED_COPPER_GRATE_LAYER);
 						entries.accept(ModBlocks.OXIDIZED_CUT_COPPER_LAYER);
 
 						entries.accept(ModBlocks.WAXED_COPPER_LAYER);
-						entries.accept(ModBlocks.WAXED_CHISELED_COPPER_LAYER);
-						entries.accept(ModBlocks.WAXED_COPPER_GRATE_LAYER);
+						acceptIfPresent(entries, ModBlocks.WAXED_CHISELED_COPPER_LAYER);
+						acceptIfPresent(entries, ModBlocks.WAXED_COPPER_GRATE_LAYER);
 						entries.accept(ModBlocks.WAXED_CUT_COPPER_LAYER);
 
 						entries.accept(ModBlocks.WAXED_EXPOSED_COPPER_LAYER);
-						entries.accept(ModBlocks.WAXED_EXPOSED_CHISELED_COPPER_LAYER);
-						entries.accept(ModBlocks.WAXED_EXPOSED_COPPER_GRATE_LAYER);
+						acceptIfPresent(entries, ModBlocks.WAXED_EXPOSED_CHISELED_COPPER_LAYER);
+						acceptIfPresent(entries, ModBlocks.WAXED_EXPOSED_COPPER_GRATE_LAYER);
 						entries.accept(ModBlocks.WAXED_EXPOSED_CUT_COPPER_LAYER);
 
 						entries.accept(ModBlocks.WAXED_WEATHERED_COPPER_LAYER);
-						entries.accept(ModBlocks.WAXED_WEATHERED_CHISELED_COPPER_LAYER);
-						entries.accept(ModBlocks.WAXED_WEATHERED_COPPER_GRATE_LAYER);
+						acceptIfPresent(entries, ModBlocks.WAXED_WEATHERED_CHISELED_COPPER_LAYER);
+						acceptIfPresent(entries, ModBlocks.WAXED_WEATHERED_COPPER_GRATE_LAYER);
 						entries.accept(ModBlocks.WAXED_WEATHERED_CUT_COPPER_LAYER);
 
 						entries.accept(ModBlocks.WAXED_OXIDIZED_COPPER_LAYER);
-						entries.accept(ModBlocks.WAXED_OXIDIZED_CHISELED_COPPER_LAYER);
-						entries.accept(ModBlocks.WAXED_OXIDIZED_COPPER_GRATE_LAYER);
+						acceptIfPresent(entries, ModBlocks.WAXED_OXIDIZED_CHISELED_COPPER_LAYER);
+						acceptIfPresent(entries, ModBlocks.WAXED_OXIDIZED_COPPER_GRATE_LAYER);
 						entries.accept(ModBlocks.WAXED_OXIDIZED_CUT_COPPER_LAYER);
 
 						entries.accept(ModBlocks.WHITE_WOOL_LAYER);

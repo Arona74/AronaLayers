@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "W": {
+      "item": "minecraft:mossy_cobblestone"
+    }
+  },
+  "pattern": [
+    " W",
+    "W "
+  ],
+  "result": {
+    "count": 16,
+    "item": "aronalayers:mossy_cobblestone_layer"
+  },
+  "show_notification": true
+}

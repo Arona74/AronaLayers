@@ -6,8 +6,6 @@ import io.arona74.aronalayers.block.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -17,11 +15,11 @@ public class WetSpongeLayerBlock extends LayerBlock {
 		super(settings);
 	}
 
-	protected void onPlace(BlockState state, Level world, BlockPos pos, BlockState oldState, boolean notify) {
+	public void onPlace(BlockState state, Level world, BlockPos pos, BlockState oldState, boolean notify) {
 		if (Compat.waterEvaporates(world, pos)) {
 			world.setBlock(pos, ModBlocks.SPONGE_LAYER.withPropertiesOf(state), 3);
 			world.levelEvent(2009, pos, 0);
-			world.playSound(null, pos, SoundEvents.WET_SPONGE_DRIES, SoundSource.BLOCKS, 1.0F, (1.0F + world.getRandom().nextFloat() * 0.2F) * 0.7F);
+			Compat.playWetSpongeDries(world, pos);
 		}
 	}
 

@@ -1,5 +1,6 @@
 package io.arona74.aronalayers.block;
 
+import net.minecraft.util.Mth;
 import org.jetbrains.annotations.Nullable;
 
 import io.arona74.aronalayers.compat.CompatBlock;
@@ -77,8 +78,8 @@ public class Layer3DBlock extends CompatBlock implements SimpleWaterloggedBlock 
 	 * {@code horizontalLayers} is 0, a full block when either value is 8, and air when both are 0.
 	 */
 	public BlockState getState(int verticalLayers, int horizontalLayers, Direction facing) {
-		int vertical = Math.clamp(verticalLayers, 0, 8);
-		int horizontal = Math.clamp(horizontalLayers, 0, 8);
+		int vertical = Mth.clamp(verticalLayers, 0, 8);
+		int horizontal = Mth.clamp(horizontalLayers, 0, 8);
 
 		if (horizontal == 0) {
 			if (vertical == 0) {
@@ -107,43 +108,43 @@ public class Layer3DBlock extends CompatBlock implements SimpleWaterloggedBlock 
 	}
 
 	@Override
-	protected boolean isPathfindable(BlockState state, PathComputationType type) {
+	public boolean canPathfind(BlockState state, PathComputationType type) {
 		return false;
 	}
 
 	@Override
-	protected VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
+	public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
 		return getBlockSupportShape(state, world, pos);
 	}
 
 	@Override
-	protected VoxelShape getCollisionShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
+	public VoxelShape getCollisionShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
 		return getBlockSupportShape(state, world, pos);
 	}
 
 	@Override
-	protected VoxelShape getBlockSupportShape(BlockState state, BlockGetter world, BlockPos pos) {
+	public VoxelShape getBlockSupportShape(BlockState state, BlockGetter world, BlockPos pos) {
 		return SHAPES[state.getValue(HORIZONTAL_FACING).get2DDataValue()][state.getValue(VERTICAL_LAYERS)][state.getValue(HORIZONTAL_LAYERS)];
 	}
 
 	@Override
-	protected VoxelShape getVisualShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
+	public VoxelShape getVisualShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
 		return getShape(state, world, pos, context);
 	}
 
 	@Override
-	protected boolean useShapeForLightOcclusion(BlockState state) {
+	public boolean useShapeForLightOcclusion(BlockState state) {
 		return true;
 	}
 
 	@Override
-	protected float getShadeBrightness(BlockState state, BlockGetter world, BlockPos pos) {
+	public float getShadeBrightness(BlockState state, BlockGetter world, BlockPos pos) {
 		return isFull(state) ? 0.35f : 1.0f;
 	}
 
 	// Held from below, or from the side by the wall layer.
 	@Override
-	protected boolean canSurvive(BlockState state, LevelReader world, BlockPos pos) {
+	public boolean canSurvive(BlockState state, LevelReader world, BlockPos pos) {
 		BlockPos below = pos.below();
 		if (world.getBlockState(below).isFaceSturdy(world, below, Direction.UP)) return true;
 		Direction f = state.getValue(HORIZONTAL_FACING);
@@ -152,7 +153,7 @@ public class Layer3DBlock extends CompatBlock implements SimpleWaterloggedBlock 
 	}
 
 	@Override
-	protected BlockState onShapeUpdate(BlockState state, Direction direction, BlockState neighborState, LevelReader world, BlockPos pos, BlockPos neighborPos, Ticks ticks, RandomSource random) {
+	public BlockState onShapeUpdate(BlockState state, Direction direction, BlockState neighborState, LevelReader world, BlockPos pos, BlockPos neighborPos, Ticks ticks, RandomSource random) {
 		if (!state.canSurvive(world, pos)) {
 			// Schedule a tick instead of immediately breaking, so the block can fall as an entity
 			ticks.block(pos, this, 2);
@@ -166,7 +167,7 @@ public class Layer3DBlock extends CompatBlock implements SimpleWaterloggedBlock 
 	}
 
 	@Override
-	protected void tick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
+	public void tick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
 		if (!state.canSurvive(world, pos)) {
 			if (FallingBlock.isFree(world.getBlockState(pos.below()))) {
 				FallingBlockEntity.fall(world, pos, state);
@@ -177,12 +178,12 @@ public class Layer3DBlock extends CompatBlock implements SimpleWaterloggedBlock 
 	}
 
 	@Override
-	protected boolean canHoldFluid(BlockGetter world, BlockPos pos, BlockState state, Fluid fluid) {
+	public boolean canHoldFluid(BlockGetter world, BlockPos pos, BlockState state, Fluid fluid) {
 		return !isFull(state);
 	}
 
 	@Override
-	protected ItemStack pickUpFluid(LevelAccessor world, BlockPos pos, BlockState state) {
+	public ItemStack pickUpFluid(LevelAccessor world, BlockPos pos, BlockState state) {
 		if (state.getValue(WATERLOGGED)) {
 			world.setBlock(pos, state.setValue(WATERLOGGED, false), 3);
 			return new ItemStack(Items.WATER_BUCKET);
@@ -192,7 +193,7 @@ public class Layer3DBlock extends CompatBlock implements SimpleWaterloggedBlock 
 	}
 
 	@Override
-	protected FluidState getFluidState(BlockState state) {
+	public FluidState getFluidState(BlockState state) {
 		if (isFull(state)) {
 			return Fluids.EMPTY.defaultFluidState();
 		}
@@ -204,7 +205,7 @@ public class Layer3DBlock extends CompatBlock implements SimpleWaterloggedBlock 
 	// horizontal layer. On a pure wall layer, using it on the ground in front of the wall adds the
 	// first vertical layer. The top of the wall and the outer faces place a new block next to this one.
 	@Override
-	protected boolean canBeReplaced(BlockState state, BlockPlaceContext context) {
+	public boolean canBeReplaced(BlockState state, BlockPlaceContext context) {
 		if (!context.getItemInHand().is(this.asItem())) {
 			return false;
 		}
@@ -255,17 +256,17 @@ public class Layer3DBlock extends CompatBlock implements SimpleWaterloggedBlock 
 	}
 
 	@Override
-	protected BlockState rotate(BlockState state, Rotation rotation) {
+	public BlockState rotate(BlockState state, Rotation rotation) {
 		return state.setValue(HORIZONTAL_FACING, rotation.rotate(state.getValue(HORIZONTAL_FACING)));
 	}
 
 	@Override
-	protected BlockState mirror(BlockState state, Mirror mirror) {
+	public BlockState mirror(BlockState state, Mirror mirror) {
 		return state.rotate(mirror.getRotation(state.getValue(HORIZONTAL_FACING)));
 	}
 
 	@Override
-	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+	public void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
 		builder.add(HORIZONTAL_FACING, VERTICAL_LAYERS, HORIZONTAL_LAYERS, WATERLOGGED);
 	}
 

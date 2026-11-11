@@ -11,11 +11,11 @@ public class RedstoneLayerBlock extends LayerBlock {
 		super(settings);
 	}
 
-	protected boolean isSignalSource(BlockState state) {
+	public boolean isSignalSource(BlockState state) {
 		return true;
 	}
 
-	protected int getSignal(BlockState state, BlockGetter world, BlockPos pos, Direction direction) {
+	public int getSignal(BlockState state, BlockGetter world, BlockPos pos, Direction direction) {
 		return (state.getValue(LAYERS) * 2) - 1;
 	}
 }

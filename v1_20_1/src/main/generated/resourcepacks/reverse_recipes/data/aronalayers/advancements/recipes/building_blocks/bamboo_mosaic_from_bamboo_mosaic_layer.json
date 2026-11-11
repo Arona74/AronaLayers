@@ -1,0 +1,35 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_bamboo_mosaic_layer": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "aronalayers:bamboo_mosaic_layer"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "aronalayers:bamboo_mosaic_from_bamboo_mosaic_layer"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_bamboo_mosaic_layer",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aronalayers:bamboo_mosaic_from_bamboo_mosaic_layer"
+    ]
+  },
+  "sends_telemetry_event": false
+}

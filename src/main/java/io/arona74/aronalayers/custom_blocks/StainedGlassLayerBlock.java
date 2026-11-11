@@ -18,7 +18,7 @@ public class StainedGlassLayerBlock extends GlassLayerBlock implements BeaconBea
 		return color;
 	}
 
-	protected boolean skipRendering(BlockState state, BlockState stateFrom, Direction direction) {
+	public boolean skipRendering(BlockState state, BlockState stateFrom, Direction direction) {
 		if (stateFrom.getBlock() instanceof BeaconBeamBlock stainable) {
 			return stainable.getColor() == color && super.skipRendering(state, stateFrom, direction);
 		}

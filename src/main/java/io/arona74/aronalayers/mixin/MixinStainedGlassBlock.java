@@ -42,7 +42,7 @@ public class MixinStainedGlassBlock extends Block {
 	}
 
 	@Override
-	protected boolean skipRendering(BlockState state, BlockState stateFrom, Direction direction) {
+	public boolean skipRendering(BlockState state, BlockState stateFrom, Direction direction) {
 		if (stateFrom.getBlock() instanceof BeaconBeamBlock stainable && !stateFrom.getBlock().equals(Blocks.BEACON)) {
 			VoxelShape stateCullingShape = getCached(state);
 			VoxelShape stateFromCullingShape = getCached(stateFrom);

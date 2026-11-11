@@ -10,7 +10,6 @@ import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
-import net.minecraft.util.ParticleUtils;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.item.FallingBlockEntity;
 import net.minecraft.world.level.Level;
@@ -22,16 +21,16 @@ public class FallingLayerBlock extends LayerBlock {
 		super(settings);
 	}
 
-	protected void onPlace(BlockState state, Level world, BlockPos pos, BlockState oldState, boolean notify) {
+	public void onPlace(BlockState state, Level world, BlockPos pos, BlockState oldState, boolean notify) {
 		world.scheduleTick(pos, this, this.getFallDelay());
 	}
 
-	protected BlockState onShapeUpdate(BlockState state, Direction direction, BlockState neighborState, LevelReader world, BlockPos pos, BlockPos neighborPos, Ticks ticks, RandomSource random) {
+	public BlockState onShapeUpdate(BlockState state, Direction direction, BlockState neighborState, LevelReader world, BlockPos pos, BlockPos neighborPos, Ticks ticks, RandomSource random) {
 		ticks.block(pos, this, this.getFallDelay());
 		return super.onShapeUpdate(state, direction, neighborState, world, pos, neighborPos, ticks, random);
 	}
 
-	protected void tick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
+	public void tick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
 		if (canFallThrough(world.getBlockState(pos.below())) && pos.getY() >= Compat.minY(world)) {
 			FallingBlockEntity fallingBlockEntity = FallingBlockEntity.fall(world, pos, state);
 			this.configureFallingBlockEntity(fallingBlockEntity);
@@ -46,10 +45,10 @@ public class FallingLayerBlock extends LayerBlock {
 		}
 	}
 
-	protected void configureFallingBlockEntity(FallingBlockEntity entity) {
+	public void configureFallingBlockEntity(FallingBlockEntity entity) {
 	}
 
-	protected int getFallDelay() {
+	public int getFallDelay() {
 		return 2;
 	}
 
@@ -62,7 +61,7 @@ public class FallingLayerBlock extends LayerBlock {
 			BlockPos blockPos = pos.below();
 
 			if (canFallThrough(world.getBlockState(blockPos))) {
-				ParticleUtils.spawnParticleBelow(world, pos, random, new BlockParticleOption(ParticleTypes.FALLING_DUST, state));
+				Compat.spawnParticleBelow(world, pos, random, new BlockParticleOption(ParticleTypes.FALLING_DUST, state));
 			}
 		}
 	}

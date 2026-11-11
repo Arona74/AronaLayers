@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "W": {
+      "item": "minecraft:gray_concrete"
+    }
+  },
+  "pattern": [
+    " W",
+    "W "
+  ],
+  "result": {
+    "count": 16,
+    "item": "aronalayers:gray_concrete_layer"
+  },
+  "show_notification": true
+}

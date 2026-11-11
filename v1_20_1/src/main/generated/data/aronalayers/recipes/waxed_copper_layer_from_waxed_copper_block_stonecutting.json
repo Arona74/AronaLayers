@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:stonecutting",
+  "count": 8,
+  "ingredient": {
+    "item": "minecraft:waxed_copper_block"
+  },
+  "result": "aronalayers:waxed_copper_layer"
+}

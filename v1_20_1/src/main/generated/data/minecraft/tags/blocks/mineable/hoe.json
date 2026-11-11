@@ -1,0 +1,27 @@
+{
+  "replace": false,
+  "values": [
+    "aronalayers:moss_layer",
+    "aronalayers:oak_leaves_layer",
+    "aronalayers:spruce_leaves_layer",
+    "aronalayers:birch_leaves_layer",
+    "aronalayers:jungle_leaves_layer",
+    "aronalayers:acacia_leaves_layer",
+    "aronalayers:dark_oak_leaves_layer",
+    "aronalayers:mangrove_leaves_layer",
+    "aronalayers:cherry_leaves_layer",
+    "aronalayers:azalea_leaves_layer",
+    "aronalayers:flowering_azalea_leaves_layer",
+    "aronalayers:nether_wart_layer",
+    "aronalayers:warped_wart_layer",
+    "aronalayers:shroomlight_layer",
+    "aronalayers:dried_kelp_layer",
+    "aronalayers:sponge_layer",
+    "aronalayers:wet_sponge_layer",
+    "aronalayers:hay_layer",
+    "aronalayers:sculk_layer",
+    "aronalayers:bedrock_layer",
+    "aronalayers:target_layer",
+    "aronalayers:moss_3d_layer"
+  ]
+}

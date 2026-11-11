@@ -20,23 +20,23 @@ public class GlassLayerBlock extends LayerBlock {
 		super(settings);
 	}
 
-	protected VoxelShape getCached(BlockState state) {
+	public VoxelShape getCached(BlockState state) {
 		return CACHED.computeIfAbsent(state, s -> s.getShape(EmptyBlockGetter.INSTANCE, BlockPos.ZERO));
 	}
 
-	protected VoxelShape getVisualShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
+	public VoxelShape getVisualShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
 		return Shapes.empty();
 	}
 
-	protected float getShadeBrightness(BlockState state, BlockGetter world, BlockPos pos) {
+	public float getShadeBrightness(BlockState state, BlockGetter world, BlockPos pos) {
 		return 1.0F;
 	}
 
-	protected boolean isTransparent(BlockState state) {
+	public boolean isTransparent(BlockState state) {
 		return true;
 	}
 
-	protected boolean skipRendering(BlockState state, BlockState stateFrom, Direction direction) {
+	public boolean skipRendering(BlockState state, BlockState stateFrom, Direction direction) {
 		VoxelShape stateCullingShape = getCached(state);
 		VoxelShape stateFromCullingShape = getCached(stateFrom);
 		return Compat.occludes(stateCullingShape, stateFromCullingShape, direction);

@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "package": "io.arona74.aronalayers.mixin.tool",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "MixinAxeItemUseOn",
+    "MixinHoeItem",
+    "MixinShovelItem"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+	}
+}

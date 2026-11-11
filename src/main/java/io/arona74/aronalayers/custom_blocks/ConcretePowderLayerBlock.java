@@ -74,7 +74,7 @@ public class ConcretePowderLayerBlock extends FallingLayerBlock {
 	}
 
 	@Override
-	protected BlockState onShapeUpdate(BlockState state, Direction direction, BlockState neighborState, LevelReader world, BlockPos pos, BlockPos neighborPos, Ticks ticks, RandomSource random) {
+	public BlockState onShapeUpdate(BlockState state, Direction direction, BlockState neighborState, LevelReader world, BlockPos pos, BlockPos neighborPos, Ticks ticks, RandomSource random) {
 		if (hardensOnAnySide(world, pos)) {
 			return this.hardened
 					.setValue(WATERLOGGED, world.getBlockState(pos).getValue(WATERLOGGED))
