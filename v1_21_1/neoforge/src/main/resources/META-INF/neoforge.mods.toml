@@ -1,0 +1,31 @@
+modLoader = "javafml"
+loaderVersion = "[4,)"
+license = "CC-BY-NC-4.0"
+issueTrackerURL = "https://github.com/Arona74/AronaLayers/issues"
+
+[[mods]]
+modId = "aronalayers"
+version = "${version}"
+displayName = "AronaLayers: Blocks"
+description = """Layer blocks (stackable two pixel tall blocks) and 3D layers for most vanilla blocks. Based on Vanilla+ Layers by Fellter."""
+authors = "Arona74"
+credits = "Fellter (original Vanilla+ Layers)"
+displayURL = "https://github.com/Arona74/AronaLayers"
+logoFile = "assets/aronalayers/icon.png"
+
+[[mixins]]
+config = "aronalayers.mixins.json"
+
+[[dependencies.aronalayers]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.1.0,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.aronalayers]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.1]"
+ordering = "NONE"
+side = "BOTH"

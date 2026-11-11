@@ -13,6 +13,7 @@ rootProject.name = 'aronalayers-blocks'
 
 include ':v1_20_1:fabric'
 include ':v1_21_1:fabric'
+include ':v1_21_1:neoforge'
 include ':v1_21_11:fabric'
 include ':v26_1_2:fabric'
 include ':v26_2:fabric'
