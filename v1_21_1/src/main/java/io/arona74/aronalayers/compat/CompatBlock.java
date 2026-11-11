@@ -51,6 +51,11 @@ public abstract class CompatBlock extends Block {
 		super.entityInside(state, level, pos, entity);
 	}
 
+	/** Moves an entity after it fell on this block; slime-like blocks bounce it here. */
+	public void onEntityLanded(BlockGetter level, Entity entity) {
+		super.updateEntityAfterFallOn(level, entity);
+	}
+
 	protected void onNeighborChanged(BlockState state, Level level, BlockPos pos, Block sourceBlock, boolean movedByPiston) {
 	}
 
@@ -94,6 +99,11 @@ public abstract class CompatBlock extends Block {
 	@Override
 	protected final void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
 		onEntityInside(state, level, pos, entity);
+	}
+
+	@Override
+	public final void updateEntityAfterFallOn(BlockGetter level, Entity entity) {
+		onEntityLanded(level, entity);
 	}
 
 	@Override

@@ -37,11 +37,11 @@ public class ModModels {
 	}
 
 	public static String layer3DSuffix(int layers, int horizontalLayers) {
-		return "_height_" + layers * 2 + "_width_" + horizontalLayers * 2;
+		return Layer3DTemplates.suffix(layers, horizontalLayers);
 	}
 
 	public static ResourceLocation layer3DTemplateId(int layers, int horizontalLayers) {
-		return ResourceLocation.fromNamespaceAndPath(AronaLayers.MOD_ID, "blockmodels/layer_3d/layer" + layer3DSuffix(layers, horizontalLayers));
+		return ResourceLocation.fromNamespaceAndPath(AronaLayers.MOD_ID, Layer3DTemplates.path(layers, horizontalLayers));
 	}
 
 	private static ModelTemplate block(String parent, String variant, TextureSlot... requiredTextureKeys) {

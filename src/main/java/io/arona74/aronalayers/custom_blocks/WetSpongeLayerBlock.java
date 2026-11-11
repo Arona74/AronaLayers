@@ -1,5 +1,6 @@
 package io.arona74.aronalayers.custom_blocks;
 
+import io.arona74.aronalayers.compat.Compat;
 import io.arona74.aronalayers.block.LayerBlock;
 import io.arona74.aronalayers.block.ModBlocks;
 import net.minecraft.core.BlockPos;
@@ -17,7 +18,7 @@ public class WetSpongeLayerBlock extends LayerBlock {
 	}
 
 	protected void onPlace(BlockState state, Level world, BlockPos pos, BlockState oldState, boolean notify) {
-		if (world.dimensionType().ultraWarm()) {
+		if (Compat.waterEvaporates(world, pos)) {
 			world.setBlock(pos, ModBlocks.SPONGE_LAYER.withPropertiesOf(state), 3);
 			world.levelEvent(2009, pos, 0);
 			world.playSound(null, pos, SoundEvents.WET_SPONGE_DRIES, SoundSource.BLOCKS, 1.0F, (1.0F + world.getRandom().nextFloat() * 0.2F) * 0.7F);

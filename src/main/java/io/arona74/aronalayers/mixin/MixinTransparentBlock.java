@@ -3,6 +3,7 @@ package io.arona74.aronalayers.mixin;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import io.arona74.aronalayers.compat.Compat;
 import io.arona74.aronalayers.block.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -36,7 +37,7 @@ public class MixinTransparentBlock extends Block {
 		if (stateFrom.is(ModBlocks.GLASS_LAYER)) {
 			VoxelShape stateCullingShape = getCached(state);
 			VoxelShape stateFromCullingShape = getCached(stateFrom);
-			cir.setReturnValue(Shapes.blockOccudes(stateCullingShape, stateFromCullingShape, direction));
+			cir.setReturnValue(Compat.occludes(stateCullingShape, stateFromCullingShape, direction));
 		}
 	}
 }

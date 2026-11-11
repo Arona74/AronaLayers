@@ -3,6 +3,7 @@ package io.arona74.aronalayers.custom_blocks;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import io.arona74.aronalayers.compat.Compat;
 import io.arona74.aronalayers.block.LayerBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -38,6 +39,6 @@ public class GlassLayerBlock extends LayerBlock {
 	protected boolean skipRendering(BlockState state, BlockState stateFrom, Direction direction) {
 		VoxelShape stateCullingShape = getCached(state);
 		VoxelShape stateFromCullingShape = getCached(stateFrom);
-		return Shapes.blockOccudes(stateCullingShape, stateFromCullingShape, direction);
+		return Compat.occludes(stateCullingShape, stateFromCullingShape, direction);
 	}
 }

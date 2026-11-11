@@ -17,6 +17,9 @@ public class DatagenArgs {
 	public Block fullTextureBlock;
 	public Boolean y15 = false;
 	public Boolean needsSilkTouch = false;
+	// Item model tint, for versions whose item models carry one (1.21.4+): a fixed ARGB color, or the grass color.
+	public Integer itemTint;
+	public Boolean grassItemTint = false;
 	public ArrayList<Block> stonecuttingInput = new ArrayList<>();
 
 	public DatagenArgs() {
@@ -76,6 +79,16 @@ public class DatagenArgs {
 
 	public DatagenArgs y15() {
 		this.y15 = true;
+		return this;
+	}
+
+	public DatagenArgs itemTint(int argb) {
+		this.itemTint = argb;
+		return this;
+	}
+
+	public DatagenArgs grassItemTint() {
+		this.grassItemTint = true;
 		return this;
 	}
 }

@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_cracked_deepslate_tiles_layer": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aronalayers:cracked_deepslate_tiles_layer"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "aronalayers:cracked_deepslate_tiles_from_cracked_deepslate_tiles_layer"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_cracked_deepslate_tiles_layer"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aronalayers:cracked_deepslate_tiles_from_cracked_deepslate_tiles_layer"
+    ]
+  }
+}

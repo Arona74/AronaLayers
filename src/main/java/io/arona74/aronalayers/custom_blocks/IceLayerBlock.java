@@ -1,5 +1,6 @@
 package io.arona74.aronalayers.custom_blocks;
 
+import io.arona74.aronalayers.compat.Compat;
 import org.jetbrains.annotations.Nullable;
 
 import io.arona74.aronalayers.block.LayerBlock;
@@ -27,7 +28,7 @@ public class IceLayerBlock extends LayerBlock {
 
 	public void playerDestroy(Level world, Player player, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity, ItemStack tool) {
 		if (!EnchantmentHelper.hasTag(tool, EnchantmentTags.PREVENTS_ICE_MELTING)) {
-			if (world.dimensionType().ultraWarm()) {
+			if (Compat.waterEvaporates(world, pos)) {
 				world.removeBlock(pos, false);
 				return;
 			}
@@ -43,17 +44,17 @@ public class IceLayerBlock extends LayerBlock {
 	}
 
 	protected void randomTick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
-		if (world.getBrightness(LightLayer.BLOCK, pos) > 11 - state.getLightBlock(world, pos)) {
+		if (world.getBrightness(LightLayer.BLOCK, pos) > 11 - Compat.lightBlock(state, world, pos)) {
 			this.melt(world, pos);
 		}
 	}
 
 	protected void melt(Level world, BlockPos pos) {
-		if (world.dimensionType().ultraWarm() || world.getBlockState(pos).getValue(LAYERS) < 8) {
+		if (Compat.waterEvaporates(world, pos) || world.getBlockState(pos).getValue(LAYERS) < 8) {
 			world.removeBlock(pos, false);
 		} else {
 			world.setBlockAndUpdate(pos, getMeltedState());
-			world.neighborChanged(pos, getMeltedState().getBlock(), pos);
+			Compat.notifyNeighborChanged(world, pos, getMeltedState().getBlock());
 		}
 	}
 }

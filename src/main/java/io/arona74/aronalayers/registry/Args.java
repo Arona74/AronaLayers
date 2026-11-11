@@ -2,6 +2,7 @@ package io.arona74.aronalayers.registry;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import io.arona74.aronalayers.block.ModBlocks;
 import net.minecraft.tags.BlockTags;
@@ -21,6 +22,13 @@ public final class Args {
 			DATAGEN_ARGS.put(block, datagenArgs);
 		} else {
 			throw new IllegalStateException("Block " + block.getName() + " has already been put in DatagenArgs source map.");
+		}
+	}
+
+	// For layers that only exist on some Minecraft versions: ModBlocks leaves them null elsewhere.
+	private static void putIfPresent(Block block, Supplier<DatagenArgs> datagenArgs) {
+		if (block != null) {
+			putInDatagenArgs(block, datagenArgs.get());
 		}
 	}
 
@@ -65,6 +73,11 @@ public final class Args {
 		putInDatagenArgs(ModBlocks.STRIPPED_CHERRY_WOOD_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_AXE).parentBlock("stripped_cherry_wood").textureMap(Textures.all("stripped_cherry_log")));
 		putInDatagenArgs(ModBlocks.CHERRY_LOG_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_AXE).parentBlock("cherry_log").textureMap(blockAndTopForEnds("cherry_log")));
 		putInDatagenArgs(ModBlocks.CHERRY_WOOD_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_AXE).parentBlock("cherry_wood").textureMap(Textures.all("cherry_log")));
+		putIfPresent(ModBlocks.PALE_OAK_LAYER, () -> new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_AXE).parentBlock("pale_oak_planks").textureMap(Textures.all("pale_oak_planks")));
+		putIfPresent(ModBlocks.STRIPPED_PALE_OAK_LOG_LAYER, () -> new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_AXE).parentBlock("stripped_pale_oak_log").textureMap(blockAndTopForEnds("stripped_pale_oak_log")));
+		putIfPresent(ModBlocks.STRIPPED_PALE_OAK_WOOD_LAYER, () -> new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_AXE).parentBlock("stripped_pale_oak_wood").textureMap(Textures.all("stripped_pale_oak_log")));
+		putIfPresent(ModBlocks.PALE_OAK_LOG_LAYER, () -> new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_AXE).parentBlock("pale_oak_log").textureMap(blockAndTopForEnds("pale_oak_log")));
+		putIfPresent(ModBlocks.PALE_OAK_WOOD_LAYER, () -> new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_AXE).parentBlock("pale_oak_wood").textureMap(Textures.all("pale_oak_log")));
 		putInDatagenArgs(ModBlocks.BAMBOO_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_AXE).parentBlock("bamboo_planks").textureMap(Textures.all("bamboo_planks")));
 		putInDatagenArgs(ModBlocks.BAMBOO_MOSAIC_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_AXE).parentBlock("bamboo_mosaic").textureMap(Textures.all("bamboo_mosaic")));
 		putInDatagenArgs(ModBlocks.STRIPPED_BAMBOO_BLOCK_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_AXE).parentBlock("stripped_bamboo_block").textureMap(blockAndTopForEnds("stripped_bamboo_block")));
@@ -110,6 +123,8 @@ public final class Args {
 		putInDatagenArgs(ModBlocks.BRICKS_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_PICKAXE).parentBlock("bricks").textureMap(Textures.all("bricks")).stonecutting());
 		putInDatagenArgs(ModBlocks.PACKED_MUD_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_PICKAXE).parentBlock("packed_mud").textureMap(Textures.all("packed_mud")));
 		putInDatagenArgs(ModBlocks.MUD_BRICKS_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_PICKAXE).parentBlock("mud_bricks").textureMap(Textures.all("mud_bricks")).stonecutting());
+		putIfPresent(ModBlocks.RESIN_BRICKS_LAYER, () -> new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_PICKAXE).parentBlock("resin_bricks").textureMap(Textures.all("resin_bricks")).stonecutting());
+		putIfPresent(ModBlocks.CHISELED_RESIN_BRICKS_LAYER, () -> new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_PICKAXE).parentBlock("chiseled_resin_bricks").textureMap(Textures.all("chiseled_resin_bricks")).stonecutting("resin_bricks"));
 		putInDatagenArgs(ModBlocks.SANDSTONE_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_PICKAXE).parentBlock("sandstone").textureMap(blockTB("sandstone")).stonecutting());
 		putInDatagenArgs(ModBlocks.CHISELED_SANDSTONE_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_PICKAXE).parentBlock("chiseled_sandstone").textureMap(custom("chiseled_sandstone", "sandstone", "sandstone", "", "_top", "_top")).stonecutting("sandstone"));
 		putInDatagenArgs(ModBlocks.SMOOTH_SANDSTONE_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_PICKAXE).parentBlock("smooth_sandstone").textureMap(allWithSuffix("sandstone", "_top")).stonecutting());
@@ -288,7 +303,7 @@ public final class Args {
 		putInDatagenArgs(ModBlocks.DIRT_PATH_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_SHOVEL).parentBlock("dirt_path").textureMap(custom("dirt_path", "dirt_path", "dirt", "_side", "_top", "")).y15());
 		putInDatagenArgs(ModBlocks.FARMLAND_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_SHOVEL).parentBlock("farmland").textureMap(custom("dirt", "farmland", "dirt", "", "", "")).y15());
 		putInDatagenArgs(ModBlocks.DIRT_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_SHOVEL).parentBlock("dirt").textureMap(Textures.all("dirt")));
-		putInDatagenArgs(ModBlocks.GRASS_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_SHOVEL).parentBlock("grass_block").textureMap(custom("grass_block", "grass_block", "dirt", "_side", "_top", "")));
+		putInDatagenArgs(ModBlocks.GRASS_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_SHOVEL).parentBlock("grass_block").textureMap(custom("grass_block", "grass_block", "dirt", "_side", "_top", "")).grassItemTint());
 		putInDatagenArgs(ModBlocks.PODZOL_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_SHOVEL).parentBlock("podzol").textureMap(custom("podzol", "podzol", "dirt", "_side", "_top", "")));
 		putInDatagenArgs(ModBlocks.MYCELIUM_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_SHOVEL).parentBlock("mycelium").textureMap(custom("mycelium", "mycelium", "dirt", "_side", "_top", "")));
 		putInDatagenArgs(ModBlocks.COARSE_DIRT_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_SHOVEL).parentBlock("coarse_dirt").textureMap(Textures.all("coarse_dirt")));
@@ -304,6 +319,7 @@ public final class Args {
 		putInDatagenArgs(ModBlocks.BLUE_ICE_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_PICKAXE).parentBlock("blue_ice").textureMap(Textures.all("blue_ice")));
 		putInDatagenArgs(ModBlocks.SNOW_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_SHOVEL).parentBlock("snow_block").textureMap(Textures.all("snow")));
 		putInDatagenArgs(ModBlocks.MOSS_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_HOE).parentBlock("moss_block").textureMap(Textures.all("moss_block")));
+		putIfPresent(ModBlocks.PALE_MOSS_LAYER, () -> new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_HOE).parentBlock("pale_moss_block").textureMap(Textures.all("pale_moss_block")));
 		putInDatagenArgs(ModBlocks.CALCITE_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_PICKAXE).parentBlock("calcite").textureMap(Textures.all("calcite")));
 		putInDatagenArgs(ModBlocks.DRIPSTONE_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_PICKAXE).parentBlock("dripstone_block").textureMap(Textures.all("dripstone_block")));
 		putInDatagenArgs(ModBlocks.MAGMA_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_PICKAXE).parentBlock("magma_block").textureMap(Textures.allTexture("minecraft:block/magma")));
@@ -337,14 +353,15 @@ public final class Args {
 		putInDatagenArgs(ModBlocks.RAW_COPPER_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_PICKAXE).parentBlock("raw_copper_block").textureMap(Textures.all("raw_copper_block")));
 		putInDatagenArgs(ModBlocks.RAW_GOLD_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_PICKAXE).parentBlock("raw_gold_block").textureMap(Textures.all("raw_gold_block")));
 		putInDatagenArgs(ModBlocks.GLOWSTONE_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_PICKAXE).parentBlock("glowstone").textureMap(Textures.all("glowstone")));
-		putInDatagenArgs(ModBlocks.OAK_LEAVES_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_HOE).parentBlock("oak_leaves").textureMap(Textures.all("oak_leaves")));
-		putInDatagenArgs(ModBlocks.SPRUCE_LEAVES_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_HOE).parentBlock("spruce_leaves").textureMap(Textures.all("spruce_leaves")));
-		putInDatagenArgs(ModBlocks.BIRCH_LEAVES_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_HOE).parentBlock("birch_leaves").textureMap(Textures.all("birch_leaves")));
-		putInDatagenArgs(ModBlocks.JUNGLE_LEAVES_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_HOE).parentBlock("jungle_leaves").textureMap(Textures.all("jungle_leaves")));
-		putInDatagenArgs(ModBlocks.ACACIA_LEAVES_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_HOE).parentBlock("acacia_leaves").textureMap(Textures.all("acacia_leaves")));
-		putInDatagenArgs(ModBlocks.DARK_OAK_LEAVES_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_HOE).parentBlock("dark_oak_leaves").textureMap(Textures.all("dark_oak_leaves")));
-		putInDatagenArgs(ModBlocks.MANGROVE_LEAVES_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_HOE).parentBlock("mangrove_leaves").textureMap(Textures.all("mangrove_leaves")));
+		putInDatagenArgs(ModBlocks.OAK_LEAVES_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_HOE).parentBlock("oak_leaves").textureMap(Textures.all("oak_leaves")).itemTint(-12012264));
+		putInDatagenArgs(ModBlocks.SPRUCE_LEAVES_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_HOE).parentBlock("spruce_leaves").textureMap(Textures.all("spruce_leaves")).itemTint(-10380959));
+		putInDatagenArgs(ModBlocks.BIRCH_LEAVES_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_HOE).parentBlock("birch_leaves").textureMap(Textures.all("birch_leaves")).itemTint(-8345771));
+		putInDatagenArgs(ModBlocks.JUNGLE_LEAVES_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_HOE).parentBlock("jungle_leaves").textureMap(Textures.all("jungle_leaves")).itemTint(-12012264));
+		putInDatagenArgs(ModBlocks.ACACIA_LEAVES_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_HOE).parentBlock("acacia_leaves").textureMap(Textures.all("acacia_leaves")).itemTint(-12012264));
+		putInDatagenArgs(ModBlocks.DARK_OAK_LEAVES_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_HOE).parentBlock("dark_oak_leaves").textureMap(Textures.all("dark_oak_leaves")).itemTint(-12012264));
+		putInDatagenArgs(ModBlocks.MANGROVE_LEAVES_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_HOE).parentBlock("mangrove_leaves").textureMap(Textures.all("mangrove_leaves")).itemTint(-7158200));
 		putInDatagenArgs(ModBlocks.CHERRY_LEAVES_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_HOE).parentBlock("cherry_leaves").textureMap(Textures.all("cherry_leaves")));
+		putIfPresent(ModBlocks.PALE_OAK_LEAVES_LAYER, () -> new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_HOE).parentBlock("pale_oak_leaves").textureMap(Textures.all("pale_oak_leaves")));
 		putInDatagenArgs(ModBlocks.AZALEA_LEAVES_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_HOE).parentBlock("azalea_leaves").textureMap(Textures.all("azalea_leaves")));
 		putInDatagenArgs(ModBlocks.FLOWERING_AZALEA_LEAVES_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_HOE).parentBlock("flowering_azalea_leaves").textureMap(Textures.all("flowering_azalea_leaves")));
 		putInDatagenArgs(ModBlocks.BROWN_MUSHROOM_LAYER, new DatagenArgs().blockTags(BlockTags.MINEABLE_WITH_AXE).parentBlock("brown_mushroom_block"));
@@ -371,6 +388,7 @@ public final class Args {
 		putInDatagenArgs(ModBlocks.HONEYCOMB_LAYER, new DatagenArgs().blockTags().parentBlock("honeycomb_block").textureMap(Textures.all("honeycomb_block")));
 		putInDatagenArgs(ModBlocks.SLIME_LAYER, new DatagenArgs().blockTags().parentBlock("slime_block").textureMap(Textures.all("slime_block")));
 		putInDatagenArgs(ModBlocks.HONEY_LAYER, new DatagenArgs().blockTags().parentBlock("honey_block").textureMap(blockSTB("honey_block")));
+		putIfPresent(ModBlocks.RESIN_LAYER, () -> new DatagenArgs().blockTags().parentBlock("resin_block").textureMap(Textures.all("resin_block")));
 		putInDatagenArgs(ModBlocks.OCHRE_FROGLIGHT_LAYER, new DatagenArgs().blockTags().parentBlock("ochre_froglight").textureMap(sideAndTopForEnds("ochre_froglight")));
 		putInDatagenArgs(ModBlocks.VERDANT_FROGLIGHT_LAYER, new DatagenArgs().blockTags().parentBlock("verdant_froglight").textureMap(sideAndTopForEnds("verdant_froglight")));
 		putInDatagenArgs(ModBlocks.PEARLESCENT_FROGLIGHT_LAYER, new DatagenArgs().blockTags().parentBlock("pearlescent_froglight").textureMap(sideAndTopForEnds("pearlescent_froglight")));

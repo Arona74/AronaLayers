@@ -22,9 +22,9 @@ public class SlimeLayerBlock extends LayerBlock {
 		}
 	}
 
-	public void updateEntityAfterFallOn(BlockGetter world, Entity entity) {
+	public void onEntityLanded(BlockGetter world, Entity entity) {
 		if (entity.isSuppressingBounce()) {
-			super.updateEntityAfterFallOn(world, entity);
+			super.onEntityLanded(world, entity);
 		} else {
 			this.bounce(entity);
 		}

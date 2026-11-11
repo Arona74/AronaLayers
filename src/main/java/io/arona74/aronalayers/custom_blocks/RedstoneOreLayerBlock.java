@@ -1,5 +1,6 @@
 package io.arona74.aronalayers.custom_blocks;
 
+import io.arona74.aronalayers.compat.Compat;
 import io.arona74.aronalayers.block.LayerBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -87,7 +88,7 @@ public class RedstoneOreLayerBlock extends LayerBlock {
 		for (Direction direction : Direction.values()) {
 			BlockPos blockPos = pos.relative(direction);
 
-			if (!world.getBlockState(blockPos).isSolidRender(world, blockPos)) {
+			if (!Compat.isSolidRender(world.getBlockState(blockPos), world, blockPos)) {
 				Direction.Axis axis = direction.getAxis();
 				double e = axis == Direction.Axis.X ? (double) 0.5F + (double) 0.5625F * (double) direction.getStepX() : (double) random.nextFloat();
 				double f = axis == Direction.Axis.Y ? (double) 0.5F + (double) 0.5625F * (double) direction.getStepY() : (double) random.nextFloat();

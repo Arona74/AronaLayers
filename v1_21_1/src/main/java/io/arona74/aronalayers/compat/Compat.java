@@ -11,7 +11,14 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.entity.vehicle.AbstractMinecart;
 import net.minecraft.world.entity.vehicle.Boat;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
@@ -96,5 +103,32 @@ public final class Compat {
 
 	public static boolean isBoat(Entity entity) {
 		return entity instanceof Boat;
+	}
+
+	public static boolean isMinecart(Entity entity) {
+		return entity instanceof AbstractMinecart;
+	}
+
+	/** Whether shape {@code a} fully hides shape {@code b} on side {@code direction}. */
+	public static boolean occludes(VoxelShape a, VoxelShape b, Direction direction) {
+		return Shapes.blockOccudes(a, b, direction);
+	}
+
+	/** Whether water evaporates here, like in the Nether. */
+	public static boolean waterEvaporates(Level level, BlockPos pos) {
+		return level.dimensionType().ultraWarm();
+	}
+
+	public static int lightBlock(BlockState state, BlockGetter level, BlockPos pos) {
+		return state.getLightBlock(level, pos);
+	}
+
+	public static boolean isSolidRender(BlockState state, BlockGetter level, BlockPos pos) {
+		return state.isSolidRender(level, pos);
+	}
+
+	/** Tells the block at {@code pos} that a neighbor changed, with {@code block} as the source. */
+	public static void notifyNeighborChanged(Level level, BlockPos pos, Block block) {
+		level.neighborChanged(pos, block, pos);
 	}
 }

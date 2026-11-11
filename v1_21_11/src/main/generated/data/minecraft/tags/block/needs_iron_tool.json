@@ -1,0 +1,24 @@
+{
+  "values": [
+    "aronalayers:gold_layer",
+    "aronalayers:emerald_layer",
+    "aronalayers:diamond_layer",
+    "aronalayers:gold_ore_layer",
+    "aronalayers:deepslate_gold_ore_layer",
+    "aronalayers:redstone_ore_layer",
+    "aronalayers:deepslate_redstone_ore_layer",
+    "aronalayers:emerald_ore_layer",
+    "aronalayers:deepslate_emerald_ore_layer",
+    "aronalayers:diamond_ore_layer",
+    "aronalayers:deepslate_diamond_ore_layer",
+    "aronalayers:raw_gold_layer",
+    "aronalayers:gold_ore_3d_layer",
+    "aronalayers:deepslate_gold_ore_3d_layer",
+    "aronalayers:redstone_ore_3d_layer",
+    "aronalayers:deepslate_redstone_ore_3d_layer",
+    "aronalayers:emerald_ore_3d_layer",
+    "aronalayers:deepslate_emerald_ore_3d_layer",
+    "aronalayers:diamond_ore_3d_layer",
+    "aronalayers:deepslate_diamond_ore_3d_layer"
+  ]
+}

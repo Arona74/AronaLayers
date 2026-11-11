@@ -1,6 +1,7 @@
 package io.arona74.aronalayers.block;
 
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -90,6 +91,12 @@ public class ModBlocks {
 	public static final Block CHERRY_LOG_LAYER = registerBlock("cherry_log_layer", LayerBlock::new, logSettings());
 	public static final Block CHERRY_WOOD_LAYER = registerBlock("cherry_wood_layer", LayerBlock::new, Compat.copyOf("cherry_wood"));
 
+	public static final Block PALE_OAK_LAYER = registerIfPresent("pale_oak_layer", "pale_oak_planks", LayerBlock::new, () -> Compat.copyOf("pale_oak_planks"));
+	public static final Block STRIPPED_PALE_OAK_LOG_LAYER = registerIfPresent("stripped_pale_oak_log_layer", "stripped_pale_oak_log", LayerBlock::new, ModBlocks::logSettings);
+	public static final Block STRIPPED_PALE_OAK_WOOD_LAYER = registerIfPresent("stripped_pale_oak_wood_layer", "stripped_pale_oak_wood", LayerBlock::new, () -> Compat.copyOf("stripped_pale_oak_wood"));
+	public static final Block PALE_OAK_LOG_LAYER = registerIfPresent("pale_oak_log_layer", "pale_oak_log", LayerBlock::new, ModBlocks::logSettings);
+	public static final Block PALE_OAK_WOOD_LAYER = registerIfPresent("pale_oak_wood_layer", "pale_oak_wood", LayerBlock::new, () -> Compat.copyOf("pale_oak_wood"));
+
 	public static final Block BAMBOO_LAYER = registerBlock("bamboo_layer", LayerBlock::new, Compat.copyOf("bamboo_planks"));
 	public static final Block BAMBOO_MOSAIC_LAYER = registerBlock("bamboo_mosaic_layer", LayerBlock::new, Compat.copyOf("bamboo_mosaic"));
 	public static final Block STRIPPED_BAMBOO_BLOCK_LAYER = registerBlock("stripped_bamboo_block_layer", LayerBlock::new, bambooSettings().sound(SoundType.BAMBOO_WOOD));
@@ -142,6 +149,8 @@ public class ModBlocks {
 	public static final Block BRICKS_LAYER = registerBlock("bricks_layer", LayerBlock::new, Compat.copyOf("bricks"));
 	public static final Block PACKED_MUD_LAYER = registerBlock("packed_mud_layer", LayerBlock::new, Compat.copyOf("packed_mud"));
 	public static final Block MUD_BRICKS_LAYER = registerBlock("mud_bricks_layer", LayerBlock::new, Compat.copyOf("mud_bricks"));
+	public static final Block RESIN_BRICKS_LAYER = registerIfPresent("resin_bricks_layer", "resin_bricks", LayerBlock::new, () -> Compat.copyOf("resin_bricks"));
+	public static final Block CHISELED_RESIN_BRICKS_LAYER = registerIfPresent("chiseled_resin_bricks_layer", "chiseled_resin_bricks", LayerBlock::new, () -> Compat.copyOf("chiseled_resin_bricks"));
 	public static final Block SANDSTONE_LAYER = registerBlock("sandstone_layer", LayerBlock::new, Compat.copyOf("sandstone"));
 	public static final Block CHISELED_SANDSTONE_LAYER = registerBlock("chiseled_sandstone_layer", LayerBlock::new, Compat.copyOf("chiseled_sandstone"));
 	public static final Block SMOOTH_SANDSTONE_LAYER = registerBlock("smooth_sandstone_layer", LayerBlock::new, Compat.copyOf("smooth_sandstone"));
@@ -352,7 +361,7 @@ public class ModBlocks {
 			if (blockState.getFluidState().getAmount() == 8) {
 				return false;
 			} else if (state.getValue(LAYERS) == 8) {
-				return !Shapes.blockOccudes(state.getShape(EmptyBlockGetter.INSTANCE, BlockPos.ZERO), blockState.getShape(EmptyBlockGetter.INSTANCE, BlockPos.ZERO), Direction.UP);
+				return !Compat.occludes(state.getShape(EmptyBlockGetter.INSTANCE, BlockPos.ZERO), blockState.getShape(EmptyBlockGetter.INSTANCE, BlockPos.ZERO), Direction.UP);
 			}
 
 			return true;
@@ -382,6 +391,7 @@ public class ModBlocks {
 	public static final Block SNOW_LAYER = registerBlock("snow_layer", LayerBlock::new, Compat.copyOf("snow_block"));
 
 	public static final Block MOSS_LAYER = registerBlock("moss_layer", LayerBlock::new, Compat.copyOf("moss_block"));
+	public static final Block PALE_MOSS_LAYER = registerIfPresent("pale_moss_layer", "pale_moss_block", LayerBlock::new, () -> Compat.copyOf("pale_moss_block"));
 
 	public static final Block CALCITE_LAYER = registerBlock("calcite_layer", LayerBlock::new, Compat.copyOf("calcite"));
 	public static final Block DRIPSTONE_LAYER = registerBlock("dripstone_layer", LayerBlock::new, Compat.copyOf("dripstone_block"));
@@ -428,6 +438,7 @@ public class ModBlocks {
 	public static final Block DARK_OAK_LEAVES_LAYER = registerBlock("dark_oak_leaves_layer", LayerBlock::new, Compat.copyOf("dark_oak_leaves"));
 	public static final Block MANGROVE_LEAVES_LAYER = registerBlock("mangrove_leaves_layer", LayerBlock::new, Compat.copyOf("mangrove_leaves"));
 	public static final Block CHERRY_LEAVES_LAYER = registerBlock("cherry_leaves_layer", LayerBlock::new, Compat.copyOf("cherry_leaves"));
+	public static final Block PALE_OAK_LEAVES_LAYER = registerIfPresent("pale_oak_leaves_layer", "pale_oak_leaves", LayerBlock::new, () -> Compat.copyOf("pale_oak_leaves"));
 	public static final Block AZALEA_LEAVES_LAYER = registerBlock("azalea_leaves_layer", LayerBlock::new, Compat.copyOf("azalea_leaves"));
 	public static final Block FLOWERING_AZALEA_LEAVES_LAYER = registerBlock("flowering_azalea_leaves_layer", LayerBlock::new, Compat.copyOf("flowering_azalea_leaves"));
 
@@ -461,6 +472,7 @@ public class ModBlocks {
 	public static final Block HONEYCOMB_LAYER = registerBlock("honeycomb_layer", LayerBlock::new, Compat.copyOf("honeycomb_block"));
 	public static final Block SLIME_LAYER = registerBlock("slime_layer", SlimeLayerBlock::new, Compat.copyOf("slime_block"));
 	public static final Block HONEY_LAYER = registerBlock("honey_layer", HoneyLayerBlock::new, Compat.copyOf("honey_block"));
+	public static final Block RESIN_LAYER = registerIfPresent("resin_layer", "resin_block", LayerBlock::new, () -> Compat.copyOf("resin_block"));
 
 	public static final Block OCHRE_FROGLIGHT_LAYER = registerBlock("ochre_froglight_layer", LayerBlock::new, Compat.copyOf("ochre_froglight"));
 	public static final Block VERDANT_FROGLIGHT_LAYER = registerBlock("verdant_froglight_layer", LayerBlock::new, Compat.copyOf("verdant_froglight"));
@@ -529,6 +541,12 @@ public class ModBlocks {
 
 	private static Block register3DLayer(String name, Block baseLayer, BlockBehaviour.@NotNull Properties settings) {
 		return registerBlock(name, s -> new Layer3DBlock(baseLayer, s), settings);
+	}
+
+	// For layers whose vanilla block only exists on some Minecraft versions: elsewhere they are
+	// not registered and the field stays null.
+	private static Block registerIfPresent(String name, String vanillaBlock, @NotNull Function<BlockBehaviour.Properties, Block> function, @NotNull Supplier<BlockBehaviour.Properties> settings) {
+		return Compat.hasVanillaBlock(vanillaBlock) ? registerBlock(name, function, settings.get()) : null;
 	}
 
 	private static Block registerBlock(String name, @NotNull Function<BlockBehaviour.Properties, Block> function, BlockBehaviour.@NotNull Properties settings) {

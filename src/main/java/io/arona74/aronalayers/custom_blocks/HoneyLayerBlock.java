@@ -10,7 +10,6 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.PrimedTnt;
-import net.minecraft.world.entity.vehicle.AbstractMinecart;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
@@ -21,7 +20,7 @@ public class HoneyLayerBlock extends LayerBlock {
 	}
 
 	private static boolean hasHoneyBlockEffects(Entity entity) {
-		return entity instanceof LivingEntity || entity instanceof AbstractMinecart || entity instanceof PrimedTnt || Compat.isBoat(entity);
+		return entity instanceof LivingEntity || Compat.isMinecart(entity) || entity instanceof PrimedTnt || Compat.isBoat(entity);
 	}
 
 	public void onFallenOn(Level world, BlockState state, BlockPos pos, Entity entity, double fallDistance) {

@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_orange_glazed_terracotta_layer": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aronalayers:orange_glazed_terracotta_layer"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "aronalayers:orange_glazed_terracotta_from_orange_glazed_terracotta_layer"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_orange_glazed_terracotta_layer"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aronalayers:orange_glazed_terracotta_from_orange_glazed_terracotta_layer"
+    ]
+  }
+}

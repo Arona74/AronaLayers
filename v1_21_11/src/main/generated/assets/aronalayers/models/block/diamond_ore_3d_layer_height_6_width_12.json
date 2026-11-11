@@ -1,0 +1,8 @@
+{
+  "parent": "aronalayers:blockmodels/layer_3d/layer_height_6_width_12",
+  "textures": {
+    "bottom": "minecraft:block/diamond_ore",
+    "side": "minecraft:block/diamond_ore",
+    "top": "minecraft:block/diamond_ore"
+  }
+}

@@ -2,6 +2,7 @@ package io.arona74.aronalayers.registry;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import io.arona74.aronalayers.block.Layer3DBlock;
 import io.arona74.aronalayers.block.ModBlocks;
@@ -23,6 +24,13 @@ public final class ModRegistryArgs {
 			REGISTRY_ARGS.put(block, registryArgs);
 		} else {
 			throw new IllegalStateException("Block " + block.getName() + " has already been put in RegistryArgs source map.");
+		}
+	}
+
+	// For layers that only exist on some Minecraft versions: ModBlocks leaves them null elsewhere.
+	private static void putIfPresent(Block block, Supplier<RegistryArgs> registryArgs) {
+		if (block != null) {
+			putInRegistryArgs(block, registryArgs.get());
 		}
 	}
 
@@ -67,6 +75,11 @@ public final class ModRegistryArgs {
 		putInRegistryArgs(ModBlocks.CHERRY_WOOD_LAYER, new RegistryArgs().stripped(ModBlocks.STRIPPED_CHERRY_WOOD_LAYER).flammable(5, 5).fuel(RegistryArgs.FUEL_WOOD_BLOCKS));
 		putInRegistryArgs(ModBlocks.STRIPPED_CHERRY_LOG_LAYER, new RegistryArgs().flammable(5, 5).fuel(RegistryArgs.FUEL_WOOD_BLOCKS));
 		putInRegistryArgs(ModBlocks.STRIPPED_CHERRY_WOOD_LAYER, new RegistryArgs().flammable(5, 5).fuel(RegistryArgs.FUEL_WOOD_BLOCKS));
+		putIfPresent(ModBlocks.PALE_OAK_LAYER, () -> new RegistryArgs().flammable(5, 20).fuel(RegistryArgs.FUEL_WOOD_BLOCKS));
+		putIfPresent(ModBlocks.PALE_OAK_LOG_LAYER, () -> new RegistryArgs().stripped(ModBlocks.STRIPPED_PALE_OAK_LOG_LAYER).flammable(5, 5).fuel(RegistryArgs.FUEL_WOOD_BLOCKS));
+		putIfPresent(ModBlocks.PALE_OAK_WOOD_LAYER, () -> new RegistryArgs().stripped(ModBlocks.STRIPPED_PALE_OAK_WOOD_LAYER).flammable(5, 5).fuel(RegistryArgs.FUEL_WOOD_BLOCKS));
+		putIfPresent(ModBlocks.STRIPPED_PALE_OAK_LOG_LAYER, () -> new RegistryArgs().flammable(5, 5).fuel(RegistryArgs.FUEL_WOOD_BLOCKS));
+		putIfPresent(ModBlocks.STRIPPED_PALE_OAK_WOOD_LAYER, () -> new RegistryArgs().flammable(5, 5).fuel(RegistryArgs.FUEL_WOOD_BLOCKS));
 		putInRegistryArgs(ModBlocks.BAMBOO_LAYER, new RegistryArgs().flammable(5, 20).fuel(RegistryArgs.FUEL_WOOD_BLOCKS));
 		putInRegistryArgs(ModBlocks.BAMBOO_MOSAIC_LAYER, new RegistryArgs().flammable(5, 20).fuel(RegistryArgs.FUEL_WOOD_BLOCKS));
 		putInRegistryArgs(ModBlocks.BAMBOO_BLOCK_LAYER, new RegistryArgs().stripped(ModBlocks.STRIPPED_BAMBOO_BLOCK_LAYER).flammable(5, 5).fuel(RegistryArgs.FUEL_WOOD_BLOCKS));
@@ -113,6 +126,7 @@ public final class ModRegistryArgs {
 		putInRegistryArgs(ModBlocks.ICE_LAYER, new RegistryArgs().translucent());
 		putInRegistryArgs(ModBlocks.PACKED_ICE_LAYER, new RegistryArgs().translucent());
 		putInRegistryArgs(ModBlocks.BLUE_ICE_LAYER, new RegistryArgs().translucent());
+		putIfPresent(ModBlocks.PALE_MOSS_LAYER, () -> new RegistryArgs().flammable(5, 100));
 		putInRegistryArgs(ModBlocks.OAK_LEAVES_LAYER, new RegistryArgs().transparent().foliageTinted());
 		putInRegistryArgs(ModBlocks.SPRUCE_LEAVES_LAYER, new RegistryArgs().transparent().foliageTinted());
 		putInRegistryArgs(ModBlocks.BIRCH_LEAVES_LAYER, new RegistryArgs().transparent().foliageTinted());
@@ -121,6 +135,7 @@ public final class ModRegistryArgs {
 		putInRegistryArgs(ModBlocks.DARK_OAK_LEAVES_LAYER, new RegistryArgs().transparent().foliageTinted());
 		putInRegistryArgs(ModBlocks.MANGROVE_LEAVES_LAYER, new RegistryArgs().transparent().foliageTinted());
 		putInRegistryArgs(ModBlocks.CHERRY_LEAVES_LAYER, new RegistryArgs().transparent());
+		putIfPresent(ModBlocks.PALE_OAK_LEAVES_LAYER, () -> new RegistryArgs().transparent());
 		putInRegistryArgs(ModBlocks.AZALEA_LEAVES_LAYER, new RegistryArgs().transparent());
 		putInRegistryArgs(ModBlocks.FLOWERING_AZALEA_LEAVES_LAYER, new RegistryArgs().transparent());
 		putInRegistryArgs(ModBlocks.SLIME_LAYER, new RegistryArgs().translucent());

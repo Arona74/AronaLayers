@@ -3,6 +3,7 @@ package io.arona74.aronalayers.mixin;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import io.arona74.aronalayers.compat.Compat;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.*;
 import net.minecraft.world.level.material.MapColor;
@@ -46,7 +47,7 @@ public class MixinStainedGlassBlock extends Block {
 			VoxelShape stateCullingShape = getCached(state);
 			VoxelShape stateFromCullingShape = getCached(stateFrom);
 
-			return Shapes.blockOccudes(stateCullingShape, stateFromCullingShape, direction) && stainable.getColor() == color;
+			return Compat.occludes(stateCullingShape, stateFromCullingShape, direction) && stainable.getColor() == color;
 		}
 
 		return false;

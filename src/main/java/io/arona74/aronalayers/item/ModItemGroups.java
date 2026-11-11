@@ -9,6 +9,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 
 public class ModItemGroups {
@@ -63,6 +64,12 @@ public class ModItemGroups {
 						entries.accept(ModBlocks.STRIPPED_CHERRY_LOG_LAYER);
 						entries.accept(ModBlocks.STRIPPED_CHERRY_WOOD_LAYER);
 
+						acceptIfPresent(entries, ModBlocks.PALE_OAK_LAYER);
+						acceptIfPresent(entries, ModBlocks.PALE_OAK_LOG_LAYER);
+						acceptIfPresent(entries, ModBlocks.PALE_OAK_WOOD_LAYER);
+						acceptIfPresent(entries, ModBlocks.STRIPPED_PALE_OAK_LOG_LAYER);
+						acceptIfPresent(entries, ModBlocks.STRIPPED_PALE_OAK_WOOD_LAYER);
+
 
 						entries.accept(ModBlocks.BAMBOO_LAYER);
 						entries.accept(ModBlocks.BAMBOO_MOSAIC_LAYER);
@@ -116,6 +123,8 @@ public class ModItemGroups {
 						entries.accept(ModBlocks.BRICKS_LAYER);
 						entries.accept(ModBlocks.PACKED_MUD_LAYER);
 						entries.accept(ModBlocks.MUD_BRICKS_LAYER);
+						acceptIfPresent(entries, ModBlocks.RESIN_BRICKS_LAYER);
+						acceptIfPresent(entries, ModBlocks.CHISELED_RESIN_BRICKS_LAYER);
 
 						entries.accept(ModBlocks.SANDSTONE_LAYER);
 						entries.accept(ModBlocks.CHISELED_SANDSTONE_LAYER);
@@ -337,6 +346,7 @@ public class ModItemGroups {
 						entries.accept(ModBlocks.BLUE_ICE_LAYER);
 						entries.accept(ModBlocks.SNOW_LAYER);
 						entries.accept(ModBlocks.MOSS_LAYER);
+						acceptIfPresent(entries, ModBlocks.PALE_MOSS_LAYER);
 
 						entries.accept(ModBlocks.CALCITE_LAYER);
 						entries.accept(ModBlocks.DRIPSTONE_LAYER);
@@ -383,6 +393,7 @@ public class ModItemGroups {
 						entries.accept(ModBlocks.DARK_OAK_LEAVES_LAYER);
 						entries.accept(ModBlocks.MANGROVE_LEAVES_LAYER);
 						entries.accept(ModBlocks.CHERRY_LEAVES_LAYER);
+						acceptIfPresent(entries, ModBlocks.PALE_OAK_LEAVES_LAYER);
 						entries.accept(ModBlocks.AZALEA_LEAVES_LAYER);
 						entries.accept(ModBlocks.FLOWERING_AZALEA_LEAVES_LAYER);
 
@@ -412,6 +423,7 @@ public class ModItemGroups {
 						entries.accept(ModBlocks.HONEYCOMB_LAYER);
 						entries.accept(ModBlocks.SLIME_LAYER);
 						entries.accept(ModBlocks.HONEY_LAYER);
+						acceptIfPresent(entries, ModBlocks.RESIN_LAYER);
 
 						entries.accept(ModBlocks.OCHRE_FROGLIGHT_LAYER);
 						entries.accept(ModBlocks.VERDANT_FROGLIGHT_LAYER);
@@ -425,6 +437,13 @@ public class ModItemGroups {
 			FabricItemGroup.builder().title(Component.translatable("itemgroup.aronalayers_3d"))
 					.icon(() -> new ItemStack(ModBlocks.STONE_3D_LAYER)).displayItems((displayContext, entries) ->
 							BuiltInRegistries.BLOCK.stream().filter(block -> block instanceof Layer3DBlock).forEach(entries::accept)).build());
+
+	// For layers that only exist on some Minecraft versions: ModBlocks leaves them null elsewhere.
+	private static void acceptIfPresent(CreativeModeTab.Output entries, Block block) {
+		if (block != null) {
+			entries.accept(block);
+		}
+	}
 
 	public static void registerItemGroups() {
 	}
