@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_shroomlight_layer": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aronalayers:shroomlight_layer"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipes": "aronalayers:shroomlight_from_shroomlight_layer"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_shroomlight_layer"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aronalayers:shroomlight_from_shroomlight_layer"
+    ]
+  }
+}

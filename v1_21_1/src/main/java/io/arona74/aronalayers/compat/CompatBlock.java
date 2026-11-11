@@ -14,6 +14,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.pathfinder.PathComputationType;
@@ -63,6 +64,11 @@ public abstract class CompatBlock extends Block {
 		return super.useWithoutItem(state, level, pos, player, hit);
 	}
 
+	/** A player broke this block; vanilla awards the stat and drops the loot here. */
+	public void onPlayerDestroy(Level level, Player player, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity, ItemStack tool) {
+		super.playerDestroy(level, player, pos, state, blockEntity, tool);
+	}
+
 	/** For waterloggable blocks: whether a fluid can be placed in this block. */
 	protected boolean canHoldFluid(BlockGetter level, BlockPos pos, BlockState state, Fluid fluid) {
 		return false;
@@ -109,6 +115,11 @@ public abstract class CompatBlock extends Block {
 	@Override
 	protected final void neighborChanged(BlockState state, Level level, BlockPos pos, Block sourceBlock, BlockPos sourcePos, boolean movedByPiston) {
 		onNeighborChanged(state, level, pos, sourceBlock, movedByPiston);
+	}
+
+	@Override
+	public final void playerDestroy(Level level, Player player, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity, ItemStack tool) {
+		onPlayerDestroy(level, player, pos, state, blockEntity, tool);
 	}
 
 	@Override

@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_coarse_dirt_layer": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aronalayers:coarse_dirt_layer"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipes": "aronalayers:coarse_dirt_from_coarse_dirt_layer"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_coarse_dirt_layer"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aronalayers:coarse_dirt_from_coarse_dirt_layer"
+    ]
+  }
+}

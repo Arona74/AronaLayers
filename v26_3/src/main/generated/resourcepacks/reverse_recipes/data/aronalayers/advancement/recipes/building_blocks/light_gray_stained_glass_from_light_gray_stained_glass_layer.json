@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_light_gray_stained_glass_layer": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aronalayers:light_gray_stained_glass_layer"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipes": "aronalayers:light_gray_stained_glass_from_light_gray_stained_glass_layer"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_light_gray_stained_glass_layer"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aronalayers:light_gray_stained_glass_from_light_gray_stained_glass_layer"
+    ]
+  }
+}

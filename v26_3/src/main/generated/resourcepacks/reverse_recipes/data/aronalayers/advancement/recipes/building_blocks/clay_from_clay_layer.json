@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_clay_layer": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aronalayers:clay_layer"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipes": "aronalayers:clay_from_clay_layer"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_clay_layer"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aronalayers:clay_from_clay_layer"
+    ]
+  }
+}

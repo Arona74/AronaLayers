@@ -22,14 +22,20 @@ public class RegistryArgs {
 	public Block weatheredWaxed;
 	public Block oxidizedWaxed;
 	public List<Block> oxidizables;
-	// Vanilla burn times of the fuel parents, in ticks at the default base smelt time (200).
-	public static final int FUEL_WOOD_BLOCKS = 300;
-	public static final int FUEL_WOOL = 100;
-	public static final int FUEL_COAL_BLOCK = 16000;
-	public static final int FUEL_DRIED_KELP_BLOCK = 4001;
+	/**
+	 * A fuel parent: its vanilla burn time in ticks at the default smelt time of 200 ticks, and
+	 * the name of its burn time entry, which 26.3+ keeps as minecraft:cooking/{@code cookingTime}.
+	 */
+	public record Fuel(String cookingTime, int burnTicks) {
+	}
 
-	// Burn time of the parent block; the layer burns 1/8 of it.
-	public Integer fuel;
+	public static final Fuel FUEL_WOOD_BLOCKS = new Fuel("time_wood_blocks", 300);
+	public static final Fuel FUEL_WOOL = new Fuel("time_wool", 100);
+	public static final Fuel FUEL_COAL_BLOCK = new Fuel("time_coal_block", 16000);
+	public static final Fuel FUEL_DRIED_KELP_BLOCK = new Fuel("time_dried_kelp_block", 4001);
+
+	// Fuel of the parent block; the layer burns 1/8 as long.
+	public Fuel fuel;
 
 	public RegistryArgs() {
 	}
@@ -87,8 +93,8 @@ public class RegistryArgs {
 		return this;
 	}
 
-	public RegistryArgs fuel(int parentBurnTime) {
-		this.fuel = parentBurnTime;
+	public RegistryArgs fuel(Fuel parent) {
+		this.fuel = Objects.requireNonNull(parent);
 		return this;
 	}
 }

@@ -10,31 +10,17 @@ import io.arona74.aronalayers.compat.Compat;
 import io.arona74.aronalayers.AronaLayers;
 import io.arona74.aronalayers.block.ModBlocks;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.world.item.HoeItem;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.fabricmc.fabric.api.registry.TillableBlockRegistry;
 
 public class ModRegistries {
-	public static void register(Block input, Block stripped) {
-		Block old = getRegistry().put(input, stripped);
-
-		if (old != null) {
-			AronaLayers.LOGGER.debug("Replaced old stripping mapping from {} to {} with {}", input, old, stripped);
-		}
-	}
-
-	private static Map<Block, Block> getRegistry() {
-		return Compat.strippables();
-	}
-
 	public static void registerStrippableBlocks() {
 		BuiltInRegistries.BLOCK.forEach(block -> {
 			if (ModRegistryArgs.REGISTRY_ARGS.containsKey(block)) {
 				RegistryArgs registryArgs = ModRegistryArgs.REGISTRY_ARGS.get(block);
 
 				if (BuiltInRegistries.BLOCK.getKey(block).getNamespace().equals(AronaLayers.MOD_ID) && registryArgs.stripped != null) {
-					register(block, registryArgs.stripped);
+					Compat.registerStripping(block, registryArgs.stripped);
 				}
 			}
 		});
@@ -47,7 +33,7 @@ public class ModRegistries {
 				RegistryArgs args = ModRegistryArgs.REGISTRY_ARGS.get(block);
 
 				if (identifier.getNamespace().equals(AronaLayers.MOD_ID) && args.tilled != null) {
-					TillableBlockRegistry.register(block, HoeItem::onlyIfAirAbove, HoeItem.changeIntoState(args.tilled.defaultBlockState()));
+					Compat.registerTilling(block, args.tilled);
 				}
 			}
 		});
@@ -74,11 +60,7 @@ public class ModRegistries {
 	private static void blockToFlattened(Block input, Block flattened) {
 		Objects.requireNonNull(input, "input block cannot be null");
 		Objects.requireNonNull(flattened, "flattened block state cannot be null");
-		BlockState old = Compat.flattenables().put(input, flattened.defaultBlockState());
-
-		if (old != null) {
-			AronaLayers.LOGGER.debug("Replaced old flattening mapping from {} to {} with {}", input, old, flattened);
-		}
+		Compat.registerFlattening(input, flattened);
 	}
 
 	private static void flattenedToBlock(Block flattened, Block output) {
@@ -110,12 +92,11 @@ public class ModRegistries {
 		});
 	}
 
-	// A layer burns 1/8 as long as its parent block. Blast furnaces and smokers
-	// halve every burn time themselves, so the ratio holds there too.
+	// A layer burns 1/8 as long as its parent block, see Compat.registerLayerFuel.
 	public static void registerFuel() {
 		ModRegistryArgs.REGISTRY_ARGS.forEach((block, args) -> {
 			if (args.fuel != null) {
-				Compat.registerFuel(block, args.fuel / 8);
+				Compat.registerLayerFuel(block, args.fuel);
 			}
 		});
 	}

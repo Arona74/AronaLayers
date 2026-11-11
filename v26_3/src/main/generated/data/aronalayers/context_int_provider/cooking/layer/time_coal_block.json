@@ -1,0 +1,5 @@
+{
+  "type": "minecraft:div",
+  "left": "minecraft:cooking/time_coal_block",
+  "right": 8
+}

@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_raw_iron_layer": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aronalayers:raw_iron_layer"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipes": "aronalayers:raw_iron_block_from_raw_iron_layer"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_raw_iron_layer"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aronalayers:raw_iron_block_from_raw_iron_layer"
+    ]
+  }
+}

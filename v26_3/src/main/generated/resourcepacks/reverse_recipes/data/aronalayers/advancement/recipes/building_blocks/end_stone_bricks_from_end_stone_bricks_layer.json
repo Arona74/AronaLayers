@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_end_stone_bricks_layer": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aronalayers:end_stone_bricks_layer"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipes": "aronalayers:end_stone_bricks_from_end_stone_bricks_layer"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_end_stone_bricks_layer"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aronalayers:end_stone_bricks_from_end_stone_bricks_layer"
+    ]
+  }
+}

@@ -29,7 +29,8 @@
 		]
 	},
 	"mixins": [
-		"aronalayers.mixins.json"
+		"aronalayers.mixins.json",
+		"aronalayers.tools.mixins.json"
 	],
 	"depends": {
 		"fabricloader": ">=0.16.5",

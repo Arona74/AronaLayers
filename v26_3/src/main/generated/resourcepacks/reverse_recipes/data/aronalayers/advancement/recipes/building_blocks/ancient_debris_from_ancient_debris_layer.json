@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_ancient_debris_layer": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aronalayers:ancient_debris_layer"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipes": "aronalayers:ancient_debris_from_ancient_debris_layer"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_ancient_debris_layer"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aronalayers:ancient_debris_from_ancient_debris_layer"
+    ]
+  }
+}

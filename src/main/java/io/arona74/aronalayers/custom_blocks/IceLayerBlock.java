@@ -26,7 +26,8 @@ public class IceLayerBlock extends LayerBlock {
 		return Blocks.WATER.defaultBlockState();
 	}
 
-	public void playerDestroy(Level world, Player player, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity, ItemStack tool) {
+	@Override
+	public void onPlayerDestroy(Level world, Player player, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity, ItemStack tool) {
 		if (!EnchantmentHelper.hasTag(tool, EnchantmentTags.PREVENTS_ICE_MELTING)) {
 			if (Compat.waterEvaporates(world, pos)) {
 				world.removeBlock(pos, false);
@@ -35,11 +36,11 @@ public class IceLayerBlock extends LayerBlock {
 
 			BlockState blockState = world.getBlockState(pos.below());
 
-			if ((blockState.blocksMotion() && state.getValue(LAYERS) == 8) || blockState.liquid()) {
+			if ((Compat.iceMeltsAbove(blockState) && state.getValue(LAYERS) == 8) || blockState.liquid()) {
 				world.setBlockAndUpdate(pos, getMeltedState());
 			}
 		} else {
-			super.playerDestroy(world, player, pos, state, blockEntity, tool);
+			super.onPlayerDestroy(world, player, pos, state, blockEntity, tool);
 		}
 	}
 

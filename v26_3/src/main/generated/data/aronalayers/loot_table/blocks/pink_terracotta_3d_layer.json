@@ -1,0 +1,883 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "modifier": [
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "1",
+                  "vertical_layers": "0"
+                }
+              },
+              "count": 1
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "2",
+                  "vertical_layers": "0"
+                }
+              },
+              "count": 2
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "3",
+                  "vertical_layers": "0"
+                }
+              },
+              "count": 3
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "4",
+                  "vertical_layers": "0"
+                }
+              },
+              "count": 4
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "5",
+                  "vertical_layers": "0"
+                }
+              },
+              "count": 5
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "6",
+                  "vertical_layers": "0"
+                }
+              },
+              "count": 6
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "7",
+                  "vertical_layers": "0"
+                }
+              },
+              "count": 7
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "8",
+                  "vertical_layers": "0"
+                }
+              },
+              "count": 8
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "1",
+                  "vertical_layers": "1"
+                }
+              },
+              "count": 2
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "2",
+                  "vertical_layers": "1"
+                }
+              },
+              "count": 3
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "3",
+                  "vertical_layers": "1"
+                }
+              },
+              "count": 4
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "4",
+                  "vertical_layers": "1"
+                }
+              },
+              "count": 5
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "5",
+                  "vertical_layers": "1"
+                }
+              },
+              "count": 6
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "6",
+                  "vertical_layers": "1"
+                }
+              },
+              "count": 7
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "7",
+                  "vertical_layers": "1"
+                }
+              },
+              "count": 8
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "8",
+                  "vertical_layers": "1"
+                }
+              },
+              "count": 8
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "1",
+                  "vertical_layers": "2"
+                }
+              },
+              "count": 3
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "2",
+                  "vertical_layers": "2"
+                }
+              },
+              "count": 4
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "3",
+                  "vertical_layers": "2"
+                }
+              },
+              "count": 5
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "4",
+                  "vertical_layers": "2"
+                }
+              },
+              "count": 5
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "5",
+                  "vertical_layers": "2"
+                }
+              },
+              "count": 6
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "6",
+                  "vertical_layers": "2"
+                }
+              },
+              "count": 7
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "7",
+                  "vertical_layers": "2"
+                }
+              },
+              "count": 8
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "8",
+                  "vertical_layers": "2"
+                }
+              },
+              "count": 8
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "1",
+                  "vertical_layers": "3"
+                }
+              },
+              "count": 4
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "2",
+                  "vertical_layers": "3"
+                }
+              },
+              "count": 5
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "3",
+                  "vertical_layers": "3"
+                }
+              },
+              "count": 5
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "4",
+                  "vertical_layers": "3"
+                }
+              },
+              "count": 6
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "5",
+                  "vertical_layers": "3"
+                }
+              },
+              "count": 7
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "6",
+                  "vertical_layers": "3"
+                }
+              },
+              "count": 7
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "7",
+                  "vertical_layers": "3"
+                }
+              },
+              "count": 8
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "8",
+                  "vertical_layers": "3"
+                }
+              },
+              "count": 8
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "1",
+                  "vertical_layers": "4"
+                }
+              },
+              "count": 5
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "2",
+                  "vertical_layers": "4"
+                }
+              },
+              "count": 5
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "3",
+                  "vertical_layers": "4"
+                }
+              },
+              "count": 6
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "4",
+                  "vertical_layers": "4"
+                }
+              },
+              "count": 6
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "5",
+                  "vertical_layers": "4"
+                }
+              },
+              "count": 7
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "6",
+                  "vertical_layers": "4"
+                }
+              },
+              "count": 7
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "7",
+                  "vertical_layers": "4"
+                }
+              },
+              "count": 8
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "8",
+                  "vertical_layers": "4"
+                }
+              },
+              "count": 8
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "1",
+                  "vertical_layers": "5"
+                }
+              },
+              "count": 6
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "2",
+                  "vertical_layers": "5"
+                }
+              },
+              "count": 6
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "3",
+                  "vertical_layers": "5"
+                }
+              },
+              "count": 7
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "4",
+                  "vertical_layers": "5"
+                }
+              },
+              "count": 7
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "5",
+                  "vertical_layers": "5"
+                }
+              },
+              "count": 7
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "6",
+                  "vertical_layers": "5"
+                }
+              },
+              "count": 8
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "7",
+                  "vertical_layers": "5"
+                }
+              },
+              "count": 8
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "8",
+                  "vertical_layers": "5"
+                }
+              },
+              "count": 8
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "1",
+                  "vertical_layers": "6"
+                }
+              },
+              "count": 7
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "2",
+                  "vertical_layers": "6"
+                }
+              },
+              "count": 7
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "3",
+                  "vertical_layers": "6"
+                }
+              },
+              "count": 7
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "4",
+                  "vertical_layers": "6"
+                }
+              },
+              "count": 7
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "5",
+                  "vertical_layers": "6"
+                }
+              },
+              "count": 8
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "6",
+                  "vertical_layers": "6"
+                }
+              },
+              "count": 8
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "7",
+                  "vertical_layers": "6"
+                }
+              },
+              "count": 8
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "8",
+                  "vertical_layers": "6"
+                }
+              },
+              "count": 8
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "1",
+                  "vertical_layers": "7"
+                }
+              },
+              "count": 8
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "2",
+                  "vertical_layers": "7"
+                }
+              },
+              "count": 8
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "3",
+                  "vertical_layers": "7"
+                }
+              },
+              "count": 8
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "4",
+                  "vertical_layers": "7"
+                }
+              },
+              "count": 8
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "5",
+                  "vertical_layers": "7"
+                }
+              },
+              "count": 8
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "6",
+                  "vertical_layers": "7"
+                }
+              },
+              "count": 8
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "7",
+                  "vertical_layers": "7"
+                }
+              },
+              "count": 8
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "8",
+                  "vertical_layers": "7"
+                }
+              },
+              "count": 8
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "1",
+                  "vertical_layers": "8"
+                }
+              },
+              "count": 8
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "2",
+                  "vertical_layers": "8"
+                }
+              },
+              "count": 8
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "3",
+                  "vertical_layers": "8"
+                }
+              },
+              "count": 8
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "4",
+                  "vertical_layers": "8"
+                }
+              },
+              "count": 8
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "5",
+                  "vertical_layers": "8"
+                }
+              },
+              "count": 8
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "6",
+                  "vertical_layers": "8"
+                }
+              },
+              "count": 8
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "7",
+                  "vertical_layers": "8"
+                }
+              },
+              "count": 8
+            },
+            {
+              "type": "minecraft:set_count",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "aronalayers:pink_terracotta_3d_layer",
+                "state": {
+                  "horizontal_layers": "8",
+                  "vertical_layers": "8"
+                }
+              },
+              "count": 8
+            },
+            {
+              "type": "minecraft:explosion_decay"
+            }
+          ],
+          "name": "aronalayers:pink_terracotta_layer"
+        }
+      ],
+      "rolls": 1
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "values": [
+    "aronalayers:white_wool_layer",
+    "aronalayers:light_gray_wool_layer",
+    "aronalayers:gray_wool_layer",
+    "aronalayers:black_wool_layer",
+    "aronalayers:brown_wool_layer",
+    "aronalayers:red_wool_layer",
+    "aronalayers:orange_wool_layer",
+    "aronalayers:yellow_wool_layer",
+    "aronalayers:lime_wool_layer",
+    "aronalayers:green_wool_layer",
+    "aronalayers:cyan_wool_layer",
+    "aronalayers:light_blue_wool_layer",
+    "aronalayers:blue_wool_layer",
+    "aronalayers:purple_wool_layer",
+    "aronalayers:magenta_wool_layer",
+    "aronalayers:pink_wool_layer"
+  ]
+}

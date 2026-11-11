@@ -119,14 +119,14 @@ public class LayerBlock extends CompatBlock implements SimpleWaterloggedBlock {
 	}
 
 	@Override
-	public void playerDestroy(Level world, Player player, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity, ItemStack tool) {
+	public void onPlayerDestroy(Level world, Player player, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity, ItemStack tool) {
 		if (player.isShiftKeyDown() && state.getValue(LAYERS) != 1) {
 			world.setBlockAndUpdate(pos, state.setValue(LAYERS, state.getValue(LAYERS) - 1));
 			player.awardStat(Stats.BLOCK_MINED.get(this));
 			player.causeFoodExhaustion(0.005F);
 			popResource(world, pos, new ItemStack(this));
 		} else {
-			super.playerDestroy(world, player, pos, state, blockEntity, tool);
+			super.onPlayerDestroy(world, player, pos, state, blockEntity, tool);
 		}
 	}
 

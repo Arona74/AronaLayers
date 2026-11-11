@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_crying_obsidian_layer": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aronalayers:crying_obsidian_layer"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipes": "aronalayers:crying_obsidian_from_crying_obsidian_layer"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_crying_obsidian_layer"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aronalayers:crying_obsidian_from_crying_obsidian_layer"
+    ]
+  }
+}

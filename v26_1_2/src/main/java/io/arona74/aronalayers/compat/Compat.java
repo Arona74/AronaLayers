@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 import io.arona74.aronalayers.AronaLayers;
+import io.arona74.aronalayers.registry.RegistryArgs;
 
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.core.BlockPos;
@@ -22,6 +23,7 @@ import net.minecraft.world.entity.vehicle.boat.AbstractBoat;
 import net.minecraft.world.entity.vehicle.minecart.AbstractMinecart;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.HoeItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -34,6 +36,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab;
 import net.fabricmc.fabric.api.registry.FuelValueEvents;
 import net.fabricmc.fabric.api.registry.OxidizableBlocksRegistry;
+import net.fabricmc.fabric.api.registry.TillableBlockRegistry;
 import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
 import net.fabricmc.fabric.api.resource.v1.pack.PackActivationType;
 import net.fabricmc.fabric.impl.content.registry.util.ImmutableCollectionUtils;
@@ -103,10 +106,11 @@ public final class Compat {
 	}
 
 	/**
-	 * Registers a fuel, with its burn time in ticks at the default smelt time of 200 ticks.
-	 * Since 1.21.2 fuels are built per world and scale with its smelt time.
+	 * Registers a layer as fuel, burning 1/8 as long as its parent. Blast furnaces and smokers
+	 * halve every burn time themselves, so the ratio holds there too.
 	 */
-	public static void registerFuel(Block block, int burnTicks) {
+	public static void registerLayerFuel(Block block, RegistryArgs.Fuel parent) {
+		int burnTicks = parent.burnTicks() / 8;
 		FuelValueEvents.BUILD.register((builder, context) -> builder.add(block, burnTicks * context.baseSmeltTime() / 200));
 	}
 
@@ -149,15 +153,21 @@ public final class Compat {
 		level.neighborChanged(pos, block, null);
 	}
 
-	/** Fabric's mutable copy of the axe stripping map. */
+	/** Makes the axe strip {@code input} into {@code stripped}. A mixin copies the layer properties over. */
 	@SuppressWarnings("unstable")
-	public static Map<Block, Block> strippables() {
-		return ImmutableCollectionUtils.getAsMutableMap(AxeItemAccessor::getStrippables, AxeItemAccessor::setStrippables);
+	public static void registerStripping(Block input, Block stripped) {
+		Map<Block, Block> strippables = ImmutableCollectionUtils.getAsMutableMap(AxeItemAccessor::getStrippables, AxeItemAccessor::setStrippables);
+		strippables.put(input, stripped);
 	}
 
-	/** The shovel flattening map, made mutable by Fabric. */
-	public static Map<Block, BlockState> flattenables() {
-		return ShovelItemAccessor.getFlattenables();
+	/** Makes the shovel flatten {@code input} into {@code flattened}. A mixin copies the layer properties over. */
+	public static void registerFlattening(Block input, Block flattened) {
+		ShovelItemAccessor.getFlattenables().put(input, flattened.defaultBlockState());
+	}
+
+	/** Makes the hoe till {@code input} into {@code tilled} when there is air above. */
+	public static void registerTilling(Block input, Block tilled) {
+		TillableBlockRegistry.register(input, HoeItem::onlyIfAirAbove, HoeItem.changeIntoState(tilled.defaultBlockState()));
 	}
 
 	public static void registerOxidizable(Block less, Block more) {
@@ -170,5 +180,10 @@ public final class Compat {
 
 	public static void triggerHoneySlide(ServerPlayer player, BlockState state) {
 		CriteriaTriggers.HONEY_BLOCK_SLIDE.trigger(player, state);
+	}
+
+	/** Whether breaking ice on top of this block leaves water, like vanilla ice. */
+	public static boolean iceMeltsAbove(BlockState below) {
+		return below.blocksMotion();
 	}
 }

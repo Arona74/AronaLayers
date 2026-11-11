@@ -1,0 +1,8 @@
+{
+  "parent": "aronalayers:blockmodels/layer_height_6",
+  "textures": {
+    "bottom": "minecraft:block/chiseled_cinnabar",
+    "side": "minecraft:block/chiseled_cinnabar",
+    "top": "minecraft:block/chiseled_cinnabar"
+  }
+}

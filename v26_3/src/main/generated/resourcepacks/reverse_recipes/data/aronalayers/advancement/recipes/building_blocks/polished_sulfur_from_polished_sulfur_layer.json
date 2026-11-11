@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_polished_sulfur_layer": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aronalayers:polished_sulfur_layer"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipes": "aronalayers:polished_sulfur_from_polished_sulfur_layer"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_polished_sulfur_layer"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aronalayers:polished_sulfur_from_polished_sulfur_layer"
+    ]
+  }
+}

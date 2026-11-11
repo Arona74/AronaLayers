@@ -1,0 +1,17 @@
+{
+  "parent": "aronalayers:blockmodels/layer_height_14",
+  "textures": {
+    "bottom": {
+      "force_translucent": true,
+      "sprite": "minecraft:block/honey_block_bottom"
+    },
+    "side": {
+      "force_translucent": true,
+      "sprite": "minecraft:block/honey_block_side"
+    },
+    "top": {
+      "force_translucent": true,
+      "sprite": "minecraft:block/honey_block_top"
+    }
+  }
+}

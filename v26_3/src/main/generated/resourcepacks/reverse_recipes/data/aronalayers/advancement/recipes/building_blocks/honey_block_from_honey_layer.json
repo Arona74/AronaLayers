@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_honey_layer": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aronalayers:honey_layer"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipes": "aronalayers:honey_block_from_honey_layer"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_honey_layer"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aronalayers:honey_block_from_honey_layer"
+    ]
+  }
+}

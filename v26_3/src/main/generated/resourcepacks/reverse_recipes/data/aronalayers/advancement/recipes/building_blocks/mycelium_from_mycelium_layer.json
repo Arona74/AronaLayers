@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_mycelium_layer": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aronalayers:mycelium_layer"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipes": "aronalayers:mycelium_from_mycelium_layer"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_mycelium_layer"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aronalayers:mycelium_from_mycelium_layer"
+    ]
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_nether_quartz_ore_layer": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aronalayers:nether_quartz_ore_layer"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipes": "aronalayers:nether_quartz_ore_from_nether_quartz_ore_layer"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_nether_quartz_ore_layer"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aronalayers:nether_quartz_ore_from_nether_quartz_ore_layer"
+    ]
+  }
+}

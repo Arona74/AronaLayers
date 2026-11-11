@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_gravel_layer": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aronalayers:gravel_layer"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipes": "aronalayers:gravel_from_gravel_layer"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_gravel_layer"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aronalayers:gravel_from_gravel_layer"
+    ]
+  }
+}
