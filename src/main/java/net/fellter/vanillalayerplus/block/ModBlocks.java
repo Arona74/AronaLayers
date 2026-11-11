@@ -497,6 +497,9 @@ public class ModBlocks {
 	public static final Block BASALT_3D_LAYER = register3DLayer("basalt_3d_layer", BASALT_LAYER, AbstractBlock.Settings.copy(Blocks.BASALT));
 	public static final Block BLACKSTONE_3D_LAYER = register3DLayer("blackstone_3d_layer", BLACKSTONE_LAYER, AbstractBlock.Settings.copy(Blocks.BLACKSTONE));
 	public static final Block END_STONE_3D_LAYER = register3DLayer("end_stone_3d_layer", END_STONE_LAYER, AbstractBlock.Settings.copy(Blocks.END_STONE));
+	public static final Block SNOW_3D_LAYER = register3DLayer("snow_3d_layer", SNOW_LAYER, AbstractBlock.Settings.copy(Blocks.SNOW_BLOCK));
+	public static final Block MOSS_3D_LAYER = register3DLayer("moss_3d_layer", MOSS_LAYER, AbstractBlock.Settings.copy(Blocks.MOSS_BLOCK));
+	public static final Block COARSE_DIRT_3D_LAYER = register3DLayer("coarse_dirt_3d_layer", COARSE_DIRT_LAYER, AbstractBlock.Settings.copy(Blocks.COARSE_DIRT));
 
 	public static final Block COAL_ORE_3D_LAYER = register3DLayer("coal_ore_3d_layer", COAL_ORE_LAYER, AbstractBlock.Settings.copy(Blocks.COAL_ORE));
 	public static final Block DEEPSLATE_COAL_ORE_3D_LAYER = register3DLayer("deepslate_coal_ore_3d_layer", DEEPSLATE_COAL_ORE_LAYER, AbstractBlock.Settings.copy(Blocks.DEEPSLATE_COAL_ORE));

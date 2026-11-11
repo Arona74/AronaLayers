@@ -32,6 +32,8 @@
     "vanillalayerplus:red_sand_layer",
     "vanillalayerplus:snow_layer",
     "vanillalayerplus:soul_sand_layer",
-    "vanillalayerplus:soul_soil_layer"
+    "vanillalayerplus:soul_soil_layer",
+    "vanillalayerplus:snow_3d_layer",
+    "vanillalayerplus:coarse_dirt_3d_layer"
   ]
 }

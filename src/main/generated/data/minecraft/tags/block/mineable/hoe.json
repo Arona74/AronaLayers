@@ -20,6 +20,7 @@
     "vanillalayerplus:hay_layer",
     "vanillalayerplus:sculk_layer",
     "vanillalayerplus:bedrock_layer",
-    "vanillalayerplus:target_layer"
+    "vanillalayerplus:target_layer",
+    "vanillalayerplus:moss_3d_layer"
   ]
 }
