@@ -21,8 +21,10 @@ public class ConcretePowderLayerBlock extends FallingLayerBlock {
 		this.hardened = hardened.defaultBlockState();
 	}
 
-	public void onLanding(Level world, BlockPos pos, BlockState fallingBlockState, BlockState currentStateInPos, FallingBlockEntity fallingBlockEntity) {
-		if (shouldHarden(world, pos, currentStateInPos) && pos != null) {
+	/** Hardens a falling layer that lands in or next to water, as vanilla concrete powder does. */
+	@Override
+	public void onLand(Level world, BlockPos pos, BlockState fallingBlockState, BlockState currentStateInPos, FallingBlockEntity fallingBlockEntity) {
+		if (shouldHarden(world, pos, currentStateInPos)) {
 			world.setBlock(pos, this.hardened
 					.setValue(WATERLOGGED, world.getBlockState(pos).getValue(WATERLOGGED))
 					.setValue(FACING, world.getBlockState(pos).getValue(FACING))

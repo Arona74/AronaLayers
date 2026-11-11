@@ -78,6 +78,6 @@ public class ModModelProvider extends FabricModelProvider {
 
 	@Override
 	public void generateItemModels(ItemModelGenerators img) {
-		img.generateFlatItem(ModItems.VLP_TITLE, ModelTemplates.FLAT_ITEM);
+		img.generateFlatItem(ModItems.TAB_ICON, ModelTemplates.FLAT_ITEM);
 	}
 }

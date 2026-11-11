@@ -34,7 +34,7 @@ public class ModLanguageProvider extends FabricLanguageProvider {
 			}
 		});
 
-		translationBuilder.add(ResourceKey.create(Registries.CREATIVE_MODE_TAB, new ResourceLocation(AronaLayers.MOD_ID, "vlp")), "AronaLayers");
-		translationBuilder.add(ResourceKey.create(Registries.CREATIVE_MODE_TAB, new ResourceLocation(AronaLayers.MOD_ID, "vlp_3d")), "AronaLayers 3D");
+		translationBuilder.add(ResourceKey.create(Registries.CREATIVE_MODE_TAB, new ResourceLocation(AronaLayers.MOD_ID, "layers")), "AronaLayers");
+		translationBuilder.add(ResourceKey.create(Registries.CREATIVE_MODE_TAB, new ResourceLocation(AronaLayers.MOD_ID, "3d_layers")), "AronaLayers 3D");
 	}
 }

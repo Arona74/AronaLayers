@@ -14,9 +14,11 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.item.FallingBlockEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.block.Fallable;
 import net.minecraft.world.level.block.state.BlockState;
 
-public class FallingLayerBlock extends LayerBlock {
+// Fallable: FallingBlockEntity only calls onLand and onBrokenAfterFall on Fallable blocks.
+public class FallingLayerBlock extends LayerBlock implements Fallable {
 	public FallingLayerBlock(Properties settings) {
 		super(settings);
 	}
