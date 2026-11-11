@@ -13,11 +13,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.HoeItem;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.fabricmc.fabric.api.registry.OxidizableBlocksRegistry;
 import net.fabricmc.fabric.api.registry.TillableBlockRegistry;
-import net.fabricmc.fabric.impl.content.registry.util.ImmutableCollectionUtils;
-import net.fabricmc.fabric.mixin.content.registry.AxeItemAccessor;
-import net.fabricmc.fabric.mixin.content.registry.ShovelItemAccessor;
 
 public class ModRegistries {
 	public static void register(Block input, Block stripped) {
@@ -28,9 +24,8 @@ public class ModRegistries {
 		}
 	}
 
-	@SuppressWarnings("unstable")
 	private static Map<Block, Block> getRegistry() {
-		return ImmutableCollectionUtils.getAsMutableMap(AxeItemAccessor::getStrippedBlocks, AxeItemAccessor::setStrippedBlocks);
+		return Compat.strippables();
 	}
 
 	public static void registerStrippableBlocks() {
@@ -79,7 +74,7 @@ public class ModRegistries {
 	private static void blockToFlattened(Block input, Block flattened) {
 		Objects.requireNonNull(input, "input block cannot be null");
 		Objects.requireNonNull(flattened, "flattened block state cannot be null");
-		BlockState old = ShovelItemAccessor.getPathStates().put(input, flattened.defaultBlockState());
+		BlockState old = Compat.flattenables().put(input, flattened.defaultBlockState());
 
 		if (old != null) {
 			AronaLayers.LOGGER.debug("Replaced old flattening mapping from {} to {} with {}", input, old, flattened);
@@ -102,14 +97,14 @@ public class ModRegistries {
 				RegistryArgs registryArgs = ModRegistryArgs.REGISTRY_ARGS.get(block);
 
 				if (BuiltInRegistries.BLOCK.getKey(block).getNamespace().equals(AronaLayers.MOD_ID) && registryArgs.oxidizables != null) {
-					OxidizableBlocksRegistry.registerOxidizableBlockPair(block, registryArgs.exposed);
-					OxidizableBlocksRegistry.registerOxidizableBlockPair(registryArgs.exposed, registryArgs.weathered);
-					OxidizableBlocksRegistry.registerOxidizableBlockPair(registryArgs.weathered, registryArgs.oxidized);
+					Compat.registerOxidizable(block, registryArgs.exposed);
+					Compat.registerOxidizable(registryArgs.exposed, registryArgs.weathered);
+					Compat.registerOxidizable(registryArgs.weathered, registryArgs.oxidized);
 
-					OxidizableBlocksRegistry.registerWaxableBlockPair(block, registryArgs.waxed);
-					OxidizableBlocksRegistry.registerWaxableBlockPair(registryArgs.exposed, registryArgs.exposedWaxed);
-					OxidizableBlocksRegistry.registerWaxableBlockPair(registryArgs.weathered, registryArgs.weatheredWaxed);
-					OxidizableBlocksRegistry.registerWaxableBlockPair(registryArgs.oxidized, registryArgs.oxidizedWaxed);
+					Compat.registerWaxable(block, registryArgs.waxed);
+					Compat.registerWaxable(registryArgs.exposed, registryArgs.exposedWaxed);
+					Compat.registerWaxable(registryArgs.weathered, registryArgs.weatheredWaxed);
+					Compat.registerWaxable(registryArgs.oxidized, registryArgs.oxidizedWaxed);
 				}
 			}
 		});

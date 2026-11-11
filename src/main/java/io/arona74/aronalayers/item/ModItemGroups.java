@@ -10,11 +10,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
-import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 
 public class ModItemGroups {
 	public static final CreativeModeTab VLP_GROUP = Compat.registerTab("vlp",
-			FabricItemGroup.builder().title(Component.translatable("itemgroup.aronalayers"))
+			Compat.tabBuilder().title(Component.translatable("itemgroup.aronalayers"))
 					.icon(() -> new ItemStack(ModItems.VLP_TITLE)).displayItems((displayContext, entries) -> {
 						entries.accept(ModBlocks.OAK_LAYER);
 						entries.accept(ModBlocks.OAK_LOG_LAYER);
@@ -434,7 +433,7 @@ public class ModItemGroups {
 					}).build());
 
 	public static final CreativeModeTab VLP_3D_GROUP = Compat.registerTab("vlp_3d",
-			FabricItemGroup.builder().title(Component.translatable("itemgroup.aronalayers_3d"))
+			Compat.tabBuilder().title(Component.translatable("itemgroup.aronalayers_3d"))
 					.icon(() -> new ItemStack(ModBlocks.STONE_3D_LAYER)).displayItems((displayContext, entries) ->
 							BuiltInRegistries.BLOCK.stream().filter(block -> block instanceof Layer3DBlock).forEach(entries::accept)).build());
 

@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "key": {
+    "L": "aronalayers:waxed_oxidized_cut_copper_layer"
+  },
+  "pattern": [
+    "LLL",
+    "L L",
+    "LLL"
+  ],
+  "result": {
+    "id": "minecraft:waxed_oxidized_cut_copper"
+  }
+}

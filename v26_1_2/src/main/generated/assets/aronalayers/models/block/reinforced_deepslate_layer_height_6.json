@@ -1,0 +1,8 @@
+{
+  "parent": "aronalayers:blockmodels/layer_height_6",
+  "textures": {
+    "bottom": "minecraft:block/reinforced_deepslate_bottom",
+    "side": "minecraft:block/reinforced_deepslate_side",
+    "top": "minecraft:block/reinforced_deepslate_top"
+  }
+}

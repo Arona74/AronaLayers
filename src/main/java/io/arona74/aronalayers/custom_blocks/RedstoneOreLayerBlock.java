@@ -83,7 +83,7 @@ public class RedstoneOreLayerBlock extends LayerBlock {
 	}
 
 	private static void spawnParticles(Level world, BlockPos pos) {
-		RandomSource random = world.random;
+		RandomSource random = world.getRandom();
 
 		for (Direction direction : Direction.values()) {
 			BlockPos blockPos = pos.relative(direction);

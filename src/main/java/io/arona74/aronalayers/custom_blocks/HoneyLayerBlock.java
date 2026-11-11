@@ -89,11 +89,11 @@ public class HoneyLayerBlock extends LayerBlock {
 
 	private void addCollisionEffects(Level world, Entity entity) {
 		if (hasHoneyBlockEffects(entity)) {
-			if (world.random.nextInt(5) == 0) {
+			if (world.getRandom().nextInt(5) == 0) {
 				entity.playSound(SoundEvents.HONEY_BLOCK_SLIDE, 1.0F, 1.0F);
 			}
 
-			if (!world.isClientSide() && world.random.nextInt(5) == 0) {
+			if (!world.isClientSide() && world.getRandom().nextInt(5) == 0) {
 				world.broadcastEntityEvent(entity, (byte) 53);
 			}
 		}

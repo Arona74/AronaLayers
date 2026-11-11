@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "aronalayers:verdant_froglight_from_verdant_froglight_layer"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_verdant_froglight_layer": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aronalayers:verdant_froglight_layer"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_verdant_froglight_layer"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aronalayers:verdant_froglight_from_verdant_froglight_layer"
+    ]
+  }
+}

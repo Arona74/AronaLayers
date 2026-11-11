@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_glowstone_layer": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aronalayers:glowstone_layer"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "aronalayers:glowstone_from_glowstone_layer"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_glowstone_layer"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aronalayers:glowstone_from_glowstone_layer"
+    ]
+  }
+}

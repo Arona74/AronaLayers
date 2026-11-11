@@ -1,0 +1,40 @@
+{
+	"schemaVersion": 1,
+	"id": "aronalayers",
+	"version": "${version}",
+	"name": "AronaLayers: Blocks",
+	"description": "Layer blocks (stackable two pixel tall blocks) and 3D layers for most vanilla blocks. Based on Vanilla+ Layers by Fellter.",
+	"authors": [
+		"Arona74"
+	],
+	"contributors": [
+		"Fellter (original Vanilla+ Layers)"
+	],
+	"contact": {
+		"sources": "https://github.com/Arona74/AronaLayers",
+		"issues": "https://github.com/Arona74/AronaLayers/issues"
+	},
+	"license": "CC-BY-NC-4.0",
+	"icon": "assets/aronalayers/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"io.arona74.aronalayers.AronaLayers"
+		],
+		"fabric-datagen": [
+			"io.arona74.aronalayers.AronaLayersDataGenerator"
+		],
+		"client": [
+			"io.arona74.aronalayers.AronaLayersClient"
+		]
+	},
+	"mixins": [
+		"aronalayers.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.19.3",
+		"minecraft": "26.1.2",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}

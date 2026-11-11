@@ -1,0 +1,8 @@
+{
+  "parent": "aronalayers:blockmodels/layer_height_4",
+  "textures": {
+    "bottom": "minecraft:block/weathered_chiseled_copper",
+    "side": "minecraft:block/weathered_chiseled_copper",
+    "top": "minecraft:block/weathered_chiseled_copper"
+  }
+}

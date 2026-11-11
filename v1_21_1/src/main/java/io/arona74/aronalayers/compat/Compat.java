@@ -1,5 +1,6 @@
 package io.arona74.aronalayers.compat;
 
+import java.util.Map;
 import java.util.function.Function;
 
 import io.arona74.aronalayers.AronaLayers;
@@ -26,9 +27,14 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 
+import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.registry.FuelRegistry;
+import net.fabricmc.fabric.api.registry.OxidizableBlocksRegistry;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.ResourcePackActivationType;
+import net.fabricmc.fabric.impl.content.registry.util.ImmutableCollectionUtils;
+import net.fabricmc.fabric.mixin.content.registry.AxeItemAccessor;
+import net.fabricmc.fabric.mixin.content.registry.ShovelItemAccessor;
 import net.fabricmc.loader.api.FabricLoader;
 
 /**
@@ -72,6 +78,10 @@ public final class Compat {
 
 	public static Item registerItem(String name, Function<Item.Properties, Item> factory) {
 		return Registry.register(BuiltInRegistries.ITEM, id(name), factory.apply(new Item.Properties()));
+	}
+
+	public static CreativeModeTab.Builder tabBuilder() {
+		return FabricItemGroup.builder();
 	}
 
 	public static CreativeModeTab registerTab(String name, CreativeModeTab tab) {
@@ -130,5 +140,24 @@ public final class Compat {
 	/** Tells the block at {@code pos} that a neighbor changed, with {@code block} as the source. */
 	public static void notifyNeighborChanged(Level level, BlockPos pos, Block block) {
 		level.neighborChanged(pos, block, pos);
+	}
+
+	/** Fabric's mutable copy of the axe stripping map. */
+	@SuppressWarnings("unstable")
+	public static Map<Block, Block> strippables() {
+		return ImmutableCollectionUtils.getAsMutableMap(AxeItemAccessor::getStrippedBlocks, AxeItemAccessor::setStrippedBlocks);
+	}
+
+	/** The shovel flattening map, made mutable by Fabric. */
+	public static Map<Block, BlockState> flattenables() {
+		return ShovelItemAccessor.getPathStates();
+	}
+
+	public static void registerOxidizable(Block less, Block more) {
+		OxidizableBlocksRegistry.registerOxidizableBlockPair(less, more);
+	}
+
+	public static void registerWaxable(Block unwaxed, Block waxed) {
+		OxidizableBlocksRegistry.registerWaxableBlockPair(unwaxed, waxed);
 	}
 }
