@@ -4,6 +4,7 @@ import org.jetbrains.annotations.Nullable;
 
 import io.arona74.aronalayers.block.LayerBlock;
 import io.arona74.aronalayers.registry.ModRegistries;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -35,12 +36,12 @@ public class FlattenableLayerBlock extends LayerBlock {
 	}
 
 	@Override
-	protected BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor world, BlockPos pos, BlockPos neighborPos) {
+	protected BlockState onShapeUpdate(BlockState state, Direction direction, BlockState neighborState, LevelReader world, BlockPos pos, BlockPos neighborPos, Ticks ticks, RandomSource random) {
 		if (direction == Direction.UP) {
-			world.scheduleTick(pos, this, 1);
+			ticks.block(pos, this, 1);
 		}
 
-		return super.updateShape(state, direction, neighborState, world, pos, neighborPos);
+		return super.onShapeUpdate(state, direction, neighborState, world, pos, neighborPos, ticks, random);
 	}
 
 	@Override

@@ -6,14 +6,13 @@ import java.util.Objects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 
+import io.arona74.aronalayers.compat.Compat;
 import io.arona74.aronalayers.AronaLayers;
 import io.arona74.aronalayers.block.ModBlocks;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.HoeItem;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.fabricmc.fabric.api.registry.FuelRegistry;
 import net.fabricmc.fabric.api.registry.OxidizableBlocksRegistry;
 import net.fabricmc.fabric.api.registry.TillableBlockRegistry;
 import net.fabricmc.fabric.impl.content.registry.util.ImmutableCollectionUtils;
@@ -49,7 +48,7 @@ public class ModRegistries {
 	public static void registerTillableBlocks() {
 		BuiltInRegistries.BLOCK.forEach(block -> {
 			if (ModRegistryArgs.REGISTRY_ARGS.containsKey(block)) {
-				ResourceLocation identifier = BuiltInRegistries.BLOCK.getKey(block);
+				var identifier = BuiltInRegistries.BLOCK.getKey(block);
 				RegistryArgs args = ModRegistryArgs.REGISTRY_ARGS.get(block);
 
 				if (identifier.getNamespace().equals(AronaLayers.MOD_ID) && args.tilled != null) {
@@ -67,7 +66,7 @@ public class ModRegistries {
 
 		BuiltInRegistries.BLOCK.forEach(block -> {
 			if (ModRegistryArgs.REGISTRY_ARGS.containsKey(block)) {
-				ResourceLocation identifier = BuiltInRegistries.BLOCK.getKey(block);
+				var identifier = BuiltInRegistries.BLOCK.getKey(block);
 				RegistryArgs args = ModRegistryArgs.REGISTRY_ARGS.get(block);
 
 				if (identifier.getNamespace().equals(AronaLayers.MOD_ID) && args.flattened != null) {
@@ -121,7 +120,7 @@ public class ModRegistries {
 	public static void registerFuel() {
 		ModRegistryArgs.REGISTRY_ARGS.forEach((block, args) -> {
 			if (args.fuel != null) {
-				FuelRegistry.INSTANCE.add(block, args.fuel / 8);
+				Compat.registerFuel(block, args.fuel / 8);
 			}
 		});
 	}

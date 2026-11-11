@@ -4,6 +4,8 @@ import java.util.Objects;
 
 import org.jetbrains.annotations.Nullable;
 
+import io.arona74.aronalayers.compat.CompatBlock;
+
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.*;
 import net.minecraft.world.level.material.MapColor;
@@ -40,7 +42,7 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
-public class LayerBlock extends Block implements SimpleWaterloggedBlock {
+public class LayerBlock extends CompatBlock implements SimpleWaterloggedBlock {
 	public static final EnumProperty<Direction> FACING = BlockStateProperties.FACING;
 	public static final IntegerProperty LAYERS = BlockStateProperties.LAYERS;
 	public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
@@ -129,17 +131,17 @@ public class LayerBlock extends Block implements SimpleWaterloggedBlock {
 	}
 
 	@Override
-	protected BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor world, BlockPos pos, BlockPos neighborPos) {
+	protected BlockState onShapeUpdate(BlockState state, Direction direction, BlockState neighborState, LevelReader world, BlockPos pos, BlockPos neighborPos, Ticks ticks, RandomSource random) {
 		if (!state.canSurvive(world, pos)) {
 			// Schedule a tick instead of immediately breaking, so the block can fall as an entity
-			world.scheduleTick(pos, this, 2);
+			ticks.block(pos, this, 2);
 		}
 
 		if (state.getValue(WATERLOGGED)) {
-			world.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(world));
+			ticks.fluid(pos, Fluids.WATER, Fluids.WATER.getTickDelay(world));
 		}
 
-		return super.updateShape(state, direction, neighborState, world, pos, neighborPos);
+		return super.onShapeUpdate(state, direction, neighborState, world, pos, neighborPos, ticks, random);
 	}
 
 	@Override
@@ -154,12 +156,12 @@ public class LayerBlock extends Block implements SimpleWaterloggedBlock {
 	}
 
 	@Override
-	public boolean canPlaceLiquid(@Nullable Player player, BlockGetter world, BlockPos pos, BlockState state, Fluid fluid) {
+	protected boolean canHoldFluid(BlockGetter world, BlockPos pos, BlockState state, Fluid fluid) {
 		return state.getValue(BlockStateProperties.LAYERS) < 8;
 	}
 
 	@Override
-	public ItemStack pickupBlock(@Nullable Player player, LevelAccessor world, BlockPos pos, BlockState state) {
+	protected ItemStack pickUpFluid(LevelAccessor world, BlockPos pos, BlockState state) {
 		if (state.getValue(WATERLOGGED)) {
 			world.setBlock(pos, state.setValue(WATERLOGGED, false), 3);
 

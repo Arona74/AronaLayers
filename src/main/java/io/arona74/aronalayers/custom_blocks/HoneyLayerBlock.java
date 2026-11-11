@@ -1,6 +1,8 @@
 package io.arona74.aronalayers.custom_blocks;
 
 import io.arona74.aronalayers.block.LayerBlock;
+import io.arona74.aronalayers.compat.Compat;
+
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
@@ -9,7 +11,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.PrimedTnt;
 import net.minecraft.world.entity.vehicle.AbstractMinecart;
-import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
@@ -20,29 +21,29 @@ public class HoneyLayerBlock extends LayerBlock {
 	}
 
 	private static boolean hasHoneyBlockEffects(Entity entity) {
-		return entity instanceof LivingEntity || entity instanceof AbstractMinecart || entity instanceof PrimedTnt || entity instanceof Boat;
+		return entity instanceof LivingEntity || entity instanceof AbstractMinecart || entity instanceof PrimedTnt || Compat.isBoat(entity);
 	}
 
-	public void fallOn(Level world, BlockState state, BlockPos pos, Entity entity, float fallDistance) {
+	public void onFallenOn(Level world, BlockState state, BlockPos pos, Entity entity, double fallDistance) {
 		entity.playSound(SoundEvents.HONEY_BLOCK_SLIDE, 1.0F, 1.0F);
 
-		if (!world.isClientSide) {
+		if (!world.isClientSide()) {
 			world.broadcastEntityEvent(entity, (byte) 54);
 		}
 
-		if (entity.causeFallDamage(fallDistance, 0.2F, world.damageSources().fall())) {
+		if (Compat.causeFallDamage(world, entity, fallDistance, 0.2F)) {
 			entity.playSound(this.soundType.getFallSound(), this.soundType.getVolume() * 0.5F, this.soundType.getPitch() * 0.75F);
 		}
 	}
 
-	protected void entityInside(BlockState state, Level world, BlockPos pos, Entity entity) {
+	protected void onEntityInside(BlockState state, Level world, BlockPos pos, Entity entity) {
 		if (this.isSliding(pos, entity)) {
 			this.triggerAdvancement(entity, pos);
 			this.updateSlidingVelocity(entity);
 			this.addCollisionEffects(world, entity);
 		}
 
-		super.entityInside(state, world, pos, entity);
+		super.onEntityInside(state, world, pos, entity);
 	}
 
 	private static double method_65067(double d) {
@@ -93,7 +94,7 @@ public class HoneyLayerBlock extends LayerBlock {
 				entity.playSound(SoundEvents.HONEY_BLOCK_SLIDE, 1.0F, 1.0F);
 			}
 
-			if (!world.isClientSide && world.random.nextInt(5) == 0) {
+			if (!world.isClientSide() && world.random.nextInt(5) == 0) {
 				world.broadcastEntityEvent(entity, (byte) 53);
 			}
 		}

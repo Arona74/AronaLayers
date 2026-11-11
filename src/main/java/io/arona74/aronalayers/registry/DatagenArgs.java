@@ -2,19 +2,22 @@ package io.arona74.aronalayers.registry;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import net.minecraft.data.models.model.TextureMapping;
+
+import io.arona74.aronalayers.compat.Compat;
+import io.arona74.aronalayers.util.Textures;
+
 import net.minecraft.tags.TagKey;
-import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 
+/** Datagen description of one layer. Vanilla blocks are given by id, so the table is the same for every Minecraft version. */
 public class DatagenArgs {
 	public ArrayList<TagKey<Block>> blockTags = new ArrayList<>();
 	public Block parentBlock;
-	public TextureMapping textureMap;
+	public Textures textureMap;
 	public Block fullTextureBlock;
 	public Boolean y15 = false;
 	public Boolean needsSilkTouch = false;
-	public ArrayList<ItemLike> stonecuttingInput = new ArrayList<>();
+	public ArrayList<Block> stonecuttingInput = new ArrayList<>();
 
 	public DatagenArgs() {
 	}
@@ -39,9 +42,13 @@ public class DatagenArgs {
 		return this;
 	}
 
-	public DatagenArgs stonecutting(ItemLike... stonecuttingInput) {
+	public DatagenArgs stonecutting(String... stonecuttingInput) {
 		this.stonecuttingInput.add(this.parentBlock);
-		this.stonecuttingInput.addAll(Arrays.asList(stonecuttingInput));
+
+		for (String input : stonecuttingInput) {
+			this.stonecuttingInput.add(Compat.vanillaBlock(input));
+		}
+
 		return this;
 	}
 
@@ -50,19 +57,19 @@ public class DatagenArgs {
 		return this;
 	}
 
-	public DatagenArgs parentBlock(Block fullBlock) {
-		this.parentBlock = fullBlock;
-		this.fullTextureBlock = fullBlock;
+	public DatagenArgs parentBlock(String fullBlock) {
+		this.parentBlock = Compat.vanillaBlock(fullBlock);
+		this.fullTextureBlock = this.parentBlock;
 		return this;
 	}
 
-	public DatagenArgs parentBlock(Block parentBlock, Block fullTextureBlock) {
-		this.parentBlock = parentBlock;
-		this.fullTextureBlock = fullTextureBlock;
+	public DatagenArgs parentBlock(String parentBlock, String fullTextureBlock) {
+		this.parentBlock = Compat.vanillaBlock(parentBlock);
+		this.fullTextureBlock = Compat.vanillaBlock(fullTextureBlock);
 		return this;
 	}
 
-	public DatagenArgs textureMap(TextureMapping textureMap) {
+	public DatagenArgs textureMap(Textures textureMap) {
 		this.textureMap = textureMap;
 		return this;
 	}

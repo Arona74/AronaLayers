@@ -1,5 +1,7 @@
 package io.arona74.aronalayers.custom_blocks;
 
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.util.RandomSource;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.tags.FluidTags;
@@ -72,7 +74,7 @@ public class ConcretePowderLayerBlock extends FallingLayerBlock {
 	}
 
 	@Override
-	public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor world, BlockPos pos, BlockPos neighborPos) {
+	protected BlockState onShapeUpdate(BlockState state, Direction direction, BlockState neighborState, LevelReader world, BlockPos pos, BlockPos neighborPos, Ticks ticks, RandomSource random) {
 		if (hardensOnAnySide(world, pos)) {
 			return this.hardened
 					.setValue(WATERLOGGED, world.getBlockState(pos).getValue(WATERLOGGED))
@@ -80,7 +82,7 @@ public class ConcretePowderLayerBlock extends FallingLayerBlock {
 					.setValue(LAYERS, world.getBlockState(pos).getValue(LAYERS));
 		}
 
-		world.scheduleTick(pos, this, this.getFallDelay());
-		return super.updateShape(state, direction, neighborState, world, pos, neighborPos);
+		ticks.block(pos, this, this.getFallDelay());
+		return super.onShapeUpdate(state, direction, neighborState, world, pos, neighborPos, ticks, random);
 	}
 }

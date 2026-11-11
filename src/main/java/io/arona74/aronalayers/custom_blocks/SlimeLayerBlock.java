@@ -1,6 +1,8 @@
 package io.arona74.aronalayers.custom_blocks;
 
 import io.arona74.aronalayers.block.LayerBlock;
+import io.arona74.aronalayers.compat.Compat;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -14,9 +16,9 @@ public class SlimeLayerBlock extends LayerBlock {
 		super(settings);
 	}
 
-	public void fallOn(Level world, BlockState state, BlockPos pos, Entity entity, float fallDistance) {
+	public void onFallenOn(Level world, BlockState state, BlockPos pos, Entity entity, double fallDistance) {
 		if (!entity.isSuppressingBounce()) {
-			entity.causeFallDamage(fallDistance, 0.0F, world.damageSources().fall());
+			Compat.causeFallDamage(world, entity, fallDistance, 0.0F);
 		}
 	}
 

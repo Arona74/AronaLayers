@@ -3,6 +3,7 @@ package io.arona74.aronalayers.custom_blocks;
 import org.jetbrains.annotations.Nullable;
 
 import io.arona74.aronalayers.block.LayerBlock;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -37,12 +38,12 @@ public class CoralLayerBlock extends LayerBlock {
 		}
 	}
 
-	protected BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor world, BlockPos pos, BlockPos neighborPos) {
+	protected BlockState onShapeUpdate(BlockState state, Direction direction, BlockState neighborState, LevelReader world, BlockPos pos, BlockPos neighborPos, Ticks ticks, RandomSource random) {
 		if (!this.isInWater(world, pos)) {
-			world.scheduleTick(pos, this, 60 + world.getRandom().nextInt(40));
+			ticks.block(pos, this, 60 + random.nextInt(40));
 		}
 
-		return super.updateShape(state, direction, neighborState, world, pos, neighborPos);
+		return super.onShapeUpdate(state, direction, neighborState, world, pos, neighborPos, ticks, random);
 	}
 
 	protected boolean isInWater(BlockGetter world, BlockPos pos) {

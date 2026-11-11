@@ -37,9 +37,9 @@ public class SpongeLayerBlock extends LayerBlock {
 		}
 	}
 
-	protected void neighborChanged(BlockState state, Level world, BlockPos pos, Block sourceBlock, BlockPos sourcePos, boolean notify) {
+	protected void onNeighborChanged(BlockState state, Level world, BlockPos pos, Block sourceBlock, boolean notify) {
 		this.update(world, pos);
-		super.neighborChanged(state, world, pos, sourceBlock, sourcePos, notify);
+		super.onNeighborChanged(state, world, pos, sourceBlock, notify);
 	}
 
 	protected void update(Level world, BlockPos pos) {

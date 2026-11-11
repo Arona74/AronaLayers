@@ -39,8 +39,8 @@ public class RedstoneOreLayerBlock extends LayerBlock {
 		super.stepOn(world, pos, state, entity);
 	}
 
-	protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hit) {
-		if (world.isClientSide) {
+	protected InteractionResult onUse(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hit) {
+		if (world.isClientSide()) {
 			spawnParticles(world, pos);
 		} else {
 			light(state, world, pos);

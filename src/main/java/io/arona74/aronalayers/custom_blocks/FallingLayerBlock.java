@@ -1,6 +1,9 @@
 package io.arona74.aronalayers.custom_blocks;
 
 import io.arona74.aronalayers.block.LayerBlock;
+import io.arona74.aronalayers.compat.Compat;
+
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.BlockParticleOption;
@@ -23,13 +26,13 @@ public class FallingLayerBlock extends LayerBlock {
 		world.scheduleTick(pos, this, this.getFallDelay());
 	}
 
-	protected BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor world, BlockPos pos, BlockPos neighborPos) {
-		world.scheduleTick(pos, this, this.getFallDelay());
-		return super.updateShape(state, direction, neighborState, world, pos, neighborPos);
+	protected BlockState onShapeUpdate(BlockState state, Direction direction, BlockState neighborState, LevelReader world, BlockPos pos, BlockPos neighborPos, Ticks ticks, RandomSource random) {
+		ticks.block(pos, this, this.getFallDelay());
+		return super.onShapeUpdate(state, direction, neighborState, world, pos, neighborPos, ticks, random);
 	}
 
 	protected void tick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
-		if (canFallThrough(world.getBlockState(pos.below())) && pos.getY() >= world.getMinBuildHeight()) {
+		if (canFallThrough(world.getBlockState(pos.below())) && pos.getY() >= Compat.minY(world)) {
 			FallingBlockEntity fallingBlockEntity = FallingBlockEntity.fall(world, pos, state);
 			this.configureFallingBlockEntity(fallingBlockEntity);
 			return;

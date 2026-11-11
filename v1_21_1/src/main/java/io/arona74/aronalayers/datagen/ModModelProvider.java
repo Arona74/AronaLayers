@@ -13,6 +13,8 @@ import net.minecraft.data.models.ItemModelGenerators;
 import net.minecraft.data.models.model.ModelLocationUtils;
 import net.minecraft.data.models.model.ModelTemplates;
 import net.minecraft.data.models.model.TextureMapping;
+import io.arona74.aronalayers.util.Textures;
+import net.minecraft.data.models.model.TextureSlot;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -40,13 +42,13 @@ public class ModModelProvider extends FabricModelProvider {
 
 				if (args.textureMap != null) {
 					if (block instanceof LayerBlock && args.y15 && args.fullTextureBlock != null) {
-						registerLayerBlockY15(block, args.fullTextureBlock, bsmg, args.textureMap);
+						registerLayerBlockY15(block, args.fullTextureBlock, bsmg, textures(args.textureMap));
 					} else if (block instanceof LayerBlock && args.y15 && args.parentBlock != null) {
-						registerLayerBlockY15(block, args.parentBlock, bsmg, args.textureMap);
+						registerLayerBlockY15(block, args.parentBlock, bsmg, textures(args.textureMap));
 					} else if (block instanceof LayerBlock && args.fullTextureBlock != null) {
-						registerLayerBlock(block, args.fullTextureBlock, bsmg, args.textureMap);
+						registerLayerBlock(block, args.fullTextureBlock, bsmg, textures(args.textureMap));
 					} else if (block instanceof LayerBlock && args.parentBlock != null) {
-						registerLayerBlock(block, args.parentBlock, bsmg, args.textureMap);
+						registerLayerBlock(block, args.parentBlock, bsmg, textures(args.textureMap));
 					}
 				}
 			}
@@ -57,8 +59,21 @@ public class ModModelProvider extends FabricModelProvider {
 			Layer3DBlock layer3D = (Layer3DBlock) block;
 			DatagenArgs args = Args.DATAGEN_ARGS.get(layer3D.getBaseLayer());
 			Block fullBlock = args.fullTextureBlock != null ? args.fullTextureBlock : args.parentBlock;
-			registerLayer3DBlock(layer3D, ModelLocationUtils.getModelLocation(fullBlock), bsmg, args.textureMap);
+			registerLayer3DBlock(layer3D, ModelLocationUtils.getModelLocation(fullBlock), bsmg, textures(args.textureMap));
 		});
+	}
+
+	// Shared datagen args describe textures version-neutrally; this version's models take a TextureMapping.
+	private static TextureMapping textures(Textures textures) {
+		TextureMapping mapping = new TextureMapping();
+		textures.slots().forEach((slot, id) -> mapping.put(switch (slot) {
+			case "all" -> TextureSlot.ALL;
+			case "top" -> TextureSlot.TOP;
+			case "side" -> TextureSlot.SIDE;
+			case "bottom" -> TextureSlot.BOTTOM;
+			default -> throw new IllegalArgumentException("Unknown texture slot " + slot);
+		}, ResourceLocation.parse(id)));
+		return mapping;
 	}
 
 	@Override

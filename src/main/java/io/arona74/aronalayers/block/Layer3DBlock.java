@@ -2,6 +2,8 @@ package io.arona74.aronalayers.block;
 
 import org.jetbrains.annotations.Nullable;
 
+import io.arona74.aronalayers.compat.CompatBlock;
+
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.*;
 import net.minecraft.world.level.material.MapColor;
@@ -46,7 +48,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * a regular layer on a wall keeps its textures upright. If either value reaches 8 the shape is
  * a full cube, so the block turns into its base layer at 8 layers.
  */
-public class Layer3DBlock extends Block implements SimpleWaterloggedBlock {
+public class Layer3DBlock extends CompatBlock implements SimpleWaterloggedBlock {
 	public static final EnumProperty<Direction> HORIZONTAL_FACING = EnumProperty.create("horizontal_facing", Direction.class, Direction.Plane.HORIZONTAL);
 	public static final IntegerProperty VERTICAL_LAYERS = IntegerProperty.create("vertical_layers", 0, 8);
 	public static final IntegerProperty HORIZONTAL_LAYERS = IntegerProperty.create("horizontal_layers", 1, 8);
@@ -150,17 +152,17 @@ public class Layer3DBlock extends Block implements SimpleWaterloggedBlock {
 	}
 
 	@Override
-	protected BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor world, BlockPos pos, BlockPos neighborPos) {
+	protected BlockState onShapeUpdate(BlockState state, Direction direction, BlockState neighborState, LevelReader world, BlockPos pos, BlockPos neighborPos, Ticks ticks, RandomSource random) {
 		if (!state.canSurvive(world, pos)) {
 			// Schedule a tick instead of immediately breaking, so the block can fall as an entity
-			world.scheduleTick(pos, this, 2);
+			ticks.block(pos, this, 2);
 		}
 
 		if (state.getValue(WATERLOGGED)) {
-			world.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(world));
+			ticks.fluid(pos, Fluids.WATER, Fluids.WATER.getTickDelay(world));
 		}
 
-		return super.updateShape(state, direction, neighborState, world, pos, neighborPos);
+		return super.onShapeUpdate(state, direction, neighborState, world, pos, neighborPos, ticks, random);
 	}
 
 	@Override
@@ -175,12 +177,12 @@ public class Layer3DBlock extends Block implements SimpleWaterloggedBlock {
 	}
 
 	@Override
-	public boolean canPlaceLiquid(@Nullable Player player, BlockGetter world, BlockPos pos, BlockState state, Fluid fluid) {
+	protected boolean canHoldFluid(BlockGetter world, BlockPos pos, BlockState state, Fluid fluid) {
 		return !isFull(state);
 	}
 
 	@Override
-	public ItemStack pickupBlock(@Nullable Player player, LevelAccessor world, BlockPos pos, BlockState state) {
+	protected ItemStack pickUpFluid(LevelAccessor world, BlockPos pos, BlockState state) {
 		if (state.getValue(WATERLOGGED)) {
 			world.setBlock(pos, state.setValue(WATERLOGGED, false), 3);
 			return new ItemStack(Items.WATER_BUCKET);
