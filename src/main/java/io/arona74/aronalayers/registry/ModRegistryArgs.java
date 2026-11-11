@@ -127,44 +127,46 @@ public final class ModRegistryArgs {
 		putInRegistryArgs(ModBlocks.PACKED_ICE_LAYER, new RegistryArgs().translucent());
 		putInRegistryArgs(ModBlocks.BLUE_ICE_LAYER, new RegistryArgs().translucent());
 		putIfPresent(ModBlocks.PALE_MOSS_LAYER, () -> new RegistryArgs().flammable(5, 100));
-		putInRegistryArgs(ModBlocks.OAK_LEAVES_LAYER, new RegistryArgs().transparent().foliageTinted());
-		putInRegistryArgs(ModBlocks.SPRUCE_LEAVES_LAYER, new RegistryArgs().transparent().foliageTinted());
-		putInRegistryArgs(ModBlocks.BIRCH_LEAVES_LAYER, new RegistryArgs().transparent().foliageTinted());
-		putInRegistryArgs(ModBlocks.JUNGLE_LEAVES_LAYER, new RegistryArgs().transparent().foliageTinted());
-		putInRegistryArgs(ModBlocks.ACACIA_LEAVES_LAYER, new RegistryArgs().transparent().foliageTinted());
-		putInRegistryArgs(ModBlocks.DARK_OAK_LEAVES_LAYER, new RegistryArgs().transparent().foliageTinted());
-		putInRegistryArgs(ModBlocks.MANGROVE_LEAVES_LAYER, new RegistryArgs().transparent().foliageTinted());
-		putInRegistryArgs(ModBlocks.CHERRY_LEAVES_LAYER, new RegistryArgs().transparent());
-		putIfPresent(ModBlocks.PALE_OAK_LEAVES_LAYER, () -> new RegistryArgs().transparent());
-		putInRegistryArgs(ModBlocks.AZALEA_LEAVES_LAYER, new RegistryArgs().transparent());
-		putInRegistryArgs(ModBlocks.FLOWERING_AZALEA_LEAVES_LAYER, new RegistryArgs().transparent());
+		putInRegistryArgs(ModBlocks.OAK_LEAVES_LAYER, new RegistryArgs().transparent().foliageTinted().flammable(30, 60));
+		putInRegistryArgs(ModBlocks.SPRUCE_LEAVES_LAYER, new RegistryArgs().transparent().foliageTinted().flammable(30, 60));
+		putInRegistryArgs(ModBlocks.BIRCH_LEAVES_LAYER, new RegistryArgs().transparent().foliageTinted().flammable(30, 60));
+		putInRegistryArgs(ModBlocks.JUNGLE_LEAVES_LAYER, new RegistryArgs().transparent().foliageTinted().flammable(30, 60));
+		putInRegistryArgs(ModBlocks.ACACIA_LEAVES_LAYER, new RegistryArgs().transparent().foliageTinted().flammable(30, 60));
+		putInRegistryArgs(ModBlocks.DARK_OAK_LEAVES_LAYER, new RegistryArgs().transparent().foliageTinted().flammable(30, 60));
+		putInRegistryArgs(ModBlocks.MANGROVE_LEAVES_LAYER, new RegistryArgs().transparent().foliageTinted().flammable(30, 60));
+		putInRegistryArgs(ModBlocks.CHERRY_LEAVES_LAYER, new RegistryArgs().transparent().flammable(30, 60));
+		putIfPresent(ModBlocks.PALE_OAK_LEAVES_LAYER, () -> new RegistryArgs().transparent().flammable(30, 60));
+		putInRegistryArgs(ModBlocks.AZALEA_LEAVES_LAYER, new RegistryArgs().transparent().flammable(30, 60));
+		putInRegistryArgs(ModBlocks.FLOWERING_AZALEA_LEAVES_LAYER, new RegistryArgs().transparent().flammable(30, 60));
 		putInRegistryArgs(ModBlocks.SLIME_LAYER, new RegistryArgs().translucent());
 		putInRegistryArgs(ModBlocks.HONEY_LAYER, new RegistryArgs().translucent());
 
-		putInRegistryArgs(ModBlocks.WHITE_WOOL_LAYER, new RegistryArgs().fuel(RegistryArgs.FUEL_WOOL));
-		putInRegistryArgs(ModBlocks.LIGHT_GRAY_WOOL_LAYER, new RegistryArgs().fuel(RegistryArgs.FUEL_WOOL));
-		putInRegistryArgs(ModBlocks.GRAY_WOOL_LAYER, new RegistryArgs().fuel(RegistryArgs.FUEL_WOOL));
-		putInRegistryArgs(ModBlocks.BLACK_WOOL_LAYER, new RegistryArgs().fuel(RegistryArgs.FUEL_WOOL));
-		putInRegistryArgs(ModBlocks.BROWN_WOOL_LAYER, new RegistryArgs().fuel(RegistryArgs.FUEL_WOOL));
-		putInRegistryArgs(ModBlocks.RED_WOOL_LAYER, new RegistryArgs().fuel(RegistryArgs.FUEL_WOOL));
-		putInRegistryArgs(ModBlocks.ORANGE_WOOL_LAYER, new RegistryArgs().fuel(RegistryArgs.FUEL_WOOL));
-		putInRegistryArgs(ModBlocks.YELLOW_WOOL_LAYER, new RegistryArgs().fuel(RegistryArgs.FUEL_WOOL));
-		putInRegistryArgs(ModBlocks.LIME_WOOL_LAYER, new RegistryArgs().fuel(RegistryArgs.FUEL_WOOL));
-		putInRegistryArgs(ModBlocks.GREEN_WOOL_LAYER, new RegistryArgs().fuel(RegistryArgs.FUEL_WOOL));
-		putInRegistryArgs(ModBlocks.CYAN_WOOL_LAYER, new RegistryArgs().fuel(RegistryArgs.FUEL_WOOL));
-		putInRegistryArgs(ModBlocks.LIGHT_BLUE_WOOL_LAYER, new RegistryArgs().fuel(RegistryArgs.FUEL_WOOL));
-		putInRegistryArgs(ModBlocks.BLUE_WOOL_LAYER, new RegistryArgs().fuel(RegistryArgs.FUEL_WOOL));
-		putInRegistryArgs(ModBlocks.PURPLE_WOOL_LAYER, new RegistryArgs().fuel(RegistryArgs.FUEL_WOOL));
-		putInRegistryArgs(ModBlocks.MAGENTA_WOOL_LAYER, new RegistryArgs().fuel(RegistryArgs.FUEL_WOOL));
-		putInRegistryArgs(ModBlocks.PINK_WOOL_LAYER, new RegistryArgs().fuel(RegistryArgs.FUEL_WOOL));
+		putInRegistryArgs(ModBlocks.WHITE_WOOL_LAYER, new RegistryArgs().fuel(RegistryArgs.FUEL_WOOL).flammable(30, 60));
+		putInRegistryArgs(ModBlocks.LIGHT_GRAY_WOOL_LAYER, new RegistryArgs().fuel(RegistryArgs.FUEL_WOOL).flammable(30, 60));
+		putInRegistryArgs(ModBlocks.GRAY_WOOL_LAYER, new RegistryArgs().fuel(RegistryArgs.FUEL_WOOL).flammable(30, 60));
+		putInRegistryArgs(ModBlocks.BLACK_WOOL_LAYER, new RegistryArgs().fuel(RegistryArgs.FUEL_WOOL).flammable(30, 60));
+		putInRegistryArgs(ModBlocks.BROWN_WOOL_LAYER, new RegistryArgs().fuel(RegistryArgs.FUEL_WOOL).flammable(30, 60));
+		putInRegistryArgs(ModBlocks.RED_WOOL_LAYER, new RegistryArgs().fuel(RegistryArgs.FUEL_WOOL).flammable(30, 60));
+		putInRegistryArgs(ModBlocks.ORANGE_WOOL_LAYER, new RegistryArgs().fuel(RegistryArgs.FUEL_WOOL).flammable(30, 60));
+		putInRegistryArgs(ModBlocks.YELLOW_WOOL_LAYER, new RegistryArgs().fuel(RegistryArgs.FUEL_WOOL).flammable(30, 60));
+		putInRegistryArgs(ModBlocks.LIME_WOOL_LAYER, new RegistryArgs().fuel(RegistryArgs.FUEL_WOOL).flammable(30, 60));
+		putInRegistryArgs(ModBlocks.GREEN_WOOL_LAYER, new RegistryArgs().fuel(RegistryArgs.FUEL_WOOL).flammable(30, 60));
+		putInRegistryArgs(ModBlocks.CYAN_WOOL_LAYER, new RegistryArgs().fuel(RegistryArgs.FUEL_WOOL).flammable(30, 60));
+		putInRegistryArgs(ModBlocks.LIGHT_BLUE_WOOL_LAYER, new RegistryArgs().fuel(RegistryArgs.FUEL_WOOL).flammable(30, 60));
+		putInRegistryArgs(ModBlocks.BLUE_WOOL_LAYER, new RegistryArgs().fuel(RegistryArgs.FUEL_WOOL).flammable(30, 60));
+		putInRegistryArgs(ModBlocks.PURPLE_WOOL_LAYER, new RegistryArgs().fuel(RegistryArgs.FUEL_WOOL).flammable(30, 60));
+		putInRegistryArgs(ModBlocks.MAGENTA_WOOL_LAYER, new RegistryArgs().fuel(RegistryArgs.FUEL_WOOL).flammable(30, 60));
+		putInRegistryArgs(ModBlocks.PINK_WOOL_LAYER, new RegistryArgs().fuel(RegistryArgs.FUEL_WOOL).flammable(30, 60));
 
-		putInRegistryArgs(ModBlocks.COAL_LAYER, new RegistryArgs().fuel(RegistryArgs.FUEL_COAL_BLOCK));
-		putInRegistryArgs(ModBlocks.DRIED_KELP_LAYER, new RegistryArgs().fuel(RegistryArgs.FUEL_DRIED_KELP_BLOCK));
+		putInRegistryArgs(ModBlocks.COAL_LAYER, new RegistryArgs().fuel(RegistryArgs.FUEL_COAL_BLOCK).flammable(5, 5));
+		putInRegistryArgs(ModBlocks.DRIED_KELP_LAYER, new RegistryArgs().fuel(RegistryArgs.FUEL_DRIED_KELP_BLOCK).flammable(30, 60));
+		putInRegistryArgs(ModBlocks.HAY_LAYER, new RegistryArgs().flammable(60, 20));
+		putInRegistryArgs(ModBlocks.TARGET_LAYER, new RegistryArgs().flammable(15, 20));
 
 		register3DLayerArgs();
 	}
 
-	// 3D layers render like their base layer, but don't inherit tool interactions or fuel.
+	// 3D layers render and burn like their base layer, but don't inherit tool interactions or fuel.
 	private static void register3DLayerArgs() {
 		BuiltInRegistries.BLOCK.forEach(block -> {
 			if (block instanceof Layer3DBlock layer3D && REGISTRY_ARGS.containsKey(layer3D.getBaseLayer())) {
@@ -174,6 +176,8 @@ public final class ModRegistryArgs {
 				args.translucent = base.translucent;
 				args.grassTinted = base.grassTinted;
 				args.foliageTinted = base.foliageTinted;
+				args.burn = base.burn;
+				args.spread = base.spread;
 				putInRegistryArgs(block, args);
 			}
 		});

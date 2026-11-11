@@ -93,6 +93,15 @@ public class ModRegistries {
 		});
 	}
 
+	// Layers catch fire and burn away like their parent block.
+	public static void registerFlammableBlocks() {
+		ModRegistryArgs.REGISTRY_ARGS.forEach((block, args) -> {
+			if (args.burn != null && args.spread != null) {
+				Platform.registerFlammable(block, args.burn, args.spread);
+			}
+		});
+	}
+
 	// A layer burns 1/8 as long as its parent block, see Platform.registerLayerFuel.
 	public static void registerFuel() {
 		ModRegistryArgs.REGISTRY_ARGS.forEach((block, args) -> {

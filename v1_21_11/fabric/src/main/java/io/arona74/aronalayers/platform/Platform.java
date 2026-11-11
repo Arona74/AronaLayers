@@ -12,6 +12,7 @@ import net.minecraft.world.item.HoeItem;
 import net.minecraft.world.level.block.Block;
 
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
+import net.fabricmc.fabric.api.registry.FlammableBlockRegistry;
 import net.fabricmc.fabric.api.registry.FuelRegistryEvents;
 import net.fabricmc.fabric.api.registry.OxidizableBlocksRegistry;
 import net.fabricmc.fabric.api.registry.TillableBlockRegistry;
@@ -77,5 +78,13 @@ public final class Platform {
 
 	public static void registerWaxable(Block unwaxed, Block waxed) {
 		OxidizableBlocksRegistry.registerWaxableBlockPair(unwaxed, waxed);
+	}
+
+	/**
+	 * Makes a block burn like a vanilla flammable block. The odds are in vanilla's
+	 * FireBlock.setFlammable order: catching fire, then burning away.
+	 */
+	public static void registerFlammable(Block block, int igniteOdds, int burnOdds) {
+		FlammableBlockRegistry.getDefaultInstance().add(block, igniteOdds, burnOdds);
 	}
 }

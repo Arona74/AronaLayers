@@ -31,12 +31,13 @@ public final class AronaLayers {
 		ModItemGroups.registerItemGroups();
 		ModItems.registerModItems();
 
-		// Gameplay registrations run on both sides: tool interactions, oxidation and
-		// fuel are applied by the server, including dedicated servers.
+		// Gameplay registrations run on both sides: tool interactions, oxidation, fuel and
+		// fire are applied by the server, including dedicated servers.
 		ModRegistryArgs.registerRegistryArgs();
 		ModRegistries.registerStrippableBlocks();
 		ModRegistries.registerOxidizableBlocks();
 		ModRegistries.registerFuel();
+		ModRegistries.registerFlammableBlocks();
 		ModRegistries.registerFlattenableBlocks();
 		ModRegistries.registerTillableBlocks();
 

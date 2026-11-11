@@ -75,6 +75,7 @@ public class RegistryArgs {
 		return this;
 	}
 
+	/** Fire odds, as vanilla gives them to the parent block: catching fire ({@code burn}) and burning away ({@code spread}). */
 	public RegistryArgs flammable(Integer burn, Integer spread) {
 		this.burn = burn;
 		this.spread = spread;

@@ -17,6 +17,7 @@ import net.minecraft.world.level.storage.loot.providers.number.floats.ContextFlo
 import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab;
 import net.fabricmc.fabric.api.item.v1.BlockTransformerHelper;
 import net.fabricmc.fabric.api.item.v1.DefaultItemComponentEvents;
+import net.fabricmc.fabric.api.registry.FlammableBlockRegistry;
 import net.fabricmc.fabric.api.registry.OxidizableBlocksRegistry;
 import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
 import net.fabricmc.fabric.api.resource.v1.pack.PackActivationType;
@@ -82,5 +83,13 @@ public final class Platform {
 
 	public static void registerWaxable(Block unwaxed, Block waxed) {
 		OxidizableBlocksRegistry.registerWaxable(unwaxed, waxed);
+	}
+
+	/**
+	 * Makes a block burn like a vanilla flammable block. The odds are in vanilla's
+	 * FireBlock.setFlammable order: catching fire, then burning away.
+	 */
+	public static void registerFlammable(Block block, int igniteOdds, int burnOdds) {
+		FlammableBlockRegistry.getDefaultInstance().add(block, igniteOdds, burnOdds);
 	}
 }
