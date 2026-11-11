@@ -1,8 +1,0 @@
-{
-  "parent": "vanillalayerplus:blockmodels/layer_3d/layer_height_10_width_2",
-  "textures": {
-    "bottom": "minecraft:block/deepslate_top",
-    "side": "minecraft:block/deepslate",
-    "top": "minecraft:block/deepslate_top"
-  }
-}

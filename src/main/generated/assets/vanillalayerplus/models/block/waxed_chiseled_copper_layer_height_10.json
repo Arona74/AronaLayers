@@ -1,8 +1,0 @@
-{
-  "parent": "vanillalayerplus:blockmodels/layer_height_10",
-  "textures": {
-    "bottom": "minecraft:block/chiseled_copper",
-    "side": "minecraft:block/chiseled_copper",
-    "top": "minecraft:block/chiseled_copper"
-  }
-}

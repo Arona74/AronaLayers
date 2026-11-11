@@ -1,8 +1,0 @@
-{
-  "parent": "vanillalayerplus:blockmodels/layer_height_4",
-  "textures": {
-    "bottom": "minecraft:block/pink_concrete",
-    "side": "minecraft:block/pink_concrete",
-    "top": "minecraft:block/pink_concrete"
-  }
-}

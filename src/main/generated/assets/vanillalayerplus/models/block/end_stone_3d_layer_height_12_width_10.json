@@ -1,8 +1,0 @@
-{
-  "parent": "vanillalayerplus:blockmodels/layer_3d/layer_height_12_width_10",
-  "textures": {
-    "bottom": "minecraft:block/end_stone",
-    "side": "minecraft:block/end_stone",
-    "top": "minecraft:block/end_stone"
-  }
-}

@@ -1,20 +1,20 @@
 {
   "values": [
-    "vanillalayerplus:white_wool_layer",
-    "vanillalayerplus:light_gray_wool_layer",
-    "vanillalayerplus:gray_wool_layer",
-    "vanillalayerplus:black_wool_layer",
-    "vanillalayerplus:brown_wool_layer",
-    "vanillalayerplus:red_wool_layer",
-    "vanillalayerplus:orange_wool_layer",
-    "vanillalayerplus:yellow_wool_layer",
-    "vanillalayerplus:lime_wool_layer",
-    "vanillalayerplus:green_wool_layer",
-    "vanillalayerplus:cyan_wool_layer",
-    "vanillalayerplus:light_blue_wool_layer",
-    "vanillalayerplus:blue_wool_layer",
-    "vanillalayerplus:purple_wool_layer",
-    "vanillalayerplus:magenta_wool_layer",
-    "vanillalayerplus:pink_wool_layer"
+    "aronalayers:white_wool_layer",
+    "aronalayers:light_gray_wool_layer",
+    "aronalayers:gray_wool_layer",
+    "aronalayers:black_wool_layer",
+    "aronalayers:brown_wool_layer",
+    "aronalayers:red_wool_layer",
+    "aronalayers:orange_wool_layer",
+    "aronalayers:yellow_wool_layer",
+    "aronalayers:lime_wool_layer",
+    "aronalayers:green_wool_layer",
+    "aronalayers:cyan_wool_layer",
+    "aronalayers:light_blue_wool_layer",
+    "aronalayers:blue_wool_layer",
+    "aronalayers:purple_wool_layer",
+    "aronalayers:magenta_wool_layer",
+    "aronalayers:pink_wool_layer"
   ]
 }

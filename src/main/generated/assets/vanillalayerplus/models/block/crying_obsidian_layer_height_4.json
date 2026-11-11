@@ -1,8 +1,0 @@
-{
-  "parent": "vanillalayerplus:blockmodels/layer_height_4",
-  "textures": {
-    "bottom": "minecraft:block/crying_obsidian",
-    "side": "minecraft:block/crying_obsidian",
-    "top": "minecraft:block/crying_obsidian"
-  }
-}

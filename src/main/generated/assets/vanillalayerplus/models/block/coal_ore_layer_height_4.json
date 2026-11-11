@@ -1,8 +1,0 @@
-{
-  "parent": "vanillalayerplus:blockmodels/layer_height_4",
-  "textures": {
-    "bottom": "minecraft:block/coal_ore",
-    "side": "minecraft:block/coal_ore",
-    "top": "minecraft:block/coal_ore"
-  }
-}

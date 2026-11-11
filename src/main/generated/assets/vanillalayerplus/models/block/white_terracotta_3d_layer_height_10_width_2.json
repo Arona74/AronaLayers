@@ -1,8 +1,0 @@
-{
-  "parent": "vanillalayerplus:blockmodels/layer_3d/layer_height_10_width_2",
-  "textures": {
-    "bottom": "minecraft:block/white_terracotta",
-    "side": "minecraft:block/white_terracotta",
-    "top": "minecraft:block/white_terracotta"
-  }
-}

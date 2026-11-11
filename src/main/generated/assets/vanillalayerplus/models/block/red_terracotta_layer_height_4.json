@@ -1,8 +1,0 @@
-{
-  "parent": "vanillalayerplus:blockmodels/layer_height_4",
-  "textures": {
-    "bottom": "minecraft:block/red_terracotta",
-    "side": "minecraft:block/red_terracotta",
-    "top": "minecraft:block/red_terracotta"
-  }
-}

@@ -1,8 +1,0 @@
-{
-  "parent": "vanillalayerplus:blockmodels/layer_3d/layer_height_6_width_12",
-  "textures": {
-    "bottom": "minecraft:block/tuff",
-    "side": "minecraft:block/tuff",
-    "top": "minecraft:block/tuff"
-  }
-}

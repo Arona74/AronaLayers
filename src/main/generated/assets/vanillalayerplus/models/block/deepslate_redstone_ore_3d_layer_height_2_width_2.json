@@ -1,8 +1,0 @@
-{
-  "parent": "vanillalayerplus:blockmodels/layer_3d/layer_height_2_width_2",
-  "textures": {
-    "bottom": "minecraft:block/deepslate_redstone_ore",
-    "side": "minecraft:block/deepslate_redstone_ore",
-    "top": "minecraft:block/deepslate_redstone_ore"
-  }
-}

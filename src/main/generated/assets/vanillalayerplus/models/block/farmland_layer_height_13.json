@@ -1,8 +1,0 @@
-{
-  "parent": "vanillalayerplus:blockmodels/y15/layer_height_13",
-  "textures": {
-    "bottom": "minecraft:block/dirt",
-    "side": "minecraft:block/dirt",
-    "top": "minecraft:block/farmland"
-  }
-}

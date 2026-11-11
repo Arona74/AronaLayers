@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": {
+    "item": "minecraft:waxed_weathered_copper_grate"
+  },
+  "result": {
+    "count": 8,
+    "id": "aronalayers:waxed_weathered_copper_grate_layer"
+  }
+}

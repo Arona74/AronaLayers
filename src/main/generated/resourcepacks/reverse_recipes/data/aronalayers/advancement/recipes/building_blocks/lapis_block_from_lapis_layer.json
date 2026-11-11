@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_lapis_layer": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aronalayers:lapis_layer"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "aronalayers:lapis_block_from_lapis_layer"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_lapis_layer"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aronalayers:lapis_block_from_lapis_layer"
+    ]
+  }
+}

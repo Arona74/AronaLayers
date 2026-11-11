@@ -1,8 +1,0 @@
-{
-  "parent": "vanillalayerplus:blockmodels/layer_height_8",
-  "textures": {
-    "bottom": "minecraft:block/dark_prismarine",
-    "side": "minecraft:block/dark_prismarine",
-    "top": "minecraft:block/dark_prismarine"
-  }
-}

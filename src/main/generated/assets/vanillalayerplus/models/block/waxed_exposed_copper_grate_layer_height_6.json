@@ -1,8 +1,0 @@
-{
-  "parent": "vanillalayerplus:blockmodels/layer_height_6",
-  "textures": {
-    "bottom": "minecraft:block/exposed_copper_grate",
-    "side": "minecraft:block/exposed_copper_grate",
-    "top": "minecraft:block/exposed_copper_grate"
-  }
-}

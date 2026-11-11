@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": {
+    "item": "minecraft:blackstone"
+  },
+  "result": {
+    "count": 8,
+    "id": "aronalayers:chiseled_polished_blackstone_layer"
+  }
+}

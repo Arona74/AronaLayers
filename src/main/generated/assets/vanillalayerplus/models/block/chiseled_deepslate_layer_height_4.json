@@ -1,8 +1,0 @@
-{
-  "parent": "vanillalayerplus:blockmodels/layer_height_4",
-  "textures": {
-    "bottom": "minecraft:block/chiseled_deepslate",
-    "side": "minecraft:block/chiseled_deepslate",
-    "top": "minecraft:block/chiseled_deepslate"
-  }
-}

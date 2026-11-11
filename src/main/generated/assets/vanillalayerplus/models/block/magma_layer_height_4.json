@@ -1,8 +1,0 @@
-{
-  "parent": "vanillalayerplus:blockmodels/layer_height_4",
-  "textures": {
-    "bottom": "minecraft:block/magma",
-    "side": "minecraft:block/magma",
-    "top": "minecraft:block/magma"
-  }
-}

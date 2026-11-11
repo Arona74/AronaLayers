@@ -1,41 +1,40 @@
 {
 	"schemaVersion": 1,
-	"id": "vanillalayerplus",
+	"id": "aronalayers",
 	"version": "${version}",
-	"name": "Vanilla+ Layers",
-	"description": "Mod adding layers (stackable two pixel tall blocks) to Minecraft.",
+	"name": "AronaLayers: Blocks",
+	"description": "Layer blocks (stackable two pixel tall blocks) and 3D layers for most vanilla blocks. Based on Vanilla+ Layers by Fellter.",
 	"authors": [
-		"Fellter"
+		"Arona74"
+	],
+	"contributors": [
+		"Fellter (original Vanilla+ Layers)"
 	],
 	"contact": {
-		"homepage": "https://modrinth.com/mod/vanilla+-layers",
-		"sources": "https://github.com/Fellteros/vanillalayerplus",
-		"issues": "https://github.com/Fellteros/vanillalayerplus/issues"
+		"sources": "https://github.com/Arona74/AronaLayers",
+		"issues": "https://github.com/Arona74/AronaLayers/issues"
 	},
 	"license": "CC-BY-NC-4.0",
-	"icon": "assets/vanillalayerplus/icon.png",
+	"icon": "assets/aronalayers/icon.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-          "net.fellter.vanillalayerplus.VanillaLayerPlus"
+			"io.arona74.aronalayers.AronaLayers"
 		],
 		"fabric-datagen": [
-			"net.fellter.vanillalayerplus.VanillaLayerPlusDataGenerator"
+			"io.arona74.aronalayers.AronaLayersDataGenerator"
 		],
 		"client": [
-			"net.fellter.vanillalayerplus.VanillaLayerPlusClient"
+			"io.arona74.aronalayers.AronaLayersClient"
 		]
 	},
 	"mixins": [
-		"vanillalayerplus.mixins.json"
+		"aronalayers.mixins.json"
 	],
 	"depends": {
 		"fabricloader": ">=0.16.5",
 		"minecraft": "1.21.1",
 		"java": ">=21",
 		"fabric-api": "*"
-	},
-	"suggests": {
-		"another-mod": "*"
 	}
 }

@@ -1,8 +1,0 @@
-{
-  "parent": "vanillalayerplus:blockmodels/layer_height_12",
-  "textures": {
-    "bottom": "minecraft:block/deepslate_lapis_ore",
-    "side": "minecraft:block/deepslate_lapis_ore",
-    "top": "minecraft:block/deepslate_lapis_ore"
-  }
-}

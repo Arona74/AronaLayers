@@ -1,8 +1,0 @@
-{
-  "parent": "vanillalayerplus:blockmodels/layer_height_4",
-  "textures": {
-    "bottom": "minecraft:block/melon_top",
-    "side": "minecraft:block/melon_side",
-    "top": "minecraft:block/melon_top"
-  }
-}

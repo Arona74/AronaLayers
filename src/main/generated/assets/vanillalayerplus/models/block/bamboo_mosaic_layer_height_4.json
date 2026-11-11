@@ -1,8 +1,0 @@
-{
-  "parent": "vanillalayerplus:blockmodels/layer_height_4",
-  "textures": {
-    "bottom": "minecraft:block/bamboo_mosaic",
-    "side": "minecraft:block/bamboo_mosaic",
-    "top": "minecraft:block/bamboo_mosaic"
-  }
-}
