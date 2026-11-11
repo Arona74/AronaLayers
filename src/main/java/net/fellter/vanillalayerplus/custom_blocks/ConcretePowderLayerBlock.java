@@ -1,66 +1,65 @@
 package net.fellter.vanillalayerplus.custom_blocks;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.FallingBlockEntity;
-import net.minecraft.item.ItemPlacementContext;
-import net.minecraft.registry.tag.FluidTags;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.world.BlockView;
-import net.minecraft.world.World;
-import net.minecraft.world.WorldAccess;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.tags.FluidTags;
+import net.minecraft.world.entity.item.FallingBlockEntity;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 
 public class ConcretePowderLayerBlock extends FallingLayerBlock {
 	private final BlockState hardened;
 
-	public ConcretePowderLayerBlock(Block hardened, Settings settings) {
+	public ConcretePowderLayerBlock(Block hardened, Properties settings) {
 		super(settings);
-		this.hardened = hardened.getDefaultState();
+		this.hardened = hardened.defaultBlockState();
 	}
 
-	public void onLanding(World world, BlockPos pos, BlockState fallingBlockState, BlockState currentStateInPos, FallingBlockEntity fallingBlockEntity) {
+	public void onLanding(Level world, BlockPos pos, BlockState fallingBlockState, BlockState currentStateInPos, FallingBlockEntity fallingBlockEntity) {
 		if (shouldHarden(world, pos, currentStateInPos) && pos != null) {
-			world.setBlockState(pos, this.hardened
-					.with(WATERLOGGED, world.getBlockState(pos).get(WATERLOGGED))
-					.with(FACING, world.getBlockState(pos).get(FACING))
-					.with(LAYERS, world.getBlockState(pos).get(LAYERS)), Block.NOTIFY_ALL);
+			world.setBlock(pos, this.hardened
+					.setValue(WATERLOGGED, world.getBlockState(pos).getValue(WATERLOGGED))
+					.setValue(FACING, world.getBlockState(pos).getValue(FACING))
+					.setValue(LAYERS, world.getBlockState(pos).getValue(LAYERS)), Block.UPDATE_ALL);
 		}
 	}
 
 	@Override
-	public BlockState getPlacementState(ItemPlacementContext ctx) {
-		BlockPos blockPos = ctx.getBlockPos();
-		World blockView = ctx.getWorld();
-		BlockState placementState = super.getPlacementState(ctx);
+	public BlockState getStateForPlacement(BlockPlaceContext ctx) {
+		BlockPos blockPos = ctx.getClickedPos();
+		Level blockView = ctx.getLevel();
+		BlockState placementState = super.getStateForPlacement(ctx);
 
 		if (shouldHarden(blockView, blockPos, blockView.getBlockState(blockPos))) {
 			if (placementState != null) {
 				return this.hardened
-						.with(WATERLOGGED, placementState.get(WATERLOGGED))
-						.with(FACING, placementState.get(FACING))
-						.with(LAYERS, placementState.get(LAYERS));
+						.setValue(WATERLOGGED, placementState.getValue(WATERLOGGED))
+						.setValue(FACING, placementState.getValue(FACING))
+						.setValue(LAYERS, placementState.getValue(LAYERS));
 			}
 		}
 
-		return super.getPlacementState(ctx);
+		return super.getStateForPlacement(ctx);
 	}
 
-	private static boolean shouldHarden(BlockView world, BlockPos pos, BlockState state) {
+	private static boolean shouldHarden(BlockGetter world, BlockPos pos, BlockState state) {
 		return hardensIn(state) || hardensOnAnySide(world, pos);
 	}
 
-	private static boolean hardensOnAnySide(BlockView world, BlockPos pos) {
+	private static boolean hardensOnAnySide(BlockGetter world, BlockPos pos) {
 		boolean bl = false;
-		BlockPos.Mutable mutable = pos.mutableCopy();
+		BlockPos.MutableBlockPos mutable = pos.mutable();
 
 		for (Direction direction : Direction.values()) {
 			BlockState blockState = world.getBlockState(mutable);
 			if (direction == Direction.DOWN && !hardensIn(blockState)) continue;
-			mutable.set(pos, direction);
+			mutable.setWithOffset(pos, direction);
 			blockState = world.getBlockState(mutable);
-			if (!hardensIn(blockState) || blockState.isSideSolidFullSquare(world, pos, direction.getOpposite())) continue;
+			if (!hardensIn(blockState) || blockState.isFaceSturdy(world, pos, direction.getOpposite())) continue;
 			bl = true;
 			break;
 		}
@@ -69,19 +68,19 @@ public class ConcretePowderLayerBlock extends FallingLayerBlock {
 	}
 
 	private static boolean hardensIn(BlockState state) {
-		return state.getFluidState().isIn(FluidTags.WATER);
+		return state.getFluidState().is(FluidTags.WATER);
 	}
 
 	@Override
-	public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState neighborState, WorldAccess world, BlockPos pos, BlockPos neighborPos) {
+	public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor world, BlockPos pos, BlockPos neighborPos) {
 		if (hardensOnAnySide(world, pos)) {
 			return this.hardened
-					.with(WATERLOGGED, world.getBlockState(pos).get(WATERLOGGED))
-					.with(FACING, world.getBlockState(pos).get(FACING))
-					.with(LAYERS, world.getBlockState(pos).get(LAYERS));
+					.setValue(WATERLOGGED, world.getBlockState(pos).getValue(WATERLOGGED))
+					.setValue(FACING, world.getBlockState(pos).getValue(FACING))
+					.setValue(LAYERS, world.getBlockState(pos).getValue(LAYERS));
 		}
 
-		world.scheduleBlockTick(pos, this, this.getFallDelay());
-		return super.getStateForNeighborUpdate(state, direction, neighborState, world, pos, neighborPos);
+		world.scheduleTick(pos, this, this.getFallDelay());
+		return super.updateShape(state, direction, neighborState, world, pos, neighborPos);
 	}
 }

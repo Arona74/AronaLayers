@@ -7,17 +7,15 @@ import net.fellter.vanillalayerplus.block.ModBlocks;
 import net.fellter.vanillalayerplus.item.ModItems;
 import net.fellter.vanillalayerplus.registry.Args;
 import net.fellter.vanillalayerplus.registry.DatagenArgs;
-
-import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
-import net.minecraft.data.client.BlockStateModelGenerator;
-import net.minecraft.data.client.ItemModelGenerator;
-import net.minecraft.data.client.ModelIds;
-import net.minecraft.data.client.Models;
-import net.minecraft.data.client.TextureMap;
-import net.minecraft.registry.Registries;
-import net.minecraft.util.Identifier;
-
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.data.models.BlockModelGenerators;
+import net.minecraft.data.models.ItemModelGenerators;
+import net.minecraft.data.models.model.ModelLocationUtils;
+import net.minecraft.data.models.model.ModelTemplates;
+import net.minecraft.data.models.model.TextureMapping;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricModelProvider;
 
@@ -32,11 +30,11 @@ public class ModModelProvider extends FabricModelProvider {
 	}
 
 	@Override
-	public void generateBlockStateModels(BlockStateModelGenerator bsmg) {
-		registerLayerBlock(ModBlocks.BROWN_MUSHROOM_LAYER, Identifier.of(VanillaLayerPlus.MOD_ID, "block/brown_mushroom_block"), bsmg, TextureMap.all(Blocks.BROWN_MUSHROOM_BLOCK));
-		registerLayerBlock(ModBlocks.RED_MUSHROOM_LAYER, Identifier.of(VanillaLayerPlus.MOD_ID, "block/red_mushroom_block"), bsmg, TextureMap.all(Blocks.RED_MUSHROOM_BLOCK));
+	public void generateBlockStateModels(BlockModelGenerators bsmg) {
+		registerLayerBlock(ModBlocks.BROWN_MUSHROOM_LAYER, ResourceLocation.fromNamespaceAndPath(VanillaLayerPlus.MOD_ID, "block/brown_mushroom_block"), bsmg, TextureMapping.cube(Blocks.BROWN_MUSHROOM_BLOCK));
+		registerLayerBlock(ModBlocks.RED_MUSHROOM_LAYER, ResourceLocation.fromNamespaceAndPath(VanillaLayerPlus.MOD_ID, "block/red_mushroom_block"), bsmg, TextureMapping.cube(Blocks.RED_MUSHROOM_BLOCK));
 
-		Registries.BLOCK.stream().filter(VanillaLayerPlus::isNamespaced).forEach(block -> {
+		BuiltInRegistries.BLOCK.stream().filter(VanillaLayerPlus::isNamespaced).forEach(block -> {
 			if (Args.DATAGEN_ARGS.containsKey(block)) {
 				DatagenArgs args = Args.DATAGEN_ARGS.get(block);
 
@@ -55,16 +53,16 @@ public class ModModelProvider extends FabricModelProvider {
 		});
 
 		registerLayer3DTemplates(bsmg);
-		Registries.BLOCK.stream().filter(block -> block instanceof Layer3DBlock).forEach(block -> {
+		BuiltInRegistries.BLOCK.stream().filter(block -> block instanceof Layer3DBlock).forEach(block -> {
 			Layer3DBlock layer3D = (Layer3DBlock) block;
 			DatagenArgs args = Args.DATAGEN_ARGS.get(layer3D.getBaseLayer());
 			Block fullBlock = args.fullTextureBlock != null ? args.fullTextureBlock : args.parentBlock;
-			registerLayer3DBlock(layer3D, ModelIds.getBlockModelId(fullBlock), bsmg, args.textureMap);
+			registerLayer3DBlock(layer3D, ModelLocationUtils.getModelLocation(fullBlock), bsmg, args.textureMap);
 		});
 	}
 
 	@Override
-	public void generateItemModels(ItemModelGenerator img) {
-		img.register(ModItems.VLP_TITLE, Models.GENERATED);
+	public void generateItemModels(ItemModelGenerators img) {
+		img.generateFlatItem(ModItems.VLP_TITLE, ModelTemplates.FLAT_ITEM);
 	}
 }

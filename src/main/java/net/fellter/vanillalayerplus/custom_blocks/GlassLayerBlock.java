@@ -4,31 +4,30 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import net.fellter.vanillalayerplus.block.LayerBlock;
-
-import net.minecraft.block.BlockState;
-import net.minecraft.block.ShapeContext;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.util.shape.VoxelShapes;
-import net.minecraft.world.BlockView;
-import net.minecraft.world.EmptyBlockView;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.EmptyBlockGetter;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class GlassLayerBlock extends LayerBlock {
 	protected static final Map<BlockState, VoxelShape> CACHED = new ConcurrentHashMap<>();
-	public GlassLayerBlock(Settings settings) {
+	public GlassLayerBlock(Properties settings) {
 		super(settings);
 	}
 
 	protected VoxelShape getCached(BlockState state) {
-		return CACHED.computeIfAbsent(state, s -> s.getOutlineShape(EmptyBlockView.INSTANCE, BlockPos.ORIGIN));
+		return CACHED.computeIfAbsent(state, s -> s.getShape(EmptyBlockGetter.INSTANCE, BlockPos.ZERO));
 	}
 
-	protected VoxelShape getCameraCollisionShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
-		return VoxelShapes.empty();
+	protected VoxelShape getVisualShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
+		return Shapes.empty();
 	}
 
-	protected float getAmbientOcclusionLightLevel(BlockState state, BlockView world, BlockPos pos) {
+	protected float getShadeBrightness(BlockState state, BlockGetter world, BlockPos pos) {
 		return 1.0F;
 	}
 
@@ -36,9 +35,9 @@ public class GlassLayerBlock extends LayerBlock {
 		return true;
 	}
 
-	protected boolean isSideInvisible(BlockState state, BlockState stateFrom, Direction direction) {
+	protected boolean skipRendering(BlockState state, BlockState stateFrom, Direction direction) {
 		VoxelShape stateCullingShape = getCached(state);
 		VoxelShape stateFromCullingShape = getCached(stateFrom);
-		return VoxelShapes.isSideCovered(stateCullingShape, stateFromCullingShape, direction);
+		return Shapes.blockOccudes(stateCullingShape, stateFromCullingShape, direction);
 	}
 }

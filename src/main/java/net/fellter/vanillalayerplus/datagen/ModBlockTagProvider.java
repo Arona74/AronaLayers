@@ -20,14 +20,12 @@ import net.fellter.vanillalayerplus.block.LayerBlock;
 import net.fellter.vanillalayerplus.registry.Args;
 import net.fellter.vanillalayerplus.registry.DatagenArgs;
 import net.fellter.vanillalayerplus.util.ModTags;
-
-import net.minecraft.block.Block;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.registry.tag.BlockTags;
-import net.minecraft.registry.tag.TagKey;
-import net.minecraft.util.Identifier;
-
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.level.block.Block;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider;
 
@@ -36,38 +34,38 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
 	// only drops when mined with a stone pickaxe or better, like iron ore itself.
 	private static final List<TagKey<Block>> TOOL_TIER_TAGS = List.of(BlockTags.NEEDS_STONE_TOOL, BlockTags.NEEDS_IRON_TOOL, BlockTags.NEEDS_DIAMOND_TOOL);
 
-	public ModBlockTagProvider(FabricDataOutput output, CompletableFuture<RegistryWrapper.WrapperLookup> registriesFuture) {
+	public ModBlockTagProvider(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
 		super(output, registriesFuture);
 	}
 
 	@Override
-	protected void configure(RegistryWrapper.WrapperLookup wrapperLookup) {
-		List<Set<Identifier>> tierMembers = TOOL_TIER_TAGS.stream().map(tag -> readVanillaBlockTag(tag.id())).toList();
+	protected void addTags(HolderLookup.Provider wrapperLookup) {
+		List<Set<ResourceLocation>> tierMembers = TOOL_TIER_TAGS.stream().map(tag -> readVanillaBlockTag(tag.location())).toList();
 
-		Registries.BLOCK.stream().filter(VanillaLayerPlus::isNamespaced).forEach(block -> {
-			Identifier identifier = Registries.BLOCK.getId(block);
+		BuiltInRegistries.BLOCK.stream().filter(VanillaLayerPlus::isNamespaced).forEach(block -> {
+			ResourceLocation identifier = BuiltInRegistries.BLOCK.getKey(block);
 			if (block instanceof LayerBlock && Args.DATAGEN_ARGS.containsKey(block)) {
-				getTagBuilder(ModTags.LAYERS).add(identifier);
+				getOrCreateRawBuilder(ModTags.LAYERS).addElement(identifier);
 				addInheritedTags(identifier, Args.DATAGEN_ARGS.get(block), tierMembers);
 			} else if (block instanceof Layer3DBlock layer3D && Args.DATAGEN_ARGS.containsKey(layer3D.getBaseLayer())) {
 				// A 3D layer is mined like its base layer.
-				getTagBuilder(ModTags.LAYERS_3D).add(identifier);
+				getOrCreateRawBuilder(ModTags.LAYERS_3D).addElement(identifier);
 				addInheritedTags(identifier, Args.DATAGEN_ARGS.get(layer3D.getBaseLayer()), tierMembers);
 			}
 		});
 	}
 
-	private void addInheritedTags(Identifier identifier, DatagenArgs args, List<Set<Identifier>> tierMembers) {
+	private void addInheritedTags(ResourceLocation identifier, DatagenArgs args, List<Set<ResourceLocation>> tierMembers) {
 		for (TagKey<Block> blockTagKey : args.blockTags) {
-			getTagBuilder(blockTagKey).add(identifier);
+			getOrCreateRawBuilder(blockTagKey).addElement(identifier);
 		}
 
 		if (args.parentBlock != null) {
-			Identifier parent = Registries.BLOCK.getId(args.parentBlock);
+			ResourceLocation parent = BuiltInRegistries.BLOCK.getKey(args.parentBlock);
 
 			for (int i = 0; i < TOOL_TIER_TAGS.size(); i++) {
 				if (tierMembers.get(i).contains(parent)) {
-					getTagBuilder(TOOL_TIER_TAGS.get(i)).add(identifier);
+					getOrCreateRawBuilder(TOOL_TIER_TAGS.get(i)).addElement(identifier);
 				}
 			}
 		}
@@ -77,8 +75,8 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
 	// Minecraft jar instead, following "#tag" references. Every copy on the classpath is
 	// merged: this mod's own previously generated file has the same path and could
 	// otherwise hide the vanilla one.
-	private static Set<Identifier> readVanillaBlockTag(Identifier tag) {
-		Set<Identifier> blocks = new HashSet<>();
+	private static Set<ResourceLocation> readVanillaBlockTag(ResourceLocation tag) {
+		Set<ResourceLocation> blocks = new HashSet<>();
 		String path = "data/" + tag.getNamespace() + "/tags/block/" + tag.getPath() + ".json";
 
 		try {
@@ -94,9 +92,9 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
 						String entry = value.isJsonObject() ? value.getAsJsonObject().get("id").getAsString() : value.getAsString();
 
 						if (entry.startsWith("#")) {
-							blocks.addAll(readVanillaBlockTag(Identifier.of(entry.substring(1))));
+							blocks.addAll(readVanillaBlockTag(ResourceLocation.parse(entry.substring(1))));
 						} else {
-							blocks.add(Identifier.of(entry));
+							blocks.add(ResourceLocation.parse(entry));
 						}
 					}
 				}

@@ -1,36 +1,33 @@
 package net.fellter.vanillalayerplus.mixin;
 
 import java.util.function.Consumer;
-
+import net.minecraft.world.item.HoeItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.ItemLike;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.gameevent.GameEvent;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
-
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.item.HoeItem;
-import net.minecraft.item.ItemConvertible;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUsageContext;
-import net.minecraft.world.event.GameEvent;
-
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(HoeItem.class)
 public abstract class MixinHoeItem {
-	@ModifyReturnValue(method = "createTillAction", at = @At("RETURN"))
-	private static Consumer<ItemUsageContext> fellter$createTillAction(Consumer<ItemUsageContext> original, BlockState stateTo) {
+	@ModifyReturnValue(method = "changeIntoState", at = @At("RETURN"))
+	private static Consumer<UseOnContext> fellter$createTillAction(Consumer<UseOnContext> original, BlockState stateTo) {
 		return context -> {
-			context.getWorld().setBlockState(context.getBlockPos(), stateTo.getBlock().getStateWithProperties(context.getWorld().getBlockState(context.getBlockPos())), 11);
-			context.getWorld().emitGameEvent(GameEvent.BLOCK_CHANGE, context.getBlockPos(), GameEvent.Emitter.of(context.getPlayer(), stateTo));
+			context.getLevel().setBlock(context.getClickedPos(), stateTo.getBlock().withPropertiesOf(context.getLevel().getBlockState(context.getClickedPos())), 11);
+			context.getLevel().gameEvent(GameEvent.BLOCK_CHANGE, context.getClickedPos(), GameEvent.Context.of(context.getPlayer(), stateTo));
 		};
 	}
 
-	@ModifyReturnValue(method = "createTillAndDropAction", at = @At("RETURN"))
-	private static Consumer<ItemUsageContext> fellter$createTillAndDropAction(Consumer<ItemUsageContext> original, BlockState result, ItemConvertible droppedItem) {
+	@ModifyReturnValue(method = "changeIntoStateAndDropItem", at = @At("RETURN"))
+	private static Consumer<UseOnContext> fellter$createTillAndDropAction(Consumer<UseOnContext> original, BlockState result, ItemLike droppedItem) {
 		return context -> {
-			context.getWorld().setBlockState(context.getBlockPos(), result.getBlock().getStateWithProperties(context.getWorld().getBlockState(context.getBlockPos())), 11);
-			context.getWorld().emitGameEvent(GameEvent.BLOCK_CHANGE, context.getBlockPos(), GameEvent.Emitter.of(context.getPlayer(), result));
-			Block.dropStack(context.getWorld(), context.getBlockPos(), context.getSide(), new ItemStack(droppedItem));
+			context.getLevel().setBlock(context.getClickedPos(), result.getBlock().withPropertiesOf(context.getLevel().getBlockState(context.getClickedPos())), 11);
+			context.getLevel().gameEvent(GameEvent.BLOCK_CHANGE, context.getClickedPos(), GameEvent.Context.of(context.getPlayer(), result));
+			Block.popResourceFromFace(context.getLevel(), context.getClickedPos(), context.getClickedFace(), new ItemStack(droppedItem));
 		};
 	}
 }

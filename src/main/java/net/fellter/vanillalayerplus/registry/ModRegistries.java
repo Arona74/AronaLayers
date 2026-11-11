@@ -8,13 +8,11 @@ import com.google.common.collect.Maps;
 
 import net.fellter.vanillalayerplus.VanillaLayerPlus;
 import net.fellter.vanillalayerplus.block.ModBlocks;
-
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.item.HoeItem;
-import net.minecraft.registry.Registries;
-import net.minecraft.util.Identifier;
-
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.HoeItem;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import net.fabricmc.fabric.api.registry.FuelRegistry;
 import net.fabricmc.fabric.api.registry.OxidizableBlocksRegistry;
 import net.fabricmc.fabric.api.registry.TillableBlockRegistry;
@@ -37,11 +35,11 @@ public class ModRegistries {
 	}
 
 	public static void registerStrippableBlocks() {
-		Registries.BLOCK.forEach(block -> {
+		BuiltInRegistries.BLOCK.forEach(block -> {
 			if (ModRegistryArgs.REGISTRY_ARGS.containsKey(block)) {
 				RegistryArgs registryArgs = ModRegistryArgs.REGISTRY_ARGS.get(block);
 
-				if (Registries.BLOCK.getId(block).getNamespace().equals(VanillaLayerPlus.MOD_ID) && registryArgs.stripped != null) {
+				if (BuiltInRegistries.BLOCK.getKey(block).getNamespace().equals(VanillaLayerPlus.MOD_ID) && registryArgs.stripped != null) {
 					register(block, registryArgs.stripped);
 				}
 			}
@@ -49,13 +47,13 @@ public class ModRegistries {
 	}
 
 	public static void registerTillableBlocks() {
-		Registries.BLOCK.forEach(block -> {
+		BuiltInRegistries.BLOCK.forEach(block -> {
 			if (ModRegistryArgs.REGISTRY_ARGS.containsKey(block)) {
-				Identifier identifier = Registries.BLOCK.getId(block);
+				ResourceLocation identifier = BuiltInRegistries.BLOCK.getKey(block);
 				RegistryArgs args = ModRegistryArgs.REGISTRY_ARGS.get(block);
 
 				if (identifier.getNamespace().equals(VanillaLayerPlus.MOD_ID) && args.tilled != null) {
-					TillableBlockRegistry.register(block, HoeItem::canTillFarmland, HoeItem.createTillAction(args.tilled.getDefaultState()));
+					TillableBlockRegistry.register(block, HoeItem::onlyIfAirAbove, HoeItem.changeIntoState(args.tilled.defaultBlockState()));
 				}
 			}
 		});
@@ -67,9 +65,9 @@ public class ModRegistries {
 		flattenedToBlock(ModBlocks.DIRT_PATH_LAYER, ModBlocks.DIRT_LAYER);
 		flattenedToBlock(ModBlocks.FARMLAND_LAYER, ModBlocks.DIRT_LAYER);
 
-		Registries.BLOCK.forEach(block -> {
+		BuiltInRegistries.BLOCK.forEach(block -> {
 			if (ModRegistryArgs.REGISTRY_ARGS.containsKey(block)) {
-				Identifier identifier = Registries.BLOCK.getId(block);
+				ResourceLocation identifier = BuiltInRegistries.BLOCK.getKey(block);
 				RegistryArgs args = ModRegistryArgs.REGISTRY_ARGS.get(block);
 
 				if (identifier.getNamespace().equals(VanillaLayerPlus.MOD_ID) && args.flattened != null) {
@@ -82,7 +80,7 @@ public class ModRegistries {
 	private static void blockToFlattened(Block input, Block flattened) {
 		Objects.requireNonNull(input, "input block cannot be null");
 		Objects.requireNonNull(flattened, "flattened block state cannot be null");
-		BlockState old = ShovelItemAccessor.getPathStates().put(input, flattened.getDefaultState());
+		BlockState old = ShovelItemAccessor.getPathStates().put(input, flattened.defaultBlockState());
 
 		if (old != null) {
 			VanillaLayerPlus.LOGGER.debug("Replaced old flattening mapping from {} to {} with {}", input, old, flattened);
@@ -92,7 +90,7 @@ public class ModRegistries {
 	private static void flattenedToBlock(Block flattened, Block output) {
 		Objects.requireNonNull(flattened, "flattened block cannot be null");
 		Objects.requireNonNull(output, "output block cannot be null");
-		BlockState old = FLATTENED_TO_BLOCK_MAP.put(flattened, output.getDefaultState());
+		BlockState old = FLATTENED_TO_BLOCK_MAP.put(flattened, output.defaultBlockState());
 
 		if (old != null) {
 			VanillaLayerPlus.LOGGER.debug("Replaced old block mapping from {} to {} with {}", flattened, old, output);
@@ -100,11 +98,11 @@ public class ModRegistries {
 	}
 
 	public static void registerOxidizableBlocks() {
-		Registries.BLOCK.forEach(block -> {
+		BuiltInRegistries.BLOCK.forEach(block -> {
 			if (ModRegistryArgs.REGISTRY_ARGS.containsKey(block)) {
 				RegistryArgs registryArgs = ModRegistryArgs.REGISTRY_ARGS.get(block);
 
-				if (Registries.BLOCK.getId(block).getNamespace().equals(VanillaLayerPlus.MOD_ID) && registryArgs.oxidizables != null) {
+				if (BuiltInRegistries.BLOCK.getKey(block).getNamespace().equals(VanillaLayerPlus.MOD_ID) && registryArgs.oxidizables != null) {
 					OxidizableBlocksRegistry.registerOxidizableBlockPair(block, registryArgs.exposed);
 					OxidizableBlocksRegistry.registerOxidizableBlockPair(registryArgs.exposed, registryArgs.weathered);
 					OxidizableBlocksRegistry.registerOxidizableBlockPair(registryArgs.weathered, registryArgs.oxidized);

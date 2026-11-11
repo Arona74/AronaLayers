@@ -3,14 +3,21 @@ package net.fellter.vanillalayerplus.mixin;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import net.minecraft.block.*;
-import net.minecraft.util.DyeColor;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.util.shape.VoxelShapes;
-import net.minecraft.world.EmptyBlockView;
-
+import net.minecraft.world.level.block.*;
+import net.minecraft.world.level.block.state.*;
+import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.level.EmptyBlockGetter;
+import net.minecraft.world.level.block.BeaconBeamBlock;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.StainedGlassBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -24,22 +31,22 @@ public class MixinStainedGlassBlock extends Block {
 	@Final
 	private DyeColor color;
 
-	public MixinStainedGlassBlock(Settings settings) {
+	public MixinStainedGlassBlock(Properties settings) {
 		super(settings);
 	}
 
 	@Unique
 	protected VoxelShape getCached(BlockState state) {
-		return CACHED.computeIfAbsent(state, s -> s.getOutlineShape(EmptyBlockView.INSTANCE, BlockPos.ORIGIN));
+		return CACHED.computeIfAbsent(state, s -> s.getShape(EmptyBlockGetter.INSTANCE, BlockPos.ZERO));
 	}
 
 	@Override
-	protected boolean isSideInvisible(BlockState state, BlockState stateFrom, Direction direction) {
-		if (stateFrom.getBlock() instanceof Stainable stainable && !stateFrom.getBlock().equals(Blocks.BEACON)) {
+	protected boolean skipRendering(BlockState state, BlockState stateFrom, Direction direction) {
+		if (stateFrom.getBlock() instanceof BeaconBeamBlock stainable && !stateFrom.getBlock().equals(Blocks.BEACON)) {
 			VoxelShape stateCullingShape = getCached(state);
 			VoxelShape stateFromCullingShape = getCached(stateFrom);
 
-			return VoxelShapes.isSideCovered(stateCullingShape, stateFromCullingShape, direction) && stainable.getColor() == color;
+			return Shapes.blockOccudes(stateCullingShape, stateFromCullingShape, direction) && stainable.getColor() == color;
 		}
 
 		return false;

@@ -5,8 +5,8 @@ import java.util.Map;
 
 import net.fellter.vanillalayerplus.block.Layer3DBlock;
 import net.fellter.vanillalayerplus.block.ModBlocks;
-import net.minecraft.block.Block;
-import net.minecraft.registry.Registries;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.level.block.Block;
 
 /**
  * Gameplay registry args (stripping, tilling, flattening, oxidation, fuel...).
@@ -151,7 +151,7 @@ public final class ModRegistryArgs {
 
 	// 3D layers render like their base layer, but don't inherit tool interactions or fuel.
 	private static void register3DLayerArgs() {
-		Registries.BLOCK.forEach(block -> {
+		BuiltInRegistries.BLOCK.forEach(block -> {
 			if (block instanceof Layer3DBlock layer3D && REGISTRY_ARGS.containsKey(layer3D.getBaseLayer())) {
 				RegistryArgs base = REGISTRY_ARGS.get(layer3D.getBaseLayer());
 				RegistryArgs args = new RegistryArgs();

@@ -2,8 +2,7 @@ package net.fellter.vanillalayerplus.registry;
 
 import java.util.List;
 import java.util.Objects;
-
-import net.minecraft.block.Block;
+import net.minecraft.world.level.block.Block;
 
 public class RegistryArgs {
 	public Boolean transparent = false;

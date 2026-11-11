@@ -4,57 +4,54 @@ import net.fellter.vanillalayerplus.VanillaLayerPlus;
 import net.fellter.vanillalayerplus.block.LayerBlock;
 import net.fellter.vanillalayerplus.registry.Args;
 import net.fellter.vanillalayerplus.registry.DatagenArgs;
-
-import net.minecraft.data.server.recipe.CraftingRecipeJsonBuilder;
-import net.minecraft.data.server.recipe.RecipeExporter;
-import net.minecraft.data.server.recipe.ShapedRecipeJsonBuilder;
-import net.minecraft.data.server.recipe.StonecuttingRecipeJsonBuilder;
-import net.minecraft.item.ItemConvertible;
-import net.minecraft.recipe.Ingredient;
-import net.minecraft.recipe.book.RecipeCategory;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.data.recipes.RecipeBuilder;
+import net.minecraft.data.recipes.RecipeCategory;
+import net.minecraft.data.recipes.RecipeOutput;
+import net.minecraft.data.recipes.ShapedRecipeBuilder;
+import net.minecraft.data.recipes.SingleItemRecipeBuilder;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.level.ItemLike;
 import java.util.concurrent.CompletableFuture;
-
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryWrapper;
-
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
 
 public class ModRecipeProvider extends FabricRecipeProvider {
-	public ModRecipeProvider(FabricDataOutput output, CompletableFuture<RegistryWrapper.WrapperLookup> registriesFuture) {
+	public ModRecipeProvider(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
 		super(output, registriesFuture);
 	}
 
-	private CraftingRecipeJsonBuilder layerBlockRecipe(ItemConvertible output, ItemConvertible input) {
-		return ShapedRecipeJsonBuilder.create(RecipeCategory.DECORATIONS, output, 16)
-				.input('W', input)
+	private RecipeBuilder layerBlockRecipe(ItemLike output, ItemLike input) {
+		return ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, output, 16)
+				.define('W', input)
 				.pattern(" W")
 				.pattern("W ")
-				.criterion(hasItem(input), conditionsFromItem(input))
+				.unlockedBy(getHasName(input), has(input))
 				.showNotification(true);
 	}
 
 	@Override
-	public void generate(RecipeExporter exporter) {
-		Registries.BLOCK.stream().filter(VanillaLayerPlus::isNamespaced).forEach(block -> {
+	public void buildRecipes(RecipeOutput exporter) {
+		BuiltInRegistries.BLOCK.stream().filter(VanillaLayerPlus::isNamespaced).forEach(block -> {
 			if (Args.DATAGEN_ARGS.containsKey(block)) {
 				DatagenArgs args = Args.DATAGEN_ARGS.get(block);
 
 				if (args.parentBlock != null) {
 					if (block instanceof LayerBlock) {
-						layerBlockRecipe(block, args.parentBlock).offerTo(exporter);
+						layerBlockRecipe(block, args.parentBlock).save(exporter);
 					}
 
 					if (block instanceof LayerBlock && args.stonecuttingInput != null) {
-						for (ItemConvertible itemConvertible : args.stonecuttingInput) {
+						for (ItemLike itemConvertible : args.stonecuttingInput) {
 							// offerStonecuttingRecipe names the recipe with a bare string, which
 							// resolves to the minecraft namespace, so the generated unlock
 							// advancement pointed at a recipe that does not exist and the recipe
 							// never showed up in the recipe book. Build it with our own id instead.
-							StonecuttingRecipeJsonBuilder.createStonecutting(Ingredient.ofItems(itemConvertible), RecipeCategory.BUILDING_BLOCKS, block, 8)
-									.criterion(hasItem(itemConvertible), conditionsFromItem(itemConvertible))
-									.offerTo(exporter, Identifier.of(VanillaLayerPlus.MOD_ID, convertBetween(block, itemConvertible) + "_stonecutting"));
+							SingleItemRecipeBuilder.stonecutting(Ingredient.of(itemConvertible), RecipeCategory.BUILDING_BLOCKS, block, 8)
+									.unlockedBy(getHasName(itemConvertible), has(itemConvertible))
+									.save(exporter, ResourceLocation.fromNamespaceAndPath(VanillaLayerPlus.MOD_ID, getConversionRecipeName(block, itemConvertible) + "_stonecutting"));
 						}
 					}
 				}

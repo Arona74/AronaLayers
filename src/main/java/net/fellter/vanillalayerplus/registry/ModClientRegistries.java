@@ -1,12 +1,12 @@
 package net.fellter.vanillalayerplus.registry;
 
 import net.fellter.vanillalayerplus.VanillaLayerPlus;
-import net.minecraft.client.color.world.BiomeColors;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.registry.Registries;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.biome.FoliageColors;
-import net.minecraft.world.biome.GrassColors;
+import net.minecraft.client.renderer.BiomeColors;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.FoliageColor;
+import net.minecraft.world.level.GrassColor;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 
@@ -16,53 +16,53 @@ import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
  */
 public class ModClientRegistries {
 	public static void registerTransparentBlocks() {
-		Registries.BLOCK.forEach(block -> {
+		BuiltInRegistries.BLOCK.forEach(block -> {
 			if (ModRegistryArgs.REGISTRY_ARGS.containsKey(block)) {
 				RegistryArgs registryArgs = ModRegistryArgs.REGISTRY_ARGS.get(block);
 
-				if (Registries.BLOCK.getId(block).getNamespace().equals(VanillaLayerPlus.MOD_ID) && registryArgs.transparent) {
-					BlockRenderLayerMap.INSTANCE.putBlock(block, RenderLayer.getCutout());
+				if (BuiltInRegistries.BLOCK.getKey(block).getNamespace().equals(VanillaLayerPlus.MOD_ID) && registryArgs.transparent) {
+					BlockRenderLayerMap.INSTANCE.putBlock(block, RenderType.cutout());
 				}
 			}
 		});
 	}
 
 	public static void registerTranslucentBlocks() {
-		Registries.BLOCK.forEach(block -> {
+		BuiltInRegistries.BLOCK.forEach(block -> {
 			if (ModRegistryArgs.REGISTRY_ARGS.containsKey(block)) {
 				RegistryArgs registryArgs = ModRegistryArgs.REGISTRY_ARGS.get(block);
 
-				if (Registries.BLOCK.getId(block).getNamespace().equals(VanillaLayerPlus.MOD_ID) && registryArgs.translucent) {
-					BlockRenderLayerMap.INSTANCE.putBlock(block, RenderLayer.getTranslucent());
+				if (BuiltInRegistries.BLOCK.getKey(block).getNamespace().equals(VanillaLayerPlus.MOD_ID) && registryArgs.translucent) {
+					BlockRenderLayerMap.INSTANCE.putBlock(block, RenderType.translucent());
 				}
 			}
 		});
 	}
 
 	public static void registerFoliage() {
-		Registries.BLOCK.forEach(block -> {
+		BuiltInRegistries.BLOCK.forEach(block -> {
 			if (ModRegistryArgs.REGISTRY_ARGS.containsKey(block)) {
-				Identifier identifier = Registries.BLOCK.getId(block);
+				ResourceLocation identifier = BuiltInRegistries.BLOCK.getKey(block);
 				RegistryArgs args = ModRegistryArgs.REGISTRY_ARGS.get(block);
 
 				if (identifier.getNamespace().equals(VanillaLayerPlus.MOD_ID)) {
 					if (args.grassTinted) {
 						ColorProviderRegistry.BLOCK.register(((state, world, pos, tintIndex) -> {
 							if (world == null || pos == null) {
-								return GrassColors.getDefaultColor();
+								return GrassColor.getDefaultColor();
 							}
 
-							return BiomeColors.getGrassColor(world, pos);
+							return BiomeColors.getAverageGrassColor(world, pos);
 						}), block);
 					}
 
 					if (args.foliageTinted) {
 						ColorProviderRegistry.BLOCK.register(((state, world, pos, tintIndex) -> {
 							if (world == null || pos == null) {
-								return FoliageColors.getDefaultColor();
+								return FoliageColor.getDefaultColor();
 							}
 
-							return BiomeColors.getFoliageColor(world, pos);
+							return BiomeColors.getAverageFoliageColor(world, pos);
 						}), block);
 					}
 				}

@@ -4,41 +4,39 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import net.fellter.vanillalayerplus.block.ModBlocks;
-
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.TranslucentBlock;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.util.shape.VoxelShapes;
-import net.minecraft.world.EmptyBlockView;
-
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.EmptyBlockGetter;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.HalfTransparentBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(TranslucentBlock.class)
+@Mixin(HalfTransparentBlock.class)
 public class MixinTransparentBlock extends Block {
 	@Unique
 	private static final Map<BlockState, VoxelShape> CACHED = new ConcurrentHashMap<>();
-	public MixinTransparentBlock(Settings settings) {
+	public MixinTransparentBlock(Properties settings) {
 		super(settings);
 	}
 
 	@Unique
 	protected VoxelShape getCached(BlockState state) {
-		return CACHED.computeIfAbsent(state, s -> s.getOutlineShape(EmptyBlockView.INSTANCE, BlockPos.ORIGIN));
+		return CACHED.computeIfAbsent(state, s -> s.getShape(EmptyBlockGetter.INSTANCE, BlockPos.ZERO));
 	}
 
-	@Inject(method = "isSideInvisible", at = @At("HEAD"), cancellable = true)
-	public void isSideInvisible(BlockState state, BlockState stateFrom, Direction direction, CallbackInfoReturnable<Boolean> cir) {
-		if (stateFrom.isOf(ModBlocks.GLASS_LAYER)) {
+	@Inject(method = "skipRendering", at = @At("HEAD"), cancellable = true)
+	public void skipRendering(BlockState state, BlockState stateFrom, Direction direction, CallbackInfoReturnable<Boolean> cir) {
+		if (stateFrom.is(ModBlocks.GLASS_LAYER)) {
 			VoxelShape stateCullingShape = getCached(state);
 			VoxelShape stateFromCullingShape = getCached(stateFrom);
-			cir.setReturnValue(VoxelShapes.isSideCovered(stateCullingShape, stateFromCullingShape, direction));
+			cir.setReturnValue(Shapes.blockOccudes(stateCullingShape, stateFromCullingShape, direction));
 		}
 	}
 }

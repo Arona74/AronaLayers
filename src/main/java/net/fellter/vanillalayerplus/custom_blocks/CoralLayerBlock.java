@@ -3,54 +3,53 @@ package net.fellter.vanillalayerplus.custom_blocks;
 import org.jetbrains.annotations.Nullable;
 
 import net.fellter.vanillalayerplus.block.LayerBlock;
-
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.fluid.FluidState;
-import net.minecraft.item.ItemPlacementContext;
-import net.minecraft.registry.tag.FluidTags;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.world.BlockView;
-import net.minecraft.world.WorldAccess;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.FluidTags;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.FluidState;
 
 public class CoralLayerBlock extends LayerBlock {
 	private final Block dead;
 
-	public CoralLayerBlock(Block dead, Settings settings) {
+	public CoralLayerBlock(Block dead, Properties settings) {
 		super(settings);
 		this.dead = dead;
 	}
 
-	protected void scheduledTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
+	protected void tick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
 		// See FlattenableLayerBlock: the base class schedules a tick when support is
 		// lost, and that tick lands here, so it has to be handled before the coral
 		// death check or the block ends up floating.
-		if (!state.canPlaceAt(world, pos)) {
-			super.scheduledTick(state, world, pos, random);
+		if (!state.canSurvive(world, pos)) {
+			super.tick(state, world, pos, random);
 			return;
 		}
 
 		if (!this.isInWater(world, pos)) {
-			world.setBlockState(pos, this.dead.getStateWithProperties(state), 2);
+			world.setBlock(pos, this.dead.withPropertiesOf(state), 2);
 		}
 	}
 
-	protected BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState neighborState, WorldAccess world, BlockPos pos, BlockPos neighborPos) {
+	protected BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor world, BlockPos pos, BlockPos neighborPos) {
 		if (!this.isInWater(world, pos)) {
-			world.scheduleBlockTick(pos, this, 60 + world.getRandom().nextInt(40));
+			world.scheduleTick(pos, this, 60 + world.getRandom().nextInt(40));
 		}
 
-		return super.getStateForNeighborUpdate(state, direction, neighborState, world, pos, neighborPos);
+		return super.updateShape(state, direction, neighborState, world, pos, neighborPos);
 	}
 
-	protected boolean isInWater(BlockView world, BlockPos pos) {
+	protected boolean isInWater(BlockGetter world, BlockPos pos) {
 		for (Direction direction : Direction.values()) {
-			FluidState fluidState = world.getFluidState(pos.offset(direction));
+			FluidState fluidState = world.getFluidState(pos.relative(direction));
 
-			if (fluidState.isIn(FluidTags.WATER)) {
+			if (fluidState.is(FluidTags.WATER)) {
 				return true;
 			}
 		}
@@ -59,11 +58,11 @@ public class CoralLayerBlock extends LayerBlock {
 	}
 
 	@Nullable
-	public BlockState getPlacementState(ItemPlacementContext ctx) {
-		if (!this.isInWater(ctx.getWorld(), ctx.getBlockPos())) {
-			ctx.getWorld().scheduleBlockTick(ctx.getBlockPos(), this, 60 + ctx.getWorld().getRandom().nextInt(40));
+	public BlockState getStateForPlacement(BlockPlaceContext ctx) {
+		if (!this.isInWater(ctx.getLevel(), ctx.getClickedPos())) {
+			ctx.getLevel().scheduleTick(ctx.getClickedPos(), this, 60 + ctx.getLevel().getRandom().nextInt(40));
 		}
 
-		return super.getPlacementState(ctx);
+		return super.getStateForPlacement(ctx);
 	}
 }

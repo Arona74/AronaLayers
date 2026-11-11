@@ -1,13 +1,11 @@
 package net.fellter.vanillalayerplus.mixin;
 
 import java.util.Map;
-
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.item.ItemUsageContext;
-import net.minecraft.item.ShovelItem;
-import net.minecraft.state.property.Property;
-
+import net.minecraft.world.item.ShovelItem;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.Property;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -19,15 +17,15 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 public abstract class MixinShovelItem {
 	@Shadow
 	@Final
-	protected static Map<Block, BlockState> PATH_STATES;
+	protected static Map<Block, BlockState> FLATTENABLES;
 
-	@ModifyVariable(method = "useOnBlock", at = @At(value = "STORE"), ordinal = 1)
-	private BlockState path(BlockState value, ItemUsageContext context) {
-		BlockState state = PATH_STATES.get(context.getWorld().getBlockState(context.getBlockPos()).getBlock());
-		BlockState stateFrom = context.getWorld().getBlockState(context.getBlockPos());
+	@ModifyVariable(method = "useOn", at = @At(value = "STORE"), ordinal = 1)
+	private BlockState path(BlockState value, UseOnContext context) {
+		BlockState state = FLATTENABLES.get(context.getLevel().getBlockState(context.getClickedPos()).getBlock());
+		BlockState stateFrom = context.getLevel().getBlockState(context.getClickedPos());
 
 		if (state != null) {
-			for (Property<?> property : state.getBlock().getStateManager().getProperties()) {
+			for (Property<?> property : state.getBlock().getStateDefinition().getProperties()) {
 				state = withProperty(state, property, stateFrom);
 			}
 
@@ -39,6 +37,6 @@ public abstract class MixinShovelItem {
 
 	@Unique
 	private static <T extends Comparable<T>> BlockState withProperty(BlockState to, Property<T> property, BlockState from) {
-		return to.with(property, from.get(property));
+		return to.setValue(property, from.getValue(property));
 	}
 }

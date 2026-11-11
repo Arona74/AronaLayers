@@ -1,22 +1,21 @@
 package net.fellter.vanillalayerplus.custom_blocks;
 
 import net.fellter.vanillalayerplus.block.LayerBlock;
-
-import net.minecraft.block.BlockState;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.BlockView;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.block.state.BlockState;
 
 public class RedstoneLayerBlock extends LayerBlock {
-	public RedstoneLayerBlock(Settings settings) {
+	public RedstoneLayerBlock(Properties settings) {
 		super(settings);
 	}
 
-	protected boolean emitsRedstonePower(BlockState state) {
+	protected boolean isSignalSource(BlockState state) {
 		return true;
 	}
 
-	protected int getWeakRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction direction) {
-		return (state.get(LAYERS) * 2) - 1;
+	protected int getSignal(BlockState state, BlockGetter world, BlockPos pos, Direction direction) {
+		return (state.getValue(LAYERS) * 2) - 1;
 	}
 }

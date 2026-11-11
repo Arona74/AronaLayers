@@ -1,31 +1,30 @@
 package net.fellter.vanillalayerplus.custom_blocks;
 
 import net.fellter.vanillalayerplus.block.LayerBlock;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.block.WeatheringCopper;
+import net.minecraft.world.level.block.state.BlockState;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Oxidizable;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.random.Random;
+public class OxidizableLayerBlock extends LayerBlock implements WeatheringCopper {
+	private final WeatheringCopper.WeatherState oxidationLevel;
 
-public class OxidizableLayerBlock extends LayerBlock implements Oxidizable {
-	private final Oxidizable.OxidationLevel oxidationLevel;
-
-	public OxidizableLayerBlock(OxidationLevel oxidationLevel, Settings settings) {
+	public OxidizableLayerBlock(WeatherState oxidationLevel, Properties settings) {
 		super(settings);
 		this.oxidationLevel = oxidationLevel;
 	}
 
-	protected void randomTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
-		this.tickDegradation(state, world, pos, random);
+	protected void randomTick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
+		this.changeOverTime(state, world, pos, random);
 	}
 
-	protected boolean hasRandomTicks(BlockState state) {
-		return Oxidizable.getIncreasedOxidationBlock(state.getBlock()).isPresent();
+	protected boolean isRandomlyTicking(BlockState state) {
+		return WeatheringCopper.getNext(state.getBlock()).isPresent();
 	}
 
 	@Override
-	public OxidationLevel getDegradationLevel() {
+	public WeatherState getAge() {
 		return oxidationLevel;
 	}
 }

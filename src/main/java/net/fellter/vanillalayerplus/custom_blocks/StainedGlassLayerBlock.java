@@ -1,14 +1,14 @@
 package net.fellter.vanillalayerplus.custom_blocks;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Stainable;
-import net.minecraft.util.DyeColor;
-import net.minecraft.util.math.Direction;
+import net.minecraft.core.Direction;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.level.block.BeaconBeamBlock;
+import net.minecraft.world.level.block.state.BlockState;
 
-public class StainedGlassLayerBlock extends GlassLayerBlock implements Stainable {
+public class StainedGlassLayerBlock extends GlassLayerBlock implements BeaconBeamBlock {
 	private final DyeColor color;
 
-	public StainedGlassLayerBlock(DyeColor color, Settings settings) {
+	public StainedGlassLayerBlock(DyeColor color, Properties settings) {
 		super(settings);
 		this.color = color;
 	}
@@ -18,9 +18,9 @@ public class StainedGlassLayerBlock extends GlassLayerBlock implements Stainable
 		return color;
 	}
 
-	protected boolean isSideInvisible(BlockState state, BlockState stateFrom, Direction direction) {
-		if (stateFrom.getBlock() instanceof Stainable stainable) {
-			return stainable.getColor() == color && super.isSideInvisible(state, stateFrom, direction);
+	protected boolean skipRendering(BlockState state, BlockState stateFrom, Direction direction) {
+		if (stateFrom.getBlock() instanceof BeaconBeamBlock stainable) {
+			return stainable.getColor() == color && super.skipRendering(state, stateFrom, direction);
 		}
 
 		return false;

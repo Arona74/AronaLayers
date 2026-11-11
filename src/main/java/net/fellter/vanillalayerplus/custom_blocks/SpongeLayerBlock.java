@@ -8,42 +8,50 @@ import java.util.Set;
 import net.fellter.vanillalayerplus.block.LayerBlock;
 import net.fellter.vanillalayerplus.block.ModBlocks;
 
-import net.minecraft.block.*;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.fluid.FluidState;
-import net.minecraft.registry.tag.FluidTags;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.*;
+import net.minecraft.world.level.block.state.*;
+import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.FluidTags;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.BucketPickup;
+import net.minecraft.world.level.block.LiquidBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.FluidState;
 
 public class SpongeLayerBlock extends LayerBlock {
-	public SpongeLayerBlock(Settings settings) {
+	public SpongeLayerBlock(Properties settings) {
 		super(settings);
 	}
 
-	protected void onBlockAdded(BlockState state, World world, BlockPos pos, BlockState oldState, boolean notify) {
-		if (!oldState.isOf(state.getBlock())) {
+	protected void onPlace(BlockState state, Level world, BlockPos pos, BlockState oldState, boolean notify) {
+		if (!oldState.is(state.getBlock())) {
 			this.update(world, pos);
 		}
 	}
 
-	protected void neighborUpdate(BlockState state, World world, BlockPos pos, Block sourceBlock, BlockPos sourcePos, boolean notify) {
+	protected void neighborChanged(BlockState state, Level world, BlockPos pos, Block sourceBlock, BlockPos sourcePos, boolean notify) {
 		this.update(world, pos);
-		super.neighborUpdate(state, world, pos, sourceBlock, sourcePos, notify);
+		super.neighborChanged(state, world, pos, sourceBlock, sourcePos, notify);
 	}
 
-	protected void update(World world, BlockPos pos) {
+	protected void update(Level world, BlockPos pos) {
 		if (this.absorbWater(world, pos)) {
-			world.setBlockState(pos, ModBlocks.WET_SPONGE_LAYER.getStateWithProperties(world.getBlockState(pos)).with(WATERLOGGED, false), 2);
-			world.playSound(null, pos, SoundEvents.BLOCK_SPONGE_ABSORB, SoundCategory.BLOCKS, 1.0F, 1.0F);
+			world.setBlock(pos, ModBlocks.WET_SPONGE_LAYER.withPropertiesOf(world.getBlockState(pos)).setValue(WATERLOGGED, false), 2);
+			world.playSound(null, pos, SoundEvents.SPONGE_ABSORB, SoundSource.BLOCKS, 1.0F, 1.0F);
 		}
 	}
 
-	private boolean absorbWater(World world, BlockPos pos) {
+	private boolean absorbWater(Level world, BlockPos pos) {
 		BlockState state = world.getBlockState(pos);
-		int maxRange = (int) Math.ceil(state.get(LAYERS) * 0.75);
+		int maxRange = (int) Math.ceil(state.getValue(LAYERS) * 0.75);
 
 		Deque<BlockPos> posQueue = new ArrayDeque<>();
 		Deque<Integer> depthQueue = new ArrayDeque<>();
@@ -59,33 +67,33 @@ public class SpongeLayerBlock extends LayerBlock {
 			BlockPos currentPos = posQueue.poll();
 			int depth = depthQueue.poll();
 
-			for (Direction direction : DIRECTIONS) {
-				BlockPos neighborPos = currentPos.offset(direction);
+			for (Direction direction : UPDATE_SHAPE_ORDER) {
+				BlockPos neighborPos = currentPos.relative(direction);
 				if (!visited.add(neighborPos.asLong())) continue;
 
 				BlockState blockState = world.getBlockState(neighborPos);
 				FluidState fluidState = world.getFluidState(neighborPos);
 
-				if (!fluidState.isIn(FluidTags.WATER)) continue;
+				if (!fluidState.is(FluidTags.WATER)) continue;
 
 				Block block = blockState.getBlock();
 				boolean drained = false;
 
-				if (block instanceof FluidDrainable fluidDrainable) {
-					if (!fluidDrainable.tryDrainFluid(null, world, neighborPos, blockState).isEmpty()) {
+				if (block instanceof BucketPickup fluidDrainable) {
+					if (!fluidDrainable.pickupBlock(null, world, neighborPos, blockState).isEmpty()) {
 						drained = true;
 					}
 				}
 
 				if (!drained) {
-					if (blockState.getBlock() instanceof FluidBlock) {
-						world.setBlockState(neighborPos, Blocks.AIR.getDefaultState(), 3);
+					if (blockState.getBlock() instanceof LiquidBlock) {
+						world.setBlock(neighborPos, Blocks.AIR.defaultBlockState(), 3);
 						drained = true;
-					} else if (blockState.isOf(Blocks.KELP) || blockState.isOf(Blocks.KELP_PLANT)
-							|| blockState.isOf(Blocks.SEAGRASS) || blockState.isOf(Blocks.TALL_SEAGRASS)) {
+					} else if (blockState.is(Blocks.KELP) || blockState.is(Blocks.KELP_PLANT)
+							|| blockState.is(Blocks.SEAGRASS) || blockState.is(Blocks.TALL_SEAGRASS)) {
 						BlockEntity blockEntity = blockState.hasBlockEntity() ? world.getBlockEntity(neighborPos) : null;
-						dropStacks(blockState, world, neighborPos, blockEntity);
-						world.setBlockState(neighborPos, Blocks.AIR.getDefaultState(), 3);
+						dropResources(blockState, world, neighborPos, blockEntity);
+						world.setBlock(neighborPos, Blocks.AIR.defaultBlockState(), 3);
 						drained = true;
 					}
 				}
