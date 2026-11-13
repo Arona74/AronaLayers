@@ -20,7 +20,7 @@ Generation settings become per-world data, editable from the Create World screen
 |---|-------|--------------------|--------|
 | 0 | Decisions confirmed by the user | — | done 2026-11-13 |
 | 1 | Remove Conquest Reforged from gen | AronaLayers-gen | done 2026-11-13, gen branch `merge`, commit a124056 (see notes) |
-| 2 | Move gen into AronaLayers (pilot 1.21.1, then the other versions) | AronaLayers | pilot done 2026-11-13 (1.21.1 Fabric + NeoForge, see notes); fan-out to 1.20.1, 1.21.11, 26.1.2, 26.2, 26.3 todo |
+| 2 | Move gen into AronaLayers (pilot 1.21.1, then the other versions) | AronaLayers | done 2026-11-13: pilot (1.21.1) and fan-out (1.20.1, 1.21.11, 26.1.2, 26.2, 26.3), see notes |
 | 3 | Port extras into AronaLayers, Fabric + NeoForge | AronaLayers | todo |
 | 4 | Config: one registry, new tab order, global vs world scope | AronaLayers | todo |
 | 5 | Generation config stored in world data | AronaLayers | todo |
@@ -474,3 +474,74 @@ Not checked: the Fabric client (Mod Menu button, its plant grounding and stem mo
 installed, a
 NeoForge install next to the old gen jar (the `incompatible` entries), and the port script on a
 real version.
+
+### Phase 2 fan-out (2026-11-13)
+
+Gen is now in all 11 jars. Not committed. Done with the recipe above, one Sonnet subagent per
+version for the edits (each confined to its `vX/` folder, no Gradle), builds, datagen and servers
+run by the orchestrating session one at a time. `scripts/merge/` is deleted (it is in the pilot
+commit if ever needed again).
+
+**What each version needed beyond the recipe.**
+
+- In every version the only hand edit to the copied sources was the `gen/Compat.java` cleanup, as
+  in the pilot; nothing referred to gen's `ModBlocks`, `LayerBlock`, `deepslate_layer` or
+  `moss_layer`. 26.2 and 26.3 also bring `LeafLitterBlockMixin` (theirs only).
+- 1.20.1 Fabric and 26.3 (both loaders) stage root `src/main/java` through a `stageSharedJava` Sync
+  task with a `sharedOverridden` list, as gen did: 1.20.1 leaves out
+  `gen/client/config/AronaConfigScreen.java`, 26.3 `gen/injection/FractionalSurfaceSampler.java`
+  and `gen/mixin/TreeSoilMixin.java`; `../common` supplies those versions. The existing excludes
+  (1.20.1 `MixinAxeItem`, 26.3 `mixin/tool/**`) stay as plain source-set excludes, which still apply
+  to the staged copy.
+- 1.20.1 does not compile against gen's ReTerraForged jar (`libs/`, never in git): no source imports
+  it, RTF support is by reflection. Not brought over.
+- On 1.21.11, 26.1.2, 26.2, 26.3 the three blocks' item model definitions (`items/*.json`) come from
+  datagen: `ModModelProvider` calls `registerSimpleItemModel(block, aronalayers:item/<name>)`,
+  which writes only the item definition, pointing at the hand-made model in root resources.
+- Gen's own metadata differs from the pilot pattern only by `minecraft: ~X` (this repo keeps its
+  exact version), its `breaks aronalayersextras <1.3.0` (now `*`) and, on 1.20.1, `java >=17` and
+  `fabricloader >=0.15.0` (this repo's values kept). gen's `gradle.properties` match this repo's
+  except 1.21.11 Fabric API (gen 0.141.5, here 0.141.6).
+- `scripts/worldgen_baseline/mca_hist.py` now reads 26.3 palettes (a plain id string, or
+  `{id, properties}`). On 26.x the overworld region files are in
+  `<world>/dimensions/minecraft/overworld/region`: pass that folder as the world dir.
+
+**What was checked.** All 11 jars build (JDK 25); `verify_mixins.py` passes on all 11 (Fabric 30 on
+1.20.1, 31 on 1.21.11 / 26.1.2 / 26.2, 28 on 26.3 (no tool mixins); NeoForge 28). Every jar holds
+`LICENSE-MIT` and the gen classes and no `com/terraformersmc` class (sources jars too). Datagen on
+each of the five versions changed only: three loot tables, the pickaxe and needs-iron-tool tags,
+three names, and on 1.21.4+ three `items/*.json`.
+
+Server on each of the nine new jars: `gen_seq.sh`, fresh world (seed 7474, deleted afterwards,
+`server.properties` restored), the 36 chunks `-3,-3,6,6` (old growth pine taiga), no error in the
+log, layer blocks in those chunks:
+
+| Version | Fabric | NeoForge |
+|---------|--------|----------|
+| 1.20.1 | 7601 | — |
+| 1.21.11 | 7712 | 7711 |
+| 26.1.2 | 7714 | 7718 |
+| 26.2 | 7720 | 7715 |
+| 26.3 | 7987 | 7986 |
+
+(podzol, coarse dirt, grass, mossy cobblestone, dirt layers; 26.3's rewritten worldgen gives
+a slightly different taiga.) The servers wrote a default `run/config/aronalayers/` in their run
+folders.
+
+Not checked: any client outside 1.21.1 NeoForge (config screen, notably 1.20.1's own; Mod Menu;
+stem and grounded plant models), Create installed, the `breaks` / `incompatible` entries next to
+the old jars.
+
+**Entry points folded (the pilot's first decision, reversed).** Gen has no entry point of its own
+any more: `fabric.AronaLayersFabric` calls `AronaLayersGen.init()` after `AronaLayers.init()`,
+`fabric.AronaLayersFabricClient` calls `gen.fabric.ClientSetup.init()` (the former
+`AronaLayersGenFabricClient`, now a plain class like NeoForge's), and `neoforge.AronaLayersNeoForge`
+calls `AronaLayersGen.init()` and, on the client, `gen.neoforge.ClientSetup.init(modBus, container)`.
+`AronaLayersGenFabric` and `AronaLayersGenNeoForge` are deleted and the six `fabric.mod.json` list
+only this mod's entry points (plus `modmenu`). The MIT code stays under the `gen` folders; the
+entry points are this repo's.
+
+`v1_21_11/neoforge/build.gradle` had a stray `
+` from the pilot commit, so git stored it as
+binary (`-text`, CRLF in the blob). Fixed in the working tree; it is now identical to 1.21.1's. Its
+index entry still holds CR bytes, so commit it with `git add --renormalize` to store LF.

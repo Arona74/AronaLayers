@@ -65,6 +65,13 @@ public class ModModelProvider extends FabricModelProvider {
 			}
 		});
 
+		// The snow-style layers (powder snow, zinc ores): blockstates and block models are hand-made
+		// in the root resources, so only their item model definitions are written here, pointing at the
+		// hand-made aronalayers:item/<name> models.
+		for (Block block : new Block[] {ModBlocks.POWDER_SNOW_LAYER, ModBlocks.ZINC_ORE_LAYER, ModBlocks.DEEPSLATE_ZINC_ORE_LAYER}) {
+			bsmg.registerSimpleItemModel(block, Identifier.fromNamespaceAndPath(AronaLayers.MOD_ID, "item/" + BuiltInRegistries.BLOCK.getKey(block).getPath()));
+		}
+
 		registerLayer3DTemplates(bsmg);
 		BuiltInRegistries.BLOCK.stream().filter(block -> block instanceof Layer3DBlock).forEach(block -> {
 			Layer3DBlock layer3D = (Layer3DBlock) block;

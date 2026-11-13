@@ -26,16 +26,24 @@
 		],
 		"client": [
 			"io.arona74.aronalayers.fabric.AronaLayersFabricClient"
+		],
+		"modmenu": [
+			"io.arona74.aronalayers.gen.client.config.ModMenuIntegration"
 		]
 	},
 	"mixins": [
 		"aronalayers.mixins.json",
-		"aronalayers.tools.mixins.json"
+		"aronalayers.tools.mixins.json",
+		"aronalayers.gen.mixins.json"
 	],
 	"depends": {
 		"fabricloader": ">=0.15.11",
 		"minecraft": "1.20.1",
 		"java": ">=17",
 		"fabric-api": "*"
+	},
+	"breaks": {
+		"aronalayersgen": "*",
+		"aronalayersextras": "*"
 	}
 }

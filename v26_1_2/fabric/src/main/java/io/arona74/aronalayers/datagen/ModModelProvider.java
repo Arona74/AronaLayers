@@ -72,6 +72,12 @@ public class ModModelProvider extends FabricModelProvider {
 			Block fullBlock = args.fullTextureBlock != null ? args.fullTextureBlock : args.parentBlock;
 			registerLayer3DBlock(layer3D, ModelLocationUtils.getModelLocation(fullBlock), bsmg, textures(block, args.textureMap));
 		});
+
+		// The snow-style layers: their blockstates and block models are hand-made (root src/main/resources),
+		// so only the item model definitions are written here, pointing at the hand-made item models.
+		for (Block block : new Block[] {ModBlocks.POWDER_SNOW_LAYER, ModBlocks.ZINC_ORE_LAYER, ModBlocks.DEEPSLATE_ZINC_ORE_LAYER}) {
+			bsmg.registerSimpleItemModel(block, Identifier.fromNamespaceAndPath(AronaLayers.MOD_ID, "item/" + BuiltInRegistries.BLOCK.getKey(block).getPath()));
+		}
 	}
 
 	// Item models carry their tint since 1.21.4.

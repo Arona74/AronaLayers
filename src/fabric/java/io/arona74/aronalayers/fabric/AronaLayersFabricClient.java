@@ -11,5 +11,6 @@ public class AronaLayersFabricClient implements ClientModInitializer {
 		ModClientRegistries.registerFoliage();
 		ModClientRegistries.registerTranslucentBlocks();
 		ModClientRegistries.registerTransparentBlocks();
+		io.arona74.aronalayers.gen.fabric.ClientSetup.init();
 	}
 }

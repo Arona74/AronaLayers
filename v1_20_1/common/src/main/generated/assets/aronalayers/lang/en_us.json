@@ -122,6 +122,7 @@
   "block.aronalayers.deepslate_redstone_ore_3d_layer": "Deepslate Redstone Ore 3D Layer",
   "block.aronalayers.deepslate_redstone_ore_layer": "Deepslate Redstone Ore Layer",
   "block.aronalayers.deepslate_tiles_layer": "Deepslate Tiles Layer",
+  "block.aronalayers.deepslate_zinc_ore_layer": "Deepslate Zinc Ore Layer",
   "block.aronalayers.diamond_layer": "Diamond Layer",
   "block.aronalayers.diamond_ore_3d_layer": "Diamond Ore 3D Layer",
   "block.aronalayers.diamond_ore_layer": "Diamond Ore Layer",
@@ -266,6 +267,7 @@
   "block.aronalayers.polished_deepslate_layer": "Polished Deepslate Layer",
   "block.aronalayers.polished_diorite_layer": "Polished Diorite Layer",
   "block.aronalayers.polished_granite_layer": "Polished Granite Layer",
+  "block.aronalayers.powder_snow_layer": "Powder Snow Layer",
   "block.aronalayers.prismarine_bricks_layer": "Prismarine Bricks Layer",
   "block.aronalayers.prismarine_layer": "Prismarine Layer",
   "block.aronalayers.pumpkin_layer": "Pumpkin Layer",
@@ -384,6 +386,7 @@
   "block.aronalayers.yellow_terracotta_3d_layer": "Yellow Terracotta 3D Layer",
   "block.aronalayers.yellow_terracotta_layer": "Yellow Terracotta Layer",
   "block.aronalayers.yellow_wool_layer": "Yellow Wool Layer",
+  "block.aronalayers.zinc_ore_layer": "Zinc Ore Layer",
   "itemgroup.aronalayers": "AronaLayers",
   "itemgroup.aronalayers_3d": "AronaLayers 3D"
 }

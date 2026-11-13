@@ -278,6 +278,8 @@
     "aronalayers:deepslate_diamond_ore_3d_layer",
     "aronalayers:nether_gold_ore_3d_layer",
     "aronalayers:nether_quartz_ore_3d_layer",
-    "aronalayers:ancient_debris_3d_layer"
+    "aronalayers:ancient_debris_3d_layer",
+    "aronalayers:zinc_ore_layer",
+    "aronalayers:deepslate_zinc_ore_layer"
   ]
 }

@@ -1,0 +1,41 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "io.arona74.aronalayers.gen.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "mixins": [
+    "NoiseBasedChunkGeneratorMixin",
+    "ChunkGeneratorMixin",
+    "ChunkGeneratorFeaturesMixin",
+    "ChunkMapMixin",
+    "PlantBlockMixin",
+    "LeafLitterBlockMixin",
+    "TreeFeatureMixin",
+    "TreeSoilMixin",
+    "SnowBlockMixin",
+    "PlantGroundingStateMixin",
+    "PlantGroundingClipMixin",
+    "ClipContextAccessor",
+    "ColumnPlantSurviveMixin",
+    "ChorusSurviveMixin",
+    "LayerSupportMixin",
+    "WallPostAboveMixin",
+    "MushroomSurviveMixin",
+    "TreeShiftMixin",
+    "HugeMushroomShiftMixin",
+    "TrunkDirtMixin",
+    "BambooSurviveMixin",
+    "BambooPlacementMixin",
+    "PlantSoilSurviveMixin",
+    "DripstoneSurviveMixin"
+  ],
+  "client": [
+    "GroundedParticleMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+  }
+}

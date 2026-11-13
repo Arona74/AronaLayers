@@ -32,12 +32,6 @@ sourceSets {
 	}
 }
 
-// TEMPORARY (docs/MERGE_PLAN.md, phase 2): terrain generation (the gen package) is only ported
-// to Minecraft 1.21.1 so far. Remove this block when porting it to this version.
-sourceSets.main.java.exclude 'io/arona74/aronalayers/gen/**', 'io/arona74/aronalayers/api/**', 'com/terraformersmc/**'
-sourceSets.main.resources.exclude 'al_block_mappings.json', 'plant_mappings.json', 'second_pass_cleanup_blocks.json',
-		'structure_elevation_blocks.json', 'assets/aronalayers_config/**', 'assets/aronalayers/textures/gui/**'
-
 neoForge {
 	version = neoforge_version
 
@@ -87,7 +81,7 @@ java {
 }
 
 jar {
-	from(rootProject.file('LICENSE')) {
+	from([rootProject.file('LICENSE'), rootProject.file('LICENSE-MIT')]) {
 		rename { "${it}_${rootProject.archives_base_name}" }
 	}
 }

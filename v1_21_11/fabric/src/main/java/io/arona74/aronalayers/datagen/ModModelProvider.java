@@ -62,6 +62,14 @@ public class ModModelProvider extends FabricModelProvider {
 			}
 		});
 
+		// The snow-style layers: block states and models are hand-made (root src/main/resources), only
+		// their item models (items/*.json, required since 1.21.4) are written here, pointing at the
+		// hand-made models/item/<name>.json.
+		for (Block block : new Block[] {ModBlocks.POWDER_SNOW_LAYER, ModBlocks.ZINC_ORE_LAYER, ModBlocks.DEEPSLATE_ZINC_ORE_LAYER}) {
+			String path = BuiltInRegistries.BLOCK.getKey(block).getPath();
+			bsmg.registerSimpleItemModel(block, Identifier.fromNamespaceAndPath(AronaLayers.MOD_ID, "item/" + path));
+		}
+
 		registerLayer3DTemplates(bsmg);
 		BuiltInRegistries.BLOCK.stream().filter(block -> block instanceof Layer3DBlock).forEach(block -> {
 			Layer3DBlock layer3D = (Layer3DBlock) block;

@@ -20,10 +20,29 @@ base {
 // - root src/main/            code and resources for every Minecraft version and loader
 // The first copy of a file wins (see duplicatesStrategy below), so generated data comes last and
 // hand-made files override it.
+// 26.3 rewrote worldgen (density functions moved to a compiled-sampler API, Feature became an
+// interface, FeaturePlaceContext and TreeConfiguration removed). The shared files built on the old
+// API are therefore replaced here rather than patched for every version: they are left out of the
+// staged copy of root src/main/java and ../common/src/ supplies the 26.3 versions. A plain
+// sourceSets exclude would also drop the 26.3 copies. Keep this list the same in the Fabric and
+// NeoForge subprojects.
+def sharedOverridden = [
+	'io/arona74/aronalayers/gen/injection/FractionalSurfaceSampler.java',
+	'io/arona74/aronalayers/gen/mixin/TreeSoilMixin.java',
+]
+def stagedSharedJava = layout.buildDirectory.dir('sharedJava')
+def stageSharedJava = tasks.register('stageSharedJava', Sync) {
+	from(rootProject.file('src/main/java')) {
+		exclude sharedOverridden
+	}
+	into stagedSharedJava
+}
+
 sourceSets {
 	main {
 		java {
-			srcDirs += [file('../common/src/main/java'), rootProject.file('src/neoforge/java'), rootProject.file('src/main/java')]
+			srcDirs += [file('../common/src/main/java'), rootProject.file('src/neoforge/java')]
+			srcDir(stageSharedJava)
 		}
 		resources {
 			srcDirs = [file('src/main/resources'), file('../common/src/main/resources'), rootProject.file('src/neoforge/resources'), rootProject.file('src/main/resources'), file('../common/src/main/generated')]
@@ -31,12 +50,6 @@ sourceSets {
 		}
 	}
 }
-
-// TEMPORARY (docs/MERGE_PLAN.md, phase 2): terrain generation (the gen package) is only ported
-// to Minecraft 1.21.1 so far. Remove this block when porting it to this version.
-sourceSets.main.java.exclude 'io/arona74/aronalayers/gen/**', 'io/arona74/aronalayers/api/**', 'com/terraformersmc/**'
-sourceSets.main.resources.exclude 'al_block_mappings.json', 'plant_mappings.json', 'second_pass_cleanup_blocks.json',
-		'structure_elevation_blocks.json', 'assets/aronalayers_config/**', 'assets/aronalayers/textures/gui/**'
 
 neoForge {
 	version = neoforge_version
@@ -87,7 +100,7 @@ java {
 }
 
 jar {
-	from(rootProject.file('LICENSE')) {
+	from([rootProject.file('LICENSE'), rootProject.file('LICENSE-MIT')]) {
 		rename { "${it}_${rootProject.archives_base_name}" }
 	}
 }

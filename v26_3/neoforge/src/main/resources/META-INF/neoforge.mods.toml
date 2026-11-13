@@ -16,6 +16,9 @@ logoFile = "assets/aronalayers/icon.png"
 [[mixins]]
 config = "aronalayers.mixins.json"
 
+[[mixins]]
+config = "aronalayers.gen.mixins.json"
+
 [[accessTransformers]]
 file = "META-INF/accesstransformer.cfg"
 
@@ -30,5 +33,22 @@ side = "BOTH"
 modId = "minecraft"
 type = "required"
 versionRange = "[26.3]"
+ordering = "NONE"
+side = "BOTH"
+
+# The generator and the extras are part of this mod now.
+[[dependencies.aronalayers]]
+modId = "aronalayersgen"
+type = "incompatible"
+reason = "AronaLayers now includes the generator: remove Arona Layers Generator."
+versionRange = "*"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.aronalayers]]
+modId = "aronalayersextras"
+type = "incompatible"
+reason = "AronaLayers now includes the extras: remove AronaLayers Extras."
+versionRange = "*"
 ordering = "NONE"
 side = "BOTH"

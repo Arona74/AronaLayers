@@ -37,9 +37,12 @@ def read_nbt(buf):
     t = u('>b', 1); s(); return payload(t)
 
 def state_name(p):
-    props = p.get('Properties')
-    if not props: return p['Name']
-    return p['Name'] + '[' + ','.join('%s=%s' % kv for kv in sorted(props.items())) + ']'
+    # 26.3 palettes hold a plain id string, or {id, properties}, or {"": id}; earlier ones {Name, Properties}.
+    if isinstance(p, str): return p
+    name = p.get('Name') or p.get('id') or p.get('')
+    props = p.get('Properties') or p.get('properties')
+    if not props: return name
+    return name + '[' + ','.join('%s=%s' % kv for kv in sorted(props.items())) + ']'
 
 def main(world, out):
     total = collections.Counter(); chunks = {}

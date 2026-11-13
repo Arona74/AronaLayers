@@ -15,14 +15,31 @@ base {
 // - ../common/src/            this Minecraft version's code for every loader (Compat, CompatBlock),
 //                             its resources, and the generated data (written by this subproject's
 //                             datagen, read by every loader)
-// - root src/fabric/          Fabric code for every Minecraft version (entry points, tool mixins)
+// - root src/fabric/          Fabric code for every Minecraft version (entry points, tool mixins,
+//                             Mod Menu)
 // - root src/main/            code and resources for every Minecraft version and loader
 // The first copy of a file wins (see duplicatesStrategy below), so generated data comes last and
 // hand-made files override it.
+//
+// The shared config screen relies on Screen drawing its own background and on 1.20.2's mouse-wheel
+// signature; it is left out of the staged shared source and ../common/src/ supplies the 1.20.1
+// version. (A plain exclude would also drop the 1.20.1 copy, which has the same path.)
+def sharedOverridden = [
+	'io/arona74/aronalayers/gen/client/config/AronaConfigScreen.java',
+]
+def stagedSharedJava = layout.buildDirectory.dir('sharedJava')
+def stageSharedJava = tasks.register('stageSharedJava', Sync) {
+	from(rootProject.file('src/main/java')) {
+		exclude sharedOverridden
+	}
+	into stagedSharedJava
+}
+
 sourceSets {
 	main {
 		java {
-			srcDirs += [file('../common/src/main/java'), rootProject.file('src/fabric/java'), rootProject.file('src/main/java')]
+			srcDirs += [file('../common/src/main/java'), rootProject.file('src/fabric/java')]
+			srcDir(stageSharedJava)
 			// 1.20.1's AxeItem has no evaluateNewBlockState: MixinAxeItemUseOn in this
 			// subproject replaces the shared axe mixin.
 			exclude 'io/arona74/aronalayers/mixin/tool/MixinAxeItem.java'
@@ -32,12 +49,6 @@ sourceSets {
 		}
 	}
 }
-
-// TEMPORARY (docs/MERGE_PLAN.md, phase 2): terrain generation (the gen package) is only ported
-// to Minecraft 1.21.1 so far. Remove this block when porting it to this version.
-sourceSets.main.java.exclude 'io/arona74/aronalayers/gen/**', 'io/arona74/aronalayers/api/**', 'com/terraformersmc/**'
-sourceSets.main.resources.exclude 'al_block_mappings.json', 'plant_mappings.json', 'second_pass_cleanup_blocks.json',
-		'structure_elevation_blocks.json', 'assets/aronalayers_config/**', 'assets/aronalayers/textures/gui/**'
 
 fabricApi {
 	configureDataGeneration {
@@ -79,7 +90,13 @@ java {
 }
 
 jar {
-	from(rootProject.file('LICENSE')) {
+	from([rootProject.file('LICENSE'), rootProject.file('LICENSE-MIT')]) {
 		rename { "${it}_${rootProject.archives_base_name}" }
 	}
+	// Compile-only stand-ins for Mod Menu's API (see ModMenuApi): shipping them would shadow Mod Menu's own.
+	exclude 'com/terraformersmc/**'
+}
+
+sourcesJar {
+	exclude 'com/terraformersmc/**'
 }

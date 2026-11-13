@@ -11,9 +11,8 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Loader-independent setup of terrain generation with layers (the former Arona Layers Generator
- * mod). Each loader's entry point for it (gen.fabric.AronaLayersGenFabric,
- * gen.neoforge.AronaLayersGenNeoForge) calls {@link #init()}. The layer blocks themselves are
- * registered by {@link AronaLayers#init()}.
+ * mod). The mod's entry points (fabric.AronaLayersFabric, neoforge.AronaLayersNeoForge) call
+ * {@link #init()}; the layer blocks themselves are registered by {@link AronaLayers#init()}.
  */
 public final class AronaLayersGen {
     private AronaLayersGen() {}

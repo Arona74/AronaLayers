@@ -5,6 +5,7 @@ import java.util.concurrent.CompletableFuture;
 import io.arona74.aronalayers.AronaLayers;
 import io.arona74.aronalayers.block.Layer3DBlock;
 import io.arona74.aronalayers.block.LayerBlock;
+import io.arona74.aronalayers.block.ModBlocks;
 import io.arona74.aronalayers.registry.Args;
 import io.arona74.aronalayers.registry.DatagenArgs;
 import net.minecraft.core.HolderLookup;
@@ -41,6 +42,14 @@ public class ModLootTableProvider extends FabricBlockLootSubProvider {
 				add(block, layer3DDrops(layer3D, Args.DATAGEN_ARGS.get(layer3D.getBaseLayer()).needsSilkTouch));
 			}
 		});
+
+		// The snow-style layers: a zinc ore layer drops itself once whatever its height, a powder
+		// snow layer drops nothing, like powder snow.
+		for (Block block : new Block[] {ModBlocks.ZINC_ORE_LAYER, ModBlocks.DEEPSLATE_ZINC_ORE_LAYER}) {
+			add(block, LootTable.lootTable().withPool(LootPool.lootPool().setRolls(ConstantValue.exactly(1.0F)).add(LootItem.lootTableItem(block))));
+		}
+
+		add(ModBlocks.POWDER_SNOW_LAYER, LootTable.lootTable());
 	}
 
 	// A 3D layer drops its base layer item, as many as its volume in layers, rounded up. In

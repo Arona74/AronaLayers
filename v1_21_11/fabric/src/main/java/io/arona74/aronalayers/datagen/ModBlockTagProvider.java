@@ -17,6 +17,7 @@ import com.google.gson.JsonParser;
 import io.arona74.aronalayers.AronaLayers;
 import io.arona74.aronalayers.block.Layer3DBlock;
 import io.arona74.aronalayers.block.LayerBlock;
+import io.arona74.aronalayers.block.ModBlocks;
 import io.arona74.aronalayers.registry.Args;
 import io.arona74.aronalayers.registry.DatagenArgs;
 import io.arona74.aronalayers.util.ModTags;
@@ -53,6 +54,12 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
 				addInheritedTags(identifier, Args.DATAGEN_ARGS.get(layer3D.getBaseLayer()), tierMembers);
 			}
 		});
+
+		// The zinc ore layers have no vanilla parent to inherit from: they are mined like Create's zinc ores.
+		for (Block block : List.of(ModBlocks.ZINC_ORE_LAYER, ModBlocks.DEEPSLATE_ZINC_ORE_LAYER)) {
+			getOrCreateRawBuilder(BlockTags.MINEABLE_WITH_PICKAXE).addElement(BuiltInRegistries.BLOCK.getKey(block));
+			getOrCreateRawBuilder(BlockTags.NEEDS_IRON_TOOL).addElement(BuiltInRegistries.BLOCK.getKey(block));
+		}
 	}
 
 	private void addInheritedTags(Identifier identifier, DatagenArgs args, List<Set<Identifier>> tierMembers) {

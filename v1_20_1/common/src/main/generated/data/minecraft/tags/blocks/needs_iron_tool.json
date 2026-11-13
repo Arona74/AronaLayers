@@ -20,6 +20,8 @@
     "aronalayers:emerald_ore_3d_layer",
     "aronalayers:deepslate_emerald_ore_3d_layer",
     "aronalayers:diamond_ore_3d_layer",
-    "aronalayers:deepslate_diamond_ore_3d_layer"
+    "aronalayers:deepslate_diamond_ore_3d_layer",
+    "aronalayers:zinc_ore_layer",
+    "aronalayers:deepslate_zinc_ore_layer"
   ]
 }

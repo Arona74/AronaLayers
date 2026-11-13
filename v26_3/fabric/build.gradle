@@ -16,14 +16,34 @@ base {
 // - ../common/src/            this Minecraft version's code for every loader (Compat, CompatBlock),
 //                             its resources, and the generated data (written by this subproject's
 //                             datagen, read by every loader)
-// - root src/fabric/          Fabric code for every Minecraft version (entry points, tool mixins)
+// - root src/fabric/          Fabric code for every Minecraft version (entry points, tool mixins,
+//                             Mod Menu)
 // - root src/main/            code and resources for every Minecraft version and loader
 // The first copy of a file wins (see duplicatesStrategy below), so generated data comes last and
 // hand-made files override it.
+// 26.3 rewrote worldgen (density functions moved to a compiled-sampler API, Feature became an
+// interface, FeaturePlaceContext and TreeConfiguration removed). The shared files built on the old
+// API are therefore replaced here rather than patched for every version: they are left out of the
+// staged copy of root src/main/java and ../common/src/ supplies the 26.3 versions. A plain
+// sourceSets exclude would also drop the 26.3 copies. Keep this list the same in the Fabric and
+// NeoForge subprojects.
+def sharedOverridden = [
+	'io/arona74/aronalayers/gen/injection/FractionalSurfaceSampler.java',
+	'io/arona74/aronalayers/gen/mixin/TreeSoilMixin.java',
+]
+def stagedSharedJava = layout.buildDirectory.dir('sharedJava')
+def stageSharedJava = tasks.register('stageSharedJava', Sync) {
+	from(rootProject.file('src/main/java')) {
+		exclude sharedOverridden
+	}
+	into stagedSharedJava
+}
+
 sourceSets {
 	main {
 		java {
-			srcDirs += [file('../common/src/main/java'), rootProject.file('src/fabric/java'), rootProject.file('src/main/java')]
+			srcDirs += [file('../common/src/main/java'), rootProject.file('src/fabric/java')]
+			srcDir(stageSharedJava)
 			// 26.3 has no AxeItem, HoeItem or ShovelItem: tool interactions are block transformers,
 			// registered through Compat, so the tool mixins are left out.
 			exclude 'io/arona74/aronalayers/mixin/tool/**'
@@ -33,12 +53,6 @@ sourceSets {
 		}
 	}
 }
-
-// TEMPORARY (docs/MERGE_PLAN.md, phase 2): terrain generation (the gen package) is only ported
-// to Minecraft 1.21.1 so far. Remove this block when porting it to this version.
-sourceSets.main.java.exclude 'io/arona74/aronalayers/gen/**', 'io/arona74/aronalayers/api/**', 'com/terraformersmc/**'
-sourceSets.main.resources.exclude 'al_block_mappings.json', 'plant_mappings.json', 'second_pass_cleanup_blocks.json',
-		'structure_elevation_blocks.json', 'assets/aronalayers_config/**', 'assets/aronalayers/textures/gui/**'
 
 fabricApi {
 	configureDataGeneration {
@@ -85,7 +99,13 @@ java {
 }
 
 jar {
-	from(rootProject.file('LICENSE')) {
+	from([rootProject.file('LICENSE'), rootProject.file('LICENSE-MIT')]) {
 		rename { "${it}_${rootProject.archives_base_name}" }
 	}
+	// Compile-only stand-ins for Mod Menu's API (see ModMenuApi): shipping them would shadow Mod Menu's own.
+	exclude 'com/terraformersmc/**'
+}
+
+sourcesJar {
+	exclude 'com/terraformersmc/**'
 }

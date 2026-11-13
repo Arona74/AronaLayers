@@ -19,15 +19,13 @@
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"io.arona74.aronalayers.fabric.AronaLayersFabric",
-			"io.arona74.aronalayers.gen.fabric.AronaLayersGenFabric"
+			"io.arona74.aronalayers.fabric.AronaLayersFabric"
 		],
 		"fabric-datagen": [
 			"io.arona74.aronalayers.AronaLayersDataGenerator"
 		],
 		"client": [
-			"io.arona74.aronalayers.fabric.AronaLayersFabricClient",
-			"io.arona74.aronalayers.gen.fabric.AronaLayersGenFabricClient"
+			"io.arona74.aronalayers.fabric.AronaLayersFabricClient"
 		],
 		"modmenu": [
 			"io.arona74.aronalayers.gen.client.config.ModMenuIntegration"
