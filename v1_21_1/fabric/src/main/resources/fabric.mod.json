@@ -19,23 +19,33 @@
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"io.arona74.aronalayers.fabric.AronaLayersFabric"
+			"io.arona74.aronalayers.fabric.AronaLayersFabric",
+			"io.arona74.aronalayers.gen.fabric.AronaLayersGenFabric"
 		],
 		"fabric-datagen": [
 			"io.arona74.aronalayers.AronaLayersDataGenerator"
 		],
 		"client": [
-			"io.arona74.aronalayers.fabric.AronaLayersFabricClient"
+			"io.arona74.aronalayers.fabric.AronaLayersFabricClient",
+			"io.arona74.aronalayers.gen.fabric.AronaLayersGenFabricClient"
+		],
+		"modmenu": [
+			"io.arona74.aronalayers.gen.client.config.ModMenuIntegration"
 		]
 	},
 	"mixins": [
 		"aronalayers.mixins.json",
-		"aronalayers.tools.mixins.json"
+		"aronalayers.tools.mixins.json",
+		"aronalayers.gen.mixins.json"
 	],
 	"depends": {
 		"fabricloader": ">=0.16.5",
 		"minecraft": "1.21.1",
 		"java": ">=21",
 		"fabric-api": "*"
+	},
+	"breaks": {
+		"aronalayersgen": "*",
+		"aronalayersextras": "*"
 	}
 }

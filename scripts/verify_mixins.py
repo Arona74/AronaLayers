@@ -1,0 +1,180 @@
+"""Check that every mixin target in a built jar actually resolves.
+
+There are two modes, because the supported versions differ in how mixins map.
+
+Obfuscated versions (1.20.1 - 1.21.11)
+    Loom 1.17 emits no refmap: it rewrites the mixin annotations in place. When
+    it cannot resolve a target it silently leaves the developer-mappings name
+    behind, the build still succeeds, and the mod dies at mixin-apply with
+    "could not find any targets matching '<name>'". So every method= value must
+    be <init>, an intermediary method_NNNN, or a name that is never obfuscated.
+
+Deobfuscated versions (26.x, and NeoForge on every version)
+    NeoForge runs on Mojang names, and on 26.x nothing is obfuscated: nothing is remapped, so real names are correct there and the check above is
+    meaningless. Instead the target method must actually exist on the class the
+    mixin targets, looked up in the Minecraft jar (for NeoForge, its patched one: NeoForge
+    rewrites some vanilla methods).
+
+Usage:
+    python scripts/verify_mixins.py [<module> ...]     (no arguments: every vX/<loader> module)
+
+A module is a loader subproject (v1_21_1/fabric, v1_21_1/neoforge) or a version folder, which
+stands for all of its loaders.
+
+Exits non-zero if any target fails to resolve.
+"""
+import glob
+import json
+import os
+import re
+import subprocess
+import sys
+import tempfile
+import zipfile
+
+# inherited from the JDK, never obfuscated, so these legitimately stay as-is
+NEVER_OBFUSCATED = {"close", "toString", "equals", "hashCode", "run", "get", "accept"}
+
+INTERMEDIARY = re.compile(r"^(?:<init>|<clinit>|method_\d+)(?:\(.*)?$")
+
+
+def javap(path, cls=None):
+    cmd = ["javap", "-v", "-p"] + (["-cp", path, cls] if cls else [path])
+    return subprocess.run(cmd, capture_output=True, text=True).stdout
+
+
+def module_version(module):
+    # minecraft_version lives in the version folder (vX/gradle.properties), above the loader one.
+    for line in open(os.path.join(os.path.dirname(os.path.normpath(module)), "gradle.properties"), encoding="utf-8"):
+        if line.startswith("minecraft_version="):
+            return line.split("=", 1)[1].strip()
+    return ""
+
+
+def find_minecraft_jar(version):
+    home = os.path.expanduser("~").replace("\\", "/")
+    for pat in (f".gradle/loom-cache/**/*{version}*.jar",
+                f"{home}/.gradle/caches/fabric-loom/**/*{version}*.jar"):
+        for hit in glob.glob(pat, recursive=True):
+            if "sources" not in hit and "merged" in hit:
+                return hit
+    return None
+
+
+def find_neoforge_jar(module):
+    """The patched Minecraft jar ModDevGradle made for this module."""
+    arts = os.path.join(module, "build/moddev/artifacts")
+    for pat in ("*-merged.jar", "minecraft-patched-*.jar"):
+        hits = [h for h in glob.glob(os.path.join(arts, pat)) if "sources" not in h]
+        if hits:
+            return hits[0]
+    return None
+
+
+def targets_of(out):
+    """(mixin target classes, method= values) parsed from a compiled mixin."""
+    pool = re.findall(r"=\s+Utf8\s+(\S+)", out)
+    classes = []
+    for i, s in enumerate(pool):
+        if s == "Lorg/spongepowered/asm/mixin/Mixin;":
+            for nxt in pool[i + 1:i + 4]:
+                m = re.fullmatch(r"L(net/minecraft/[\w/$]+);", nxt)
+                if m:
+                    classes.append(m.group(1))
+    methods = []
+    for m in re.finditer(r"method=\[([^\]]*)\]", out):
+        methods += [x.strip().strip('"') for x in m.group(1).split(",") if x.strip()]
+    return classes, methods
+
+
+def check(jar, mc_jar, deobf):
+    z = zipfile.ZipFile(jar)
+    tmp = tempfile.mkdtemp()
+    problems, checked = [], 0
+    members = {}
+
+    # Every mixin config in the jar: the blocks' (aronalayers.mixins.json, tools) and, where
+    # terrain generation is ported, aronalayers.gen.mixins.json.
+    names = []
+    for config in sorted(n for n in z.namelist() if "/" not in n and n.endswith(".mixins.json")):
+        cfg = json.loads(z.read(config).decode())
+        package = cfg["package"].replace(".", "/")
+        names += [(package, cls) for cls in cfg.get("mixins", []) + cfg.get("client", []) + cfg.get("server", [])]
+    for package, cls in names:
+        entry = f"{package}/{cls}.class"
+        if entry not in z.namelist():
+            problems.append((cls, "class missing from jar"))
+            continue
+        p = os.path.join(tmp, cls.replace("/", ".") + ".class")
+        open(p, "wb").write(z.read(entry))
+        out = javap(p)
+        tgt_classes, methods = targets_of(out)
+
+        for name in methods:
+            checked += 1
+            bare = name.split("(")[0]
+            if not deobf:
+                # A @Pseudo mixin aimed at another mod by string (e.g. Tellus) has no net/minecraft
+                # target class, and that mod's own methods are never obfuscated, so the
+                # intermediary rule does not apply. (Foreign mixins overriding a vanilla method,
+                # like the TerraForged TemplateFeature one, still use method_NNNN and pass anyway.)
+                if not tgt_classes:
+                    continue
+                if not INTERMEDIARY.match(name) and bare not in NEVER_OBFUSCATED:
+                    problems.append((cls, f'method="{name}" not remapped'))
+                continue
+            if bare in ("<init>", "<clinit>") or bare in NEVER_OBFUSCATED:
+                continue
+            if not tgt_classes or not mc_jar:
+                continue                        # nothing to resolve against
+            for tc in tgt_classes:
+                if tc not in members:
+                    members[tc] = set(re.findall(r"\b(\w+)\(",
+                                                 javap(mc_jar, tc.replace("/", "."))))
+                if bare in members[tc]:
+                    break
+            else:
+                problems.append((cls, f'method="{name}" not found on {", ".join(tgt_classes)}'))
+    return names, checked, problems
+
+
+def main():
+    bad = 0
+    # No arguments used to check nothing and exit 0 - a silent pass. Default to every module.
+    args = sys.argv[1:] or sorted(d for d in glob.glob("v*") if os.path.isdir(d))
+    mods = []
+    for a in args:
+        a = os.path.normpath(a)
+        if os.path.isfile(os.path.join(a, "build.gradle")):
+            mods.append(a)
+        else:
+            mods += sorted(os.path.dirname(b) for b in glob.glob(os.path.join(a, "*", "build.gradle")))
+    for mod in mods:
+        jars = [x for x in glob.glob(os.path.join(mod, "build/libs/*.jar")) if "sources" not in x]
+        if not jars:
+            print(f"{mod}: no jar built")
+            continue
+        jar = max(jars, key=os.path.getmtime)
+        version = module_version(mod)
+        neoforge = os.path.basename(mod) == "neoforge"
+        deobf = neoforge or not version.startswith("1.")     # 26.x and later ship deobfuscated
+        if neoforge:
+            mc_jar = find_neoforge_jar(mod)
+        else:
+            mc_jar = find_minecraft_jar(version) if deobf else None
+        if deobf and not mc_jar:
+            print(f"{mod}: no Minecraft jar found to check against")
+            bad += 1
+            continue
+        mixins, checked, problems = check(jar, mc_jar, deobf)
+        mode = "deobfuscated" if deobf else "intermediary"
+        print(f"{mod:18s} {os.path.basename(jar):48s} {mode:14s} "
+              f"{len(mixins)} mixins, {checked} targets: {'OK' if not problems else 'FAILED'}")
+        for cls, why in problems:
+            print(f"    !! {cls}: {why}")
+            bad += 1
+    return 1 if bad else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

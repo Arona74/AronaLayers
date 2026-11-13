@@ -550,6 +550,14 @@ public class ModBlocks {
 	public static final Block NETHER_QUARTZ_ORE_3D_LAYER = register3DLayer("nether_quartz_ore_3d_layer", NETHER_QUARTZ_ORE_LAYER, Compat.copyOf("nether_quartz_ore"));
 	public static final Block ANCIENT_DEBRIS_3D_LAYER = register3DLayer("ancient_debris_3d_layer", ANCIENT_DEBRIS_LAYER, Compat.copyOf("ancient_debris"));
 
+	// Snow-style layers (the layers property only), which terrain generation places.
+	public static final Block POWDER_SNOW_LAYER = registerBlock("powder_snow_layer", PowderSnowLayerBlock::new, Compat.copyOf("snow").speedFactor(0.9F));
+	// Create's zinc ores. Registered whether or not Create is installed: block registries are synced,
+	// and the block mappings skip create:* ids when it is absent. Properties come from the iron
+	// ores, which zinc ore matches in hardness.
+	public static final Block ZINC_ORE_LAYER = registerBlock("zinc_ore_layer", settings -> new ConvertingLayerBlock(settings, "create:zinc_ore"), Compat.copyOf("iron_ore"));
+	public static final Block DEEPSLATE_ZINC_ORE_LAYER = registerBlock("deepslate_zinc_ore_layer", settings -> new ConvertingLayerBlock(settings, "create:deepslate_zinc_ore"), Compat.copyOf("deepslate_iron_ore"));
+
 	private static Block register3DLayer(String name, Block baseLayer, BlockBehaviour.@NotNull Properties settings) {
 		return registerBlock(name, s -> new Layer3DBlock(baseLayer, s), settings);
 	}

@@ -20,7 +20,7 @@ Generation settings become per-world data, editable from the Create World screen
 |---|-------|--------------------|--------|
 | 0 | Decisions confirmed by the user | — | done 2026-11-13 |
 | 1 | Remove Conquest Reforged from gen | AronaLayers-gen | done 2026-11-13, gen branch `merge`, commit a124056 (see notes) |
-| 2 | Move gen into AronaLayers (pilot 1.21.1, then the other versions) | AronaLayers | todo |
+| 2 | Move gen into AronaLayers (pilot 1.21.1, then the other versions) | AronaLayers | pilot done 2026-11-13 (1.21.1 Fabric + NeoForge, see notes); fan-out to 1.20.1, 1.21.11, 26.1.2, 26.2, 26.3 todo |
 | 3 | Port extras into AronaLayers, Fabric + NeoForge | AronaLayers | todo |
 | 4 | Config: one registry, new tab order, global vs world scope | AronaLayers | todo |
 | 5 | Generation config stored in world data | AronaLayers | todo |
@@ -345,3 +345,130 @@ images (rocks, extra foliage, `cr_nbt_trees` + fallback, `place_wet_sand`, `repl
   git-ignored local data (about 4 MB) that git cannot bring back, so they are the user's to delete.
 - Not tested: a client (config screen without the Rocks, Foliage and Saplings groups), and
   1.20.1, 1.21.11, 26.2, 26.3 beyond building and the mixin check.
+
+### Phase 2 pilot (2026-11-13)
+
+Gen (branch `merge`, commit a124056) is in this repo for 1.21.1 Fabric and NeoForge. Not
+committed. The other nine jars still build, without terrain generation.
+
+**Where things went.**
+
+| Gen | Here |
+|-----|------|
+| `io.arona74.aronalayersgen.*` (root `src/main`, `src/fabric`, `src/neoforge`, `v1_21_1/*`) | `io.arona74.aronalayers.gen.*`, same folders |
+| `api.LayersApi` | `io.arona74.aronalayers.api.LayersApi` (decision 4; LSL not updated yet) |
+| `block.LayerBlock` | `custom_blocks.ConvertingLayerBlock` (takes the full block's id) |
+| `block.PowderSnowLayerBlockBase`, per-version `block.PowderSnowLayerBlock` | `custom_blocks`, the per-version class in **all six** `vX/common` |
+| `mixin.EntityTouchingPowderSnowAccessor` | `io.arona74.aronalayers.mixin`, listed in the shared `aronalayers.mixins.json` |
+| `ModBlocks` | deleted; the three blocks are in `block.ModBlocks` |
+| `aronalayersgen.mixins.json` | `v1_21_1/common/src/main/resources/aronalayers.gen.mixins.json` |
+| `assets/aronalayersgen/lang/en_us.json` | `assets/aronalayers_config/lang/en_us.json`, keys `config.aronalayers.*` |
+| `assets/aronalayersgen/textures/gui/config/` | `assets/aronalayers/textures/gui/config/` |
+| the four mapping and list JSON files at the jar root | same names, same place |
+| `LICENSE` | `LICENSE-MIT`, in the two 1.21.1 jars next to `LICENSE` |
+| `scripts/verify_mixins.py`, `scripts/worldgen_baseline/*` | same paths; verify_mixins now checks every mixin config in a jar |
+
+**Decisions taken in the pilot, to confirm or change in the fan-out session.**
+
+- **Gen keeps its own entry points** (plan step 2 said to call gen from this mod's and drop them):
+  `gen.fabric.AronaLayersGenFabric` / `AronaLayersGenFabricClient` are extra entries in
+  `fabric.mod.json`, after this mod's so the blocks exist first, and
+  `gen.neoforge.AronaLayersGenNeoForge` is a second `@Mod("aronalayers")` class. Reason: the shared
+  entry points are compiled by all 11 projects, and nine of them have no gen code yet. It also
+  keeps every MIT file under a `gen` folder. Folding them into the main entry points is a
+  ten-line change once every version is ported, if still wanted.
+- **The language file has its own namespace folder**, `assets/aronalayers_config/lang/`. This mod's
+  `assets/aronalayers/lang/en_us.json` is written by datagen, and a hand-made file at the same path
+  would replace it (first copy wins in `processResources`). Minecraft merges the language files
+  of every namespace, so the keys are plain `config.aronalayers.*`.
+- **The three moved blocks keep their snow-style shape** (`layers` only, no facing, no
+  waterlogging) and their behaviour: powder snow layer and zinc ore layers are
+  `aronalayers:powder_snow_layer`, `zinc_ore_layer`, `deepslate_zinc_ore_layer`. Their blockstates
+  and models are the hand-made files from gen, in root `src/main/resources` (version-independent,
+  like the grass layer models already there). Datagen writes their loot tables (a zinc layer
+  drops itself once whatever its height, as in gen), tags (pickaxe, needs iron tool) and names.
+  They are not in a creative tab, as before. Making the zinc layers real `LayerBlock`s is
+  possible later but changes what generates.
+- **They are registered on all six versions already** (the shared `ModBlocks`). Outside 1.21.1
+  they have models but no loot table, tags or name until that version's datagen is extended, and
+  on 1.21.4+ no item model (`items/*.json`, per version in gen).
+- **Config folder**: `config/aronalayers/`. `gen.config.ConfigFiles` copies
+  `config/aronalayersgen/` there once (when the new folder does not exist; the old one is left).
+  A mappings file imported that way still says `aronalayersgen:<block>`; `ConfigLoader` reads
+  those as `aronalayers:<block>`.
+- `Layer3D` uses `Layer3DBlock` directly; `LayerPlacementHelper.hasLayerBlocks()` and the three
+  `.mods("aronalayers")` on options are gone. `AronaLayersGen.MOD_ID` is kept, equal to
+  `AronaLayers.MOD_ID`, so per-version files need no edit for it.
+- Unused helpers removed from 1.21.1's gen `Compat`: the NBT helpers, `readCompressedNbt`,
+  `chunkPosAsLong`, `blockSettings`, `itemSettings`. `Platform.onServerTickEnd` is kept for phase 3.
+- `breaks` (Fabric) and `incompatible` (NeoForge) for `aronalayersgen` and `aronalayersextras`, any
+  version. Note that extras is not merged before phase 3: until then this jar refuses to load
+  next to it.
+- Not done on purpose: display name, jar names and version (decision 5, phase 7 with CI), the
+  metadata licence field, README. The Fabric API and loader versions are this repo's (0.102.0 and
+  0.16.5 on 1.21.1; gen built against 0.104.0 and 0.16.9).
+
+**Temporary, to remove in the fan-out.** Each of the nine other `build.gradle` files has a block
+marked `TEMPORARY (docs/MERGE_PLAN.md, phase 2)` that leaves the gen and api packages, the Mod Menu
+stand-ins and gen's resources out of that project. Porting a version starts by deleting it.
+
+**Recipe for the other versions** (one version at a time; only `vX/` files change, except where
+noted):
+
+1. `python scripts/merge/port_gen_version.py vX` copies `vX/common`, `vX/fabric`, `vX/neoforge`
+   sources from gen into the `gen` package with the pilot's renames, and writes
+   `aronalayers.gen.mixins.json`.
+2. Delete the `TEMPORARY` block in `vX/fabric/build.gradle` and `vX/neoforge/build.gradle`. In the
+   Fabric one add the Mod Menu exclusions (`jar` and `sourcesJar`, see 1.21.1) and `LICENSE-MIT` in
+   both (`from([..., ...])`: with two arguments and a closure Gradle takes the closure as a third
+   source and reports a circular dependency).
+3. Version specials from gen's build files: 26.3's `sharedOverridden` staging
+   (`gen/injection/FractionalSurfaceSampler.java`, `gen/mixin/TreeSoilMixin.java`, new paths) and
+   1.20.1's own config screen; 1.20.1 may need gen's Modrinth Maven repository (gen's root
+   `build.gradle`) if it still compiles against a TerraForged jar.
+4. `fabric.mod.json`: the two gen entry points, the `modmenu` entry, `aronalayers.gen.mixins.json`,
+   `breaks`. `neoforge.mods.toml`: the second `[[mixins]]` and the two `incompatible` blocks.
+5. In `vX/common/.../gen/Compat.java` remove the helpers listed above (they refer to nothing
+   else); `ModBlocks`, `blockSettings` and `itemSettings` have no caller left.
+6. Datagen (`vX/fabric/.../datagen`): the three small additions of 1.21.1 in
+   `ModBlockTagProvider`, `ModLootTableProvider`, `ModLanguageProvider`; on 1.21.4+ also the item
+   models of the three blocks (gen's `items/*.json`). Run `runDatagen` and check the diff holds
+   nothing else.
+7. Build, `python scripts/verify_mixins.py vX`, server start with a new world on both loaders.
+
+When all five are done: delete `scripts/merge/`, and decide on the entry points (first decision
+above).
+
+**What was checked.** All 11 jars build (JDK 25), `verify_mixins.py` passes on all
+11 (1.21.1: 30 mixins on Fabric, 27 on NeoForge). 1.21.1 datagen changed only the three blocks'
+loot tables, the pickaxe and needs-iron-tool tags, and three names.
+
+- 1.21.1 Fabric server, the phase 1 method and area (`gen_seq.sh`, seed 7474, 256 chunks, gen's
+  dev config imported from `config/aronalayersgen/`), one run, against phase 1's two after-runs:
+
+  | Block | phase 1 after 1 | after 2 | merged mod |
+  |-------|-----------------|---------|------------|
+  | `aronalayers:grass_layer` | 16949 | 16914 | 16914 |
+  | `aronalayers:podzol_layer` | 5413 | 5692 | 5688 |
+  | `aronalayers:dirt_layer` | 3442 | 3444 | 3444 |
+  | `aronalayers:sand_layer` | 2872 | 2872 | 2872 |
+  | `aronalayers:coarse_dirt_layer` | 2957 | 2717 | 2721 |
+  | gravel / clay / stone / mossy cobblestone / dripstone layers | 441 / 200 / 177 / 100 / 68 | 440 / 200 / 177 / 97 / 68 | 440 / 200 / 177 / 97 / 68 |
+  | granite / diorite / andesite / copper ore / coal ore layers | 13 / 9 / 8 / 4 / 1 | same | same |
+  | `minecraft:snow` (all heights) | 36193 | 36207 | 36142 |
+  | `minecraft:snow_block` | 25962 | 25962 | 25962 |
+
+  Of the 197 chunks identical in both phase 1 after-runs, 15 differ, all on the edge of the
+  area. Totals outside the range of the two after-runs are spruce leaves (-117, with the snow on
+  them, -51), ore blobs and dripstone; among layer blocks only podzol +1 and coarse dirt -1. Same
+  kind and size of noise as phase 1 found between two runs of one build: no change found.
+- 1.21.1 NeoForge server: starts with both `@Mod` classes, new world, 52 chunks generated, 9,139
+  layer blocks in them (podzol, coarse dirt, grass, dirt, mossy cobblestone, sand).
+- On the Fabric server: `powder_snow_layer` places, and turns into powder snow at 8 layers; a zinc
+  ore layer at 8 stays a layer without Create; both zinc tags apply; mining one with an iron
+  pickaxe drops the layer; 6 data packs as before.
+
+Not checked: any client (config screen and its text from the new language folder, Mod Menu
+button, plant grounding and stem models, the three blocks' models), Create installed, a
+NeoForge install next to the old gen jar (the `incompatible` entries), and the port script on a
+real version.

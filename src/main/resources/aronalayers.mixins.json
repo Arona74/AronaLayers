@@ -3,6 +3,7 @@
   "package": "io.arona74.aronalayers.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
+    "EntityTouchingPowderSnowAccessor",
     "MixinStainedGlassBlock",
     "MixinTransparentBlock"
   ],

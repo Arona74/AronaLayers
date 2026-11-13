@@ -4,6 +4,7 @@ import java.util.concurrent.CompletableFuture;
 
 import io.arona74.aronalayers.AronaLayers;
 import io.arona74.aronalayers.block.Layer3DBlock;
+import io.arona74.aronalayers.block.ModBlocks;
 import io.arona74.aronalayers.registry.Args;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -22,7 +23,8 @@ public class ModLanguageProvider extends FabricLanguageProvider {
 	@Override
 	public void generateTranslations(HolderLookup.Provider wrapperLookup, TranslationBuilder translationBuilder) {
 		BuiltInRegistries.BLOCK.stream().filter(AronaLayers::isNamespaced).forEach(block -> {
-			if (Args.DATAGEN_ARGS.containsKey(block) || block instanceof Layer3DBlock) {
+			if (Args.DATAGEN_ARGS.containsKey(block) || block instanceof Layer3DBlock
+					|| block == ModBlocks.POWDER_SNOW_LAYER || block == ModBlocks.ZINC_ORE_LAYER || block == ModBlocks.DEEPSLATE_ZINC_ORE_LAYER) {
 				ResourceLocation identifier = BuiltInRegistries.BLOCK.getKey(block);
 				String[] var10000 = identifier.getPath().split("_");
 				StringBuilder stringBuilder = new StringBuilder();

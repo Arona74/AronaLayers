@@ -1,0 +1,44 @@
+package io.arona74.aronalayers.gen;
+
+import io.arona74.aronalayers.AronaLayers;
+import io.arona74.aronalayers.gen.command.ChunkDebugCommand;
+import io.arona74.aronalayers.gen.command.TellusDebugCommand;
+import io.arona74.aronalayers.gen.grounding.GroundingFlags;
+import io.arona74.aronalayers.gen.injection.RTFLayerInjector;
+import io.arona74.aronalayers.gen.platform.Platform;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * Loader-independent setup of terrain generation with layers (the former Arona Layers Generator
+ * mod). Each loader's entry point for it (gen.fabric.AronaLayersGenFabric,
+ * gen.neoforge.AronaLayersGenNeoForge) calls {@link #init()}. The layer blocks themselves are
+ * registered by {@link AronaLayers#init()}.
+ */
+public final class AronaLayersGen {
+    private AronaLayersGen() {}
+
+    public static final String MOD_ID = AronaLayers.MOD_ID;
+    public static final Logger LOGGER = LoggerFactory.getLogger("AronaLayers/Gen");
+
+    public static void init() {
+        LOGGER.info("Initializing terrain generation with layers");
+
+        Platform.registerCommands(dispatcher -> {
+            ChunkDebugCommand.register(dispatcher);
+            TellusDebugCommand.register(dispatcher);
+        });
+
+        // Re-map layers whose RTF surface was swapped to beach/river sand after POST_FEATURES
+        // injection; runs at chunk-load so it catches spawn/cross-border chunks the in-init pass misses.
+        Platform.onChunkLoad(RTFLayerInjector::onChunkLoadRemap);
+
+        // Plant grounding answers "not grounded" until now: shapes are queried during vanilla's
+        // block bootstrap, before the config can safely load (see GroundingFlags).
+        GroundingFlags.ready = true;
+
+        LOGGER.info("[Config] layer_injection={} plant_injection={} tree_injection={}"
+            + " (each dimension's layer source is detected when it first generates)",
+            LayerConfig.LAYER_INJECTION, LayerConfig.PLANT_INJECTION, LayerConfig.TREE_INJECTION);
+    }
+}

@@ -1,0 +1,2504 @@
+package io.arona74.aronalayers.gen.injection;
+
+import io.arona74.aronalayers.gen.Ids;
+import io.arona74.aronalayers.gen.AronaLayersGen;
+import io.arona74.aronalayers.gen.Compat;
+import io.arona74.aronalayers.gen.BlockMappingRegistry;
+import io.arona74.aronalayers.gen.LayerConfig;
+import io.arona74.aronalayers.gen.PlantMappingRegistry;
+import io.arona74.aronalayers.gen.grounding.GroundingFlags;
+import io.arona74.aronalayers.gen.grounding.PlantGrounding;
+import io.arona74.aronalayers.gen.platform.Platform;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.FluidTags;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.core.Holder;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.Property;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.levelgen.Heightmap;
+
+import java.util.HashSet;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import it.unimi.dsi.fastutil.longs.LongSet;
+import net.minecraft.world.level.levelgen.structure.StructurePiece;
+import net.minecraft.world.level.levelgen.structure.StructureStart;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.WorldGenRegion;
+import net.minecraft.world.level.WorldGenLevel;
+import net.minecraft.world.level.LevelSimulatedReader;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.levelgen.structure.Structure;
+
+/**
+ * Shared helper for layer placement logic used by both RTF and vanilla injectors.
+ * Contains registry access, property handling, decoration placement, structure detection,
+ * and the core per-column injection logic.
+ *
+ * The layer blocks are this mod's (block.ModBlocks), mapped from terrain blocks by
+ * al_block_mappings.json; they use the standard vanilla LAYERS property (1-8).
+ */
+public class LayerPlacementHelper {
+
+    // ========== Registry Access ==========
+
+    private static BlockMappingRegistry mappingRegistry;
+
+    public static BlockMappingRegistry getMappingRegistry() {
+        if (mappingRegistry == null) {
+            mappingRegistry = new BlockMappingRegistry("al_block_mappings.json");
+        }
+        return mappingRegistry;
+    }
+
+
+    /**
+     * Removes vanilla's snow dusting when it is left floating by a surface demotion.
+     *
+     * <p>Snow layers never block motion, at any depth — a {@code snow[7]} reads as non-solid to
+     * both OCEAN_FLOOR and MOTION_BLOCKING. A {@code snow_block} does block it. So on a snowy peak
+     * vanilla's ordering is: surface rules place a snow_block, MOTION_BLOCKING therefore points a
+     * block higher, and FREEZE_TOP_LAYER drops {@code snow[1]} on top of it.
+     *
+     * <p>Converting that snow_block into a snow layer is correct for depth, but it stops blocking
+     * motion, and the dusting that was resting on it is left hanging one block above the surface —
+     * the {@code snow[8]} with a {@code snow[1]} floating over it. The layer below was never placed
+     * twice; the block underneath the dusting simply changed out from under it, so the dusting has
+     * to go with it.
+     */
+    private static void clearStrandedSnowAbove(ChunkAccess chunk, BlockPos surfacePos, int worldX, int worldZ) {
+        BlockPos above = surfacePos.above();
+        if (chunk.getBlockState(above).getBlock() != Blocks.SNOW) return;
+        setBlockStateSafe(chunk, above, Blocks.AIR.defaultBlockState());
+        if (LayerConfig.logSnow()) {
+            AronaLayersGen.LOGGER.info("[Snow] ({},{}) cleared stranded vanilla snow at Y={}",
+                worldX, worldZ, above.getY());
+        }
+    }
+
+    /**
+     * Whether a block counts as the terrain surface for the purpose of anchoring a layer.
+     *
+     * <p>Ground scans used to test {@code hasMappingFor} instead, i.e. "does this block have a
+     * layer variant". That is a different question, and getting it wrong is expensive: packed_ice
+     * has no layer variant but is perfectly good terrain, so on frozen peaks the scan walked
+     * straight past it and anchored several blocks too low. Every one of those columns then read
+     * as the field disagreeing with the world and got no layer at all — 145 of 256 in a measured
+     * chunk, which is also what pushed the chunk over the skip threshold.
+     *
+     * <p>What actually disqualifies a block is being something the mod or a feature put on top of
+     * the terrain: our own layer blocks, and tree canopies, both of which block motion and would
+     * otherwise be mistaken for ground. Anything else solid is ground, mapped or not.
+     *
+     * <p>powder_snow is the one piece of terrain that fails the motion test: entities fall through
+     * it, so {@code blocksMotion()} is false and OCEAN_FLOOR does not count it. It is still terrain
+     * — vanilla's surface rules substitute it for the top block of a column, the same way they
+     * substitute snow_block — so a scan that walked past it anchored on the stone underneath and
+     * measured the wrong block. It is accepted here explicitly.
+     */
+    public static boolean isGroundBlock(BlockState state) {
+        if (state.is(Blocks.POWDER_SNOW)) return true;
+        if (!Compat.blocksMotion(state)) return false;
+        if (getMappingRegistry().isLayerBlock(state.getBlock())) return false;
+        if (isCoralBlock(state)) return false;
+        return !isTreePart(state);
+    }
+
+    /**
+     * Part of a tree: leaves, logs, huge mushrooms (stem and cap), or the End's chorus plants, which
+     * grow the same way — a stem on the ground with branches over the neighbouring columns. None of it is ground, and none
+     * of it is a structure roof over the column below.
+     */
+    public static boolean isTreePart(BlockState state) {
+        return state.is(BlockTags.LEAVES) || state.is(BlockTags.LOGS)
+            || state.is(Blocks.CHORUS_PLANT) || state.is(Blocks.CHORUS_FLOWER)
+            || state.getBlock() instanceof net.minecraft.world.level.block.HugeMushroomBlock;
+    }
+
+    /**
+     * Ground height per column: the first free Y above real terrain, for all 16x16 columns.
+     *
+     * <p>Deliberately not a bare heightmap read, for two reasons.
+     *
+     * <p>First, the injector runs twice per chunk — once at {@code generateFeatures} and again at
+     * {@code LevelChunk.<init>} — and on the second pass the heightmap counts the layers the first
+     * pass placed. A neighbour carrying a thick layer then measures a block taller than its terrain,
+     * so a column the first pass correctly left bare sees a phantom step up and gains a layer on the
+     * second; its own position is still air, so the not-air guard never catches it. That is the
+     * isolated-column artifact, and reading terrain rather than block tops is what prevents it.
+     *
+     * <p>Second, powder_snow does not block motion, so the heightmap reports the free Y as the
+     * powder_snow block's own position rather than above it. The scan climbs the full pile so the
+     * caller measures the top of the snow, not the stone buried underneath it. Without this the
+     * density field's surface crossing landed a block above the anchor and every powder_snow column
+     * took the overfull branch — a flat maximal count with no gradient, which is the same defect
+     * snow_block had for the same underlying reason.
+     *
+     * <p>Shared between the injector and /algdebug: they kept separate copies, only one of which
+     * climbed powder snow, so the command disagreed with the run it was supposed to be explaining.
+     */
+    public static int[][] computeGroundFloorYs(ChunkAccess chunk, Heightmap.Types hmType,
+                                               int startX, int startZ, int worldBottom) {
+        int[][] heights = new int[16][16];
+        for (int lx = 0; lx < 16; lx++) {
+            for (int lz = 0; lz < 16; lz++) {
+                int hmY = chunk.getOrCreateHeightmapUnprimed(hmType).getFirstAvailable(lx, lz);
+                if (hmY <= worldBottom) {
+                    heights[lx][lz] = worldBottom;
+                    continue;
+                }
+
+                int wx = startX + lx;
+                int wz = startZ + lz;
+
+                // powder_snow sits AT the reported free Y, not below it. Climb the whole pile.
+                if (chunk.getBlockState(new BlockPos(wx, hmY, wz)).is(Blocks.POWDER_SNOW)) {
+                    hmY++;
+                    while (chunk.getBlockState(new BlockPos(wx, hmY, wz)).is(Blocks.POWDER_SNOW)) {
+                        hmY++;
+                    }
+                }
+
+                if (isGroundBlock(chunk.getBlockState(new BlockPos(wx, hmY - 1, wz)))) {
+                    heights[lx][lz] = hmY;
+                    continue;
+                }
+
+                int found = worldBottom;
+                for (int dy = 1; dy <= 30; dy++) {
+                    int cy = hmY - 1 - dy;
+                    if (cy <= worldBottom) break;
+                    if (isGroundBlock(chunk.getBlockState(new BlockPos(wx, cy, wz)))) {
+                        found = cy + 1;
+                        break;
+                    }
+                }
+                heights[lx][lz] = found;
+            }
+        }
+        return heights;
+    }
+
+    /**
+     * A surface puddle: water in the cell above the column's top solid block, with no water above it.
+     *
+     * <p>Vanilla's swamp and mangrove-swamp surface rules replace the top terrain block at Y=62 with
+     * water to make shallow puddles. The density field still describes ground there, so the column
+     * reads as overfull and used to receive a near-full waterlogged layer inside the puddle, sitting
+     * half a block to a block below the layered ground around it with the lily pads floating over
+     * it. Puddles are left as water instead. Requiring dry above keeps this to one-block pockets:
+     * rivers, lakes and the sea floor have water above their layer cell and are layered as before.
+     * Reads the cell's fluid, so a waterlogged layer already placed there still counts (/algdebug).
+     */
+    public static boolean isSurfacePuddle(net.minecraft.world.level.BlockGetter level, int x, int topSolidY, int z) {
+        return LayerConfig.SWAMP_PUDDLES_AS_WATER
+            && level.getBlockState(new BlockPos(x, topSolidY + 1, z)).getFluidState().is(FluidTags.WATER)
+            && !level.getBlockState(new BlockPos(x, topSolidY + 2, z)).getFluidState().is(FluidTags.WATER);
+    }
+
+    /** Biome -> is a swamp, by id ("swamp" anywhere in it). */
+    private static final ConcurrentHashMap<Biome, Boolean> swampBiomeCache = new ConcurrentHashMap<>();
+
+    /**
+     * The layer count lowered by {@code reduce_swamp_layers_value} in a swamp biome, when
+     * {@code reduce_swamp_layers} is on; unchanged otherwise. Never below 0 (no layer).
+     */
+    public static int applySwampReduction(int layerCount, Holder<Biome> biome) {
+        if (!LayerConfig.REDUCE_SWAMP_LAYERS || layerCount <= 0) return layerCount;
+        boolean swamp = swampBiomeCache.computeIfAbsent(biome.value(), b ->
+            biome.unwrapKey().map(key -> Compat.keyId(key).contains("swamp")).orElse(false));
+        return swamp ? Math.max(0, layerCount - LayerConfig.REDUCE_SWAMP_LAYERS_VALUE) : layerCount;
+    }
+
+    public static boolean hasMappingFor(Block surfaceBlock) {
+        return getMappingRegistry().hasMapping(surfaceBlock);
+    }
+
+    public static Block getMappedLayerBlock(Block surfaceBlock, int layerCount) {
+        return getMappingRegistry().getLayerBlock(surfaceBlock, layerCount);
+    }
+
+    private static PlantMappingRegistry plantRegistry;
+
+    public static PlantMappingRegistry getPlantRegistry() {
+        if (plantRegistry == null) {
+            plantRegistry = new PlantMappingRegistry();
+        }
+        return plantRegistry;
+    }
+
+    // ========== Property Handling ==========
+
+    /**
+     * Set the layer count (vanilla LAYERS, 1-8) on a block state that has one.
+     */
+    public static BlockState applyLayerCount(BlockState state, Block block, int layerCount) {
+        if (state.hasProperty(BlockStateProperties.LAYERS)) {
+            return state.setValue(BlockStateProperties.LAYERS, layerCount);
+        }
+        return state;
+    }
+
+    /**
+     * Read the layer count (1-8) from a block state; 1 when it has none.
+     */
+    public static int readLayerCount(BlockState state) {
+        // An AronaLayers 3D layer: its floor part (vertical_layers, 0 for a wall alone).
+        if (Layer3D.is(state.getBlock())) return Layer3D.verticalLayers(state);
+        if (state.hasProperty(BlockStateProperties.LAYERS)) {
+            return state.getValue(BlockStateProperties.LAYERS);
+        }
+        return 1;
+    }
+
+    /**
+     * Check if a block state has a layer property (vanilla LAYERS, or a 3D layer's).
+     */
+    public static boolean hasLayerProperty(BlockState state) {
+        if (state.hasProperty(BlockStateProperties.LAYERS)) return true;
+        return Layer3D.is(state.getBlock());   // vertical_layers / horizontal_layers
+    }
+
+    private static final ConcurrentHashMap<Block, java.util.Optional<Property<?>>> facingPropertyCache = new ConcurrentHashMap<>();
+
+    /**
+     * A layer standing against a wall rather than lying on the ground: an AronaLayers 3D layer
+     * (see Layer3DWalls), or a layer property and a horizontal {@code facing} (AronaLayers layers
+     * placed sideways by hand). Its count is a thickness, not a
+     * height, and the block under it is usually air,
+     * so every pass that reads a column's top layer as a floor must leave it alone: remapping it
+     * by "the block below" would turn it into the wrong material or delete it.
+     */
+    public static boolean isWallPiece(BlockState state) {
+        if (!hasLayerProperty(state)) return false;
+        // A 3D layer always carries a wall part (Layer3D); its floor part is not a plain floor layer.
+        if (Layer3D.is(state.getBlock())) return true;
+        Property<?> facing = facingPropertyCache.computeIfAbsent(state.getBlock(), b -> {
+            for (Property<?> p : b.getStateDefinition().getProperties()) {
+                if (p.getName().equals("facing")) return java.util.Optional.of(p);
+            }
+            return java.util.Optional.empty();
+        }).orElse(null);
+        return facing != null && state.getValue(facing) instanceof Direction d && d.getAxis().isHorizontal();
+    }
+
+    /** A layer lying on the ground: has a layer property and is not a wall piece. */
+    public static boolean isFloorLayer(BlockState state) {
+        return hasLayerProperty(state) && !isWallPiece(state);
+    }
+
+    // ========== Block Utilities ==========
+
+    public static boolean isTallPlant(BlockState state) {
+        return state.hasProperty(BlockStateProperties.DOUBLE_BLOCK_HALF);
+    }
+
+    // Cache for full-block lookups (layer block -> full block equivalent)
+    private static final ConcurrentHashMap<Block, Block> fullBlockCache = new ConcurrentHashMap<>();
+
+    /**
+     * Derive the full-block equivalent of a layer/slab block by removing
+     * common suffixes (_slab, _layer) from the block ID.
+     */
+    public static Block getFullBlock(Block layerBlock) {
+        Block result = fullBlockCache.computeIfAbsent(layerBlock, b -> {
+            String layerId = Compat.blockId(b);
+            String path = Ids.path(layerId);
+            String namespace = Ids.namespace(layerId);
+            for (String suffix : new String[]{"_slab", "_layer"}) {
+                if (path.endsWith(suffix)) {
+                    String fullPath = path.substring(0, path.length() - suffix.length());
+                    String fullId = Ids.of(namespace, fullPath);
+                    Block fullBlock = Compat.blockFromId(fullId);
+                    if (fullBlock != Blocks.AIR) return fullBlock;
+                }
+            }
+            return Blocks.AIR; // sentinel for "not found" since ConcurrentHashMap disallows null values
+        });
+        return result == Blocks.AIR ? null : result;
+    }
+
+    /**
+     * Full-block to place when a native layer block maxes out at 8 layers, mirroring
+     * powder_snow_layer -> powder_snow. Placing the full block directly avoids the cascading
+     * onBlockAdded conversion (which can hang during chunk init). Returns the input unchanged for
+     * sub-8 counts and for AronaLayers layer blocks, which keep their own layers=8 model.
+     */
+    private static Block resolveMaxedLayerBlock(Block layerBlock, int layerCount) {
+        if (layerCount < 8) return layerBlock;
+        if (layerBlock == io.arona74.aronalayers.block.ModBlocks.POWDER_SNOW_LAYER) return Blocks.POWDER_SNOW;
+        if (layerBlock instanceof io.arona74.aronalayers.custom_blocks.ConvertingLayerBlock lb) {
+            Block full = lb.getFullBlock();
+            return full == Blocks.AIR ? layerBlock : full;
+        }
+        return layerBlock;
+    }
+
+    // Cached references to the pale_garden decorations added in 1.21.4 (Blocks.AIR = not present on
+    // older versions): pale_hanging_moss dangles from the canopy into the placement position, and
+    // pale_moss_carpet sits on the floor at the placement position. Both are decoration, not terrain,
+    // so treat them as overwritable — otherwise the not-air guard skips the column and no layer is
+    // placed. The layer takes their spot (the carpet is replaced; the hanging moss keeps the
+    // canopy-anchored remainder above).
+    private static volatile Block cachedPaleHangingMoss = null;
+    private static volatile Block cachedPaleMossCarpet = null;
+    private static Block paleHangingMoss() {
+        Block moss = cachedPaleHangingMoss;
+        if (moss == null) {
+            String id = Compat.normalizeId("minecraft:pale_hanging_moss");
+            moss = (id != null) ? Compat.blockFromId(id) : Blocks.AIR;
+            cachedPaleHangingMoss = moss;
+        }
+        return moss;
+    }
+    private static Block paleMossCarpet() {
+        Block carpet = cachedPaleMossCarpet;
+        if (carpet == null) {
+            String id = Compat.normalizeId("minecraft:pale_moss_carpet");
+            carpet = (id != null) ? Compat.blockFromId(id) : Blocks.AIR;
+            cachedPaleMossCarpet = carpet;
+        }
+        return carpet;
+    }
+    private static boolean isOverwritablePaleVegetation(Block block) {
+        Block moss = paleHangingMoss();
+        Block carpet = paleMossCarpet();
+        return (moss != Blocks.AIR && block == moss) || (carpet != Blocks.AIR && block == carpet);
+    }
+
+    /**
+     * After a layer overwrites the lowest pale_hanging_moss segment, the segment now directly above
+     * the layer becomes the new bottom of the strand, so it must carry {@code tip=true} (the tapered
+     * end) or it renders with a flat cut. The "tip" property is looked up by name from the block's
+     * state definition because {@code BlockStateProperties.TIP} only exists on 1.21.4+ and this is
+     * shared code compiled against older versions too.
+     */
+    private static void fixHangingMossTipAbove(ChunkAccess chunk, BlockPos layerPos) {
+        Block moss = paleHangingMoss();
+        if (moss == Blocks.AIR) return;
+        BlockPos abovePos = layerPos.above();
+        BlockState aboveState = chunk.getBlockState(abovePos);
+        if (aboveState.getBlock() != moss) return;
+        net.minecraft.world.level.block.state.properties.Property<?> tipProp =
+            moss.getStateDefinition().getProperty("tip");
+        if (tipProp instanceof net.minecraft.world.level.block.state.properties.BooleanProperty boolTip
+                && !aboveState.getValue(boolTip)) {
+            setBlockStateSafe(chunk, abovePos, aboveState.setValue(boolTip, true));
+        }
+    }
+
+    /**
+     * Pale moss carpet climbs and stacks, so a strand can be several blocks tall. When the layer
+     * takes the bottom segment, the segment(s) directly above lose their support and would float, so
+     * clear the contiguous run of carpet above the layer.
+     */
+    private static void clearStackedMossCarpetAbove(ChunkAccess chunk, BlockPos layerPos) {
+        Block carpet = paleMossCarpet();
+        if (carpet == Blocks.AIR) return;
+        BlockPos p = layerPos.above();
+        while (chunk.getBlockState(p).getBlock() == carpet) {
+            setBlockStateSafe(chunk, p, Blocks.AIR.defaultBlockState());
+            p = p.above();
+        }
+    }
+
+    // ========== Structure Detection ==========
+
+    private static final java.util.Set<Block> STRUCTURE_BLOCKS = java.util.Set.of(
+        Blocks.COBBLESTONE, Blocks.MOSSY_COBBLESTONE, Blocks.STONE_BRICKS,
+        Blocks.MOSSY_STONE_BRICKS, Blocks.CRACKED_STONE_BRICKS, Blocks.CHISELED_STONE_BRICKS,
+        Blocks.OAK_PLANKS, Blocks.SPRUCE_PLANKS, Blocks.BIRCH_PLANKS, Blocks.JUNGLE_PLANKS,
+        Blocks.ACACIA_PLANKS, Blocks.DARK_OAK_PLANKS, Blocks.MANGROVE_PLANKS,
+        Blocks.CHERRY_PLANKS, Blocks.BAMBOO_PLANKS,
+        Blocks.OAK_LOG, Blocks.SPRUCE_LOG, Blocks.BIRCH_LOG, Blocks.JUNGLE_LOG,
+        Blocks.ACACIA_LOG, Blocks.DARK_OAK_LOG,
+        Blocks.STRIPPED_OAK_LOG, Blocks.STRIPPED_SPRUCE_LOG, Blocks.STRIPPED_BIRCH_LOG,
+        Blocks.STRIPPED_JUNGLE_LOG, Blocks.STRIPPED_ACACIA_LOG, Blocks.STRIPPED_DARK_OAK_LOG,
+        Blocks.BRICKS, Blocks.STONE, Blocks.SMOOTH_STONE, Blocks.POLISHED_ANDESITE,
+        Blocks.POLISHED_DIORITE, Blocks.POLISHED_GRANITE, Blocks.DEEPSLATE_BRICKS,
+        Blocks.DEEPSLATE_TILES, Blocks.SANDSTONE, Blocks.SMOOTH_SANDSTONE, Blocks.CUT_SANDSTONE,
+        Blocks.RED_SANDSTONE, Blocks.SMOOTH_RED_SANDSTONE, Blocks.NETHER_BRICKS,
+        Blocks.BLACKSTONE, Blocks.POLISHED_BLACKSTONE, Blocks.POLISHED_BLACKSTONE_BRICKS,
+        Blocks.END_STONE_BRICKS
+    );
+
+    public static boolean isStructureBlock(Block block) {
+        return STRUCTURE_BLOCKS.contains(block);
+    }
+
+    private static final ThreadLocal<List<BoundingBox>> structureBoundsLocal = new ThreadLocal<>();
+    private static final ThreadLocal<List<BoundingBox>> structureFootprintLocal = new ThreadLocal<>();
+
+    public static void prepareStructureBounds(ChunkAccess chunk, WorldGenRegion region) {
+        if (!LayerConfig.STRUCTURE_INJECTION) {
+            structureBoundsLocal.remove();
+            structureFootprintLocal.remove();
+            return;
+        }
+
+        List<BoundingBox> bounds = new ArrayList<>();
+
+        try {
+            if (LayerConfig.logStructure()) {
+                AronaLayersGen.LOGGER.info("[Structure] ChunkAccess {},{}: getStructureStarts() count={} thread={}",
+                    Compat.chunkX(chunk.getPos()), Compat.chunkZ(chunk.getPos()),
+                    chunk.getAllStarts().size(),
+                    Thread.currentThread().getName());
+            }
+
+            for (StructureStart start : chunk.getAllStarts().values()) {
+                if (start == StructureStart.INVALID_START) continue;
+                if (LayerConfig.logStructure()) {
+                    AronaLayersGen.LOGGER.info("[Structure] ChunkAccess {},{}: collecting start={} pieces={}",
+                        Compat.chunkX(chunk.getPos()), Compat.chunkZ(chunk.getPos()),
+                        start.getClass().getSimpleName(),
+                        start.getPieces().size());
+                }
+                for (StructurePiece piece : start.getPieces()) {
+                    bounds.add(piece.getBoundingBox());
+                }
+            }
+
+            if (LayerConfig.logStructure()) {
+                AronaLayersGen.LOGGER.info("[Structure] ChunkAccess {},{}: starts done, boxes={}",
+                    Compat.chunkX(chunk.getPos()), Compat.chunkZ(chunk.getPos()), bounds.size());
+            }
+
+            // Only resolve cross-chunk structure references when a WorldGenRegion is available.
+            // Passing null (POST_FEATURES / LevelChunk context) skips this loop entirely —
+            // iterating refs with a null region would throw a NullPointerException for every
+            // reference entry, which is very expensive near large structures.
+            if (region != null && LayerConfig.CROSS_CHUNK_STRUCTURE_DETECTION) {
+                Map<Structure, LongSet> refs = chunk.getAllReferences();
+                for (Map.Entry<Structure, LongSet> entry : refs.entrySet()) {
+                    Structure structure = entry.getKey();
+                    for (long packedPos : entry.getValue()) {
+                        int refChunkX = ChunkPos.getX(packedPos);
+                        int refChunkZ = ChunkPos.getZ(packedPos);
+                        try {
+                            ChunkAccess refChunk = region.getChunk(refChunkX, refChunkZ);
+                            if (refChunk != null) {
+                                StructureStart start = refChunk.getStartForStructure(structure);
+                                if (start != null && start != StructureStart.INVALID_START) {
+                                    for (StructurePiece piece : start.getPieces()) {
+                                        bounds.add(piece.getBoundingBox());
+                                    }
+                                }
+                            }
+                        } catch (Exception e) {
+                            // Neighboring chunk not available, skip
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            AronaLayersGen.LOGGER.debug("[Structure] Error collecting structure bounds: {}", e.getMessage());
+        }
+
+        if (LayerConfig.logStructure()) {
+            AronaLayersGen.LOGGER.info("[Structure] ChunkAccess {},{}: prepareStructureBounds complete, total boxes={}",
+                Compat.chunkX(chunk.getPos()), Compat.chunkZ(chunk.getPos()), bounds.size());
+        }
+
+        // Always set the ThreadLocal, even when empty. A null value means
+        // prepareStructureBounds was never called on this thread for this chunk,
+        // which causes isInsideStructure to fall back to a per-call scan.
+        // An empty list means "called and found nothing" — isInsideStructure returns false immediately.
+        structureBoundsLocal.set(bounds);
+
+        // Footprint: hull of each StructureStart's pieces.
+        List<BoundingBox> footprints = new ArrayList<>();
+        if (LayerConfig.STRUCTURE_FOOTPRINT_CHECK) {
+            try {
+                for (StructureStart start : chunk.getAllStarts().values()) {
+                    if (start == StructureStart.INVALID_START || start.getPieces().isEmpty()) continue;
+                    footprints.add(start.getBoundingBox());
+                }
+                if (region != null && LayerConfig.CROSS_CHUNK_STRUCTURE_DETECTION) {
+                    Map<Structure, LongSet> refs = chunk.getAllReferences();
+                    for (Map.Entry<Structure, LongSet> entry : refs.entrySet()) {
+                        Structure structure = entry.getKey();
+                        for (long packedPos : entry.getValue()) {
+                            int refChunkX = ChunkPos.getX(packedPos);
+                            int refChunkZ = ChunkPos.getZ(packedPos);
+                            try {
+                                ChunkAccess refChunk = region.getChunk(refChunkX, refChunkZ);
+                                if (refChunk != null) {
+                                    StructureStart refStart = refChunk.getStartForStructure(structure);
+                                    if (refStart != null && refStart != StructureStart.INVALID_START && !refStart.getPieces().isEmpty()) {
+                                        footprints.add(refStart.getBoundingBox());
+                                    }
+                                }
+                            } catch (Exception e) {
+                                // Neighboring chunk not available, skip
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                AronaLayersGen.LOGGER.debug("[Structure] Error collecting footprint bounds: {}", e.getMessage());
+            }
+        }
+        structureFootprintLocal.set(footprints);
+    }
+
+    /**
+     * Like prepareStructureBounds but for POST_FEATURES mode.
+     * Uses ServerLevel.getChunkManager().getChunkNow() (non-blocking, returns null if not loaded)
+     * to resolve cross-chunk structure references without deadlock risk.
+     * This catches village bounding boxes that started in a neighboring chunk.
+     */
+    public static void prepareStructureBoundsWithWorld(ChunkAccess chunk, ServerLevel world) {
+        if (!LayerConfig.STRUCTURE_INJECTION) {
+            structureBoundsLocal.remove();
+            structureFootprintLocal.remove();
+            return;
+        }
+
+        List<BoundingBox> bounds = new ArrayList<>();
+
+        try {
+            if (LayerConfig.logStructure()) {
+                AronaLayersGen.LOGGER.info("[Structure] ChunkAccess {},{}: getStructureStarts() count={} thread={}",
+                    Compat.chunkX(chunk.getPos()), Compat.chunkZ(chunk.getPos()),
+                    chunk.getAllStarts().size(),
+                    Thread.currentThread().getName());
+            }
+
+            for (StructureStart start : chunk.getAllStarts().values()) {
+                if (start == StructureStart.INVALID_START) continue;
+                if (LayerConfig.logStructure()) {
+                    AronaLayersGen.LOGGER.info("[Structure] ChunkAccess {},{}: collecting start={} pieces={}",
+                        Compat.chunkX(chunk.getPos()), Compat.chunkZ(chunk.getPos()),
+                        start.getClass().getSimpleName(),
+                        start.getPieces().size());
+                }
+                for (StructurePiece piece : start.getPieces()) {
+                    bounds.add(piece.getBoundingBox());
+                }
+            }
+
+            // Resolve cross-chunk structure references using ServerLevel.
+            // getChunkNow() is non-blocking (returns null if not loaded), so this is
+            // safe in POST_FEATURES mode and cannot cause deadlocks or tick timeouts.
+            // This catches structures like villages whose start chunk differs from this chunk.
+            if (world != null) {
+                Map<Structure, LongSet> refs = chunk.getAllReferences();
+                for (Map.Entry<Structure, LongSet> entry : refs.entrySet()) {
+                    Structure structure = entry.getKey();
+                    for (long packedPos : entry.getValue()) {
+                        int refChunkX = ChunkPos.getX(packedPos);
+                        int refChunkZ = ChunkPos.getZ(packedPos);
+                        try {
+                            LevelChunk refChunk = world.getChunkSource().getChunkNow(refChunkX, refChunkZ);
+                            if (refChunk != null) {
+                                StructureStart refStart = refChunk.getStartForStructure(structure);
+                                if (refStart != null && refStart != StructureStart.INVALID_START) {
+                                    if (LayerConfig.logStructure()) {
+                                        AronaLayersGen.LOGGER.info("[Structure] ChunkAccess {},{}: cross-chunk ref from {},{} start={} pieces={}",
+                                            Compat.chunkX(chunk.getPos()), Compat.chunkZ(chunk.getPos()),
+                                            refChunkX, refChunkZ,
+                                            refStart.getClass().getSimpleName(),
+                                            refStart.getPieces().size());
+                                    }
+                                    for (StructurePiece piece : refStart.getPieces()) {
+                                        bounds.add(piece.getBoundingBox());
+                                    }
+                                }
+                            }
+                        } catch (Exception e) {
+                            // Neighboring chunk not available, skip
+                        }
+                    }
+                }
+
+            }
+        } catch (Exception e) {
+            AronaLayersGen.LOGGER.debug("[Structure] Error collecting structure bounds: {}", e.getMessage());
+        }
+
+        if (LayerConfig.logStructure()) {
+            AronaLayersGen.LOGGER.info("[Structure] ChunkAccess {},{}: prepareStructureBoundsWithWorld complete, total boxes={}",
+                Compat.chunkX(chunk.getPos()), Compat.chunkZ(chunk.getPos()), bounds.size());
+        }
+
+        structureBoundsLocal.set(bounds);
+
+        // Footprint: hull of each StructureStart's pieces.
+        List<BoundingBox> footprints = new ArrayList<>();
+        if (LayerConfig.STRUCTURE_FOOTPRINT_CHECK) {
+            try {
+                for (StructureStart start : chunk.getAllStarts().values()) {
+                    if (start == StructureStart.INVALID_START || start.getPieces().isEmpty()) continue;
+                    footprints.add(start.getBoundingBox());
+                }
+                if (world != null) {
+                    Map<Structure, LongSet> refs = chunk.getAllReferences();
+                    for (Map.Entry<Structure, LongSet> entry : refs.entrySet()) {
+                        Structure structure = entry.getKey();
+                        for (long packedPos : entry.getValue()) {
+                            int refChunkX = ChunkPos.getX(packedPos);
+                            int refChunkZ = ChunkPos.getZ(packedPos);
+                            try {
+                                LevelChunk refChunk = world.getChunkSource().getChunkNow(refChunkX, refChunkZ);
+                                if (refChunk != null) {
+                                    StructureStart refStart = refChunk.getStartForStructure(structure);
+                                    if (refStart != null && refStart != StructureStart.INVALID_START && !refStart.getPieces().isEmpty()) {
+                                        footprints.add(refStart.getBoundingBox());
+                                    }
+                                }
+                            } catch (Exception e) {
+                                // Neighboring chunk not available, skip
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                AronaLayersGen.LOGGER.debug("[Structure] Error collecting footprint bounds: {}", e.getMessage());
+            }
+        }
+        structureFootprintLocal.set(footprints);
+    }
+
+    public static void clearStructureBounds() {
+        structureBoundsLocal.remove();
+        structureFootprintLocal.remove();
+    }
+
+    // ========== Second-Pass Cleanup ==========
+
+    private static Set<Block> secondPassCleanupBlocks = null;
+
+    private static Set<Block> getSecondPassCleanupBlocks() {
+        if (secondPassCleanupBlocks == null) {
+            secondPassCleanupBlocks = new java.util.HashSet<>();
+            for (String id : io.arona74.aronalayers.gen.ConfigLoader.loadBlockList("second_pass_cleanup_blocks.json")) {
+                String identifier = Compat.normalizeId(id);
+                if (identifier == null) {
+                    AronaLayersGen.LOGGER.warn("[SecondPass] Invalid block ID: {}", id);
+                    continue;
+                }
+                Block block = Compat.blockFromId(identifier);
+                if (block == Blocks.AIR) {
+                    AronaLayersGen.LOGGER.warn("[SecondPass] Block not found: {}", id);
+                    continue;
+                }
+                secondPassCleanupBlocks.add(block);
+            }
+            AronaLayersGen.LOGGER.info("[SecondPass] Loaded {} trigger block(s)", secondPassCleanupBlocks.size());
+        }
+        return secondPassCleanupBlocks;
+    }
+
+    /** Positions (worldX, worldZ, Y) where a layer was blocked/removed over a trigger surface block. */
+    private static final ThreadLocal<List<int[]>> secondPassTargetsLocal = new ThreadLocal<>();
+
+    /**
+     * Record a gap position for second-pass tapering if the surface block is in the trigger set.
+     * Only acts when SECOND_PASS_CLEANUP is enabled.
+     */
+    public static void addSecondPassTarget(int worldX, int worldZ, int y, Block surfaceBlock) {
+        if (!LayerConfig.SECOND_PASS_CLEANUP) return;
+        if (!getSecondPassCleanupBlocks().contains(surfaceBlock)) return;
+        List<int[]> targets = secondPassTargetsLocal.get();
+        if (targets == null) {
+            targets = new ArrayList<>();
+            secondPassTargetsLocal.set(targets);
+        }
+        targets.add(new int[]{worldX, worldZ, y});
+    }
+
+    /**
+     * Taper layer values in the 8 in-chunk neighbors of every recorded gap position.
+     * - count > 4  → set to 4
+     * - count ≤ 4  → decrement by 1
+     * - count reaches 0 → remove block, move plant above down by 1
+     */
+    public static void runSecondPassCleanup(ChunkAccess chunk) {
+        List<int[]> targets = secondPassTargetsLocal.get();
+        secondPassTargetsLocal.remove();
+        if (targets == null || targets.isEmpty()) return;
+
+        ChunkPos chunkPos = chunk.getPos();
+        int baseX = chunkPos.getMinBlockX();
+        int baseZ = chunkPos.getMinBlockZ();
+        int cleaned = 0;
+
+        for (int[] target : targets) {
+            int targetX = target[0];
+            int targetZ = target[1];
+            int targetY = target[2];
+
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dz = -1; dz <= 1; dz++) {
+                    if (dx == 0 && dz == 0) continue;
+
+                    int nx = targetX + dx;
+                    int nz = targetZ + dz;
+                    int nlx = nx - baseX;
+                    int nlz = nz - baseZ;
+                    if (nlx < 0 || nlx >= 16 || nlz < 0 || nlz >= 16) continue;
+
+                    // Scan ±2 Y range around the gap Y for a layer block
+                    for (int dy = -2; dy <= 2; dy++) {
+                        BlockPos layerPos = new BlockPos(nx, targetY + dy, nz);
+                        BlockState state = chunk.getBlockState(layerPos);
+                        if (!isFloorLayer(state) || state.getBlock() == Blocks.SNOW) continue;
+
+                        int currentCount = readLayerCount(state);
+                        int newCount = currentCount > 4 ? 4 : currentCount - 1;
+                        // A lifted chorus plant stands on this layer: removing it would leave the
+                        // plant floating over an empty cell, so the layer keeps its last eighth.
+                        if (newCount <= 0 && isChorus(chunk.getBlockState(layerPos.above()))) newCount = 1;
+
+                        if (newCount <= 0) {
+                            setBlockStateSafe(chunk, layerPos, Blocks.AIR.defaultBlockState());
+                            // Move plant above down
+                            BlockPos abovePos = layerPos.above();
+                            BlockState aboveState = chunk.getBlockState(abovePos);
+                            if (!aboveState.isAir() && aboveState.canBeReplaced()) {
+                                setBlockStateSafe(chunk, layerPos, aboveState);
+                                setBlockStateSafe(chunk, abovePos, Blocks.AIR.defaultBlockState());
+                            }
+                        } else {
+                            setBlockStateSafe(chunk, layerPos, applyLayerCount(state, state.getBlock(), newCount));
+                        }
+                        cleaned++;
+                        break; // one layer block per neighbor column
+                    }
+                }
+            }
+        }
+
+        if (LayerConfig.logSecondPass() && cleaned > 0) {
+            AronaLayersGen.LOGGER.info("[SecondPass] ChunkAccess {},{}: tapered {} neighbor layer(s)",
+                Compat.chunkX(chunkPos), Compat.chunkZ(chunkPos), cleaned);
+        }
+    }
+
+    public static boolean hasEnclosingCeiling(ChunkAccess chunk, BlockPos pos, int maxHeight) {
+        for (int dy = 1; dy <= maxHeight; dy++) {
+            BlockPos checkPos = pos.above(dy);
+            BlockState state = chunk.getBlockState(checkPos);
+
+            if (state.isAir()) continue;
+            // Replaceable blocks (tall grass, flowers, snow layers, water) are not ceilings.
+            // Non-replaceable non-air blocks (stairs, slabs, glass, stone, fences, etc.) are.
+            if (state.canBeReplaced()) continue;
+            // Nor is a tree (or a chorus plant). Leaves and logs are neither air nor replaceable, so a canopy
+            // overhead used to read as an enclosing ceiling and suppress the column. This
+            // check exists to avoid layering inside structures; a tree is not one.
+            if (isTreePart(state)) continue;
+            // Nor is pale_hanging_moss dangling from that canopy — it is vegetation, not a
+            // structure ceiling, so it must not suppress or (via the correction pass) remove the
+            // layer below it, which left bare air under pale_garden moss.
+            if (isOverwritablePaleVegetation(state.getBlock())) continue;
+            // Nor are vines draped from a decoration log.
+            if (state.getBlock() == Blocks.VINE) continue;
+            // Nor is a plant or coral standing on this column (see isPlantCover).
+            if (isPlantCover(state)) continue;
+
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * A plant or coral: neither air nor replaceable, but not a structure either, so it must not
+     * read as a roof or as something built on top of a layer.
+     *
+     * <ul>
+     *   <li>Coral plants and fans, live or dead, floor or wall: coral fans read as solid and kept
+     *       layers from being placed (or left) under them on reefs. Coral blocks too: a reef is
+     *       not a building.</li>
+     *   <li>Lily pads and frogspawn floating on the water above a column: the water is not air,
+     *       so the scan reached them and read the pad as a roof over the riverbed.</li>
+     *   <li>Anything plant grounding treats as a plant: a 2+ block cactus, sugar cane or kelp (or
+     *       the upper half of a tall plant) read as a roof over its own column, and a plant lifted
+     *       onto a layer read as a block built on it.</li>
+     *   <li>A chorus plant, which {@link #liftChorusPlant} stands on a layer.</li>
+     * </ul>
+     */
+    public static boolean isPlantCover(BlockState state) {
+        Block block = state.getBlock();
+        if (block instanceof net.minecraft.world.level.block.BaseCoralPlantTypeBlock) return true;
+        if (isCoralBlock(state)) return true;
+        if (block == Blocks.LILY_PAD || block == Blocks.FROGSPAWN) return true;
+        if (isChorus(state)) return true;
+        return GroundingFlags.ready && PlantGrounding.isGroundedBlock(block);
+    }
+
+    private static final ConcurrentHashMap<Block, Boolean> coralBlockCache = new ConcurrentHashMap<>();
+
+    /**
+     * A full coral block, live or dead ({@code *_coral_block}). Dead coral blocks have no class or
+     * tag of their own (they are plain blocks), so they are matched by id.
+     */
+    public static boolean isCoralBlock(BlockState state) {
+        return coralBlockCache.computeIfAbsent(state.getBlock(), b -> {
+            String id = Compat.blockId(b);
+            return id != null && id.endsWith("_coral_block");
+        });
+    }
+
+    public static boolean isInsideStructure(ChunkAccess chunk, BlockPos pos) {
+        List<BoundingBox> bounds = structureBoundsLocal.get();
+        if (bounds != null) {
+            // Targeted debug: log all boxes that cover this XZ to diagnose missed detections
+            if (pos.getX() == -139 && pos.getZ() == 55) {
+                boolean anyXZ = false;
+                for (BoundingBox box : bounds) {
+                    if (box.minX() <= -139 && -139 <= box.maxX()
+                            && box.minZ() <= 55 && 55 <= box.maxZ()) {
+                        anyXZ = true;
+                        AronaLayersGen.LOGGER.info("[DebugBB] (-139,{},55) XZ-match: x=[{},{}] y=[{},{}] z=[{},{}]",
+                            pos.getY(), box.minX(), box.maxX(), box.minY(), box.maxY(), box.minZ(), box.maxZ());
+                    }
+                }
+                if (!anyXZ) {
+                    AronaLayersGen.LOGGER.info("[DebugBB] (-139,{},55) NO box covers this XZ. bounds.size={}", pos.getY(), bounds.size());
+                }
+            }
+            int xzExpand = LayerConfig.STRUCTURE_INJECTION_EXTRA_BOUNDS ? LayerConfig.STRUCTURE_INJECTION_EXTRA_BOUNDS_DISTANCE : 0;
+            for (BoundingBox box : bounds) {
+                if (box.isInside(pos)) return true;
+                // Also catch the beard-fill zone: terrain adaptation fills terrain up to
+                // piece.minY - 1, so the layer target (pos) may fall 1-2 blocks below the
+                // piece bottom but still within its XZ footprint.
+                if (box.minX() <= pos.getX() && pos.getX() <= box.maxX()
+                        && box.minZ() <= pos.getZ() && pos.getZ() <= box.maxZ()
+                        && pos.getY() >= box.minY() - 2 && pos.getY() < box.minY()) {
+                    return true;
+                }
+                // XZ buffer zone around the structure (does not change Y range)
+                if (xzExpand > 0
+                        && box.minX() - xzExpand <= pos.getX() && pos.getX() <= box.maxX() + xzExpand
+                        && box.minZ() - xzExpand <= pos.getZ() && pos.getZ() <= box.maxZ() + xzExpand
+                        && pos.getY() >= box.minY() - 2 && pos.getY() <= box.maxY()) {
+                    return true;
+                }
+            }
+            // Footprint check: XZ hull of each StructureStart, with Y range constraint.
+            // Catches cleared ground, plazas and paths between piece boxes.
+            if (LayerConfig.STRUCTURE_FOOTPRINT_CHECK) {
+                List<BoundingBox> footprints = structureFootprintLocal.get();
+                if (footprints != null) {
+                    for (BoundingBox box : footprints) {
+                        if (box.minX() <= pos.getX() && pos.getX() <= box.maxX()
+                                && box.minZ() <= pos.getZ() && pos.getZ() <= box.maxZ()
+                                && pos.getY() <= box.maxY() + LayerConfig.STRUCTURE_FOOTPRINT_ABOVE_MARGIN
+                                && pos.getY() >= box.minY() - LayerConfig.STRUCTURE_FOOTPRINT_BELOW_MARGIN) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        try {
+            int xzExpand = LayerConfig.STRUCTURE_INJECTION_EXTRA_BOUNDS ? LayerConfig.STRUCTURE_INJECTION_EXTRA_BOUNDS_DISTANCE : 0;
+            for (StructureStart start : chunk.getAllStarts().values()) {
+                if (start == StructureStart.INVALID_START) continue;
+                for (StructurePiece piece : start.getPieces()) {
+                    BoundingBox box = piece.getBoundingBox();
+                    if (box.isInside(pos)) return true;
+                    if (box.minX() <= pos.getX() && pos.getX() <= box.maxX()
+                            && box.minZ() <= pos.getZ() && pos.getZ() <= box.maxZ()
+                            && pos.getY() >= box.minY() - 2 && pos.getY() < box.minY()) {
+                        return true;
+                    }
+                    if (xzExpand > 0
+                            && box.minX() - xzExpand <= pos.getX() && pos.getX() <= box.maxX() + xzExpand
+                            && box.minZ() - xzExpand <= pos.getZ() && pos.getZ() <= box.maxZ() + xzExpand
+                            && pos.getY() >= box.minY() - 2 && pos.getY() <= box.maxY()) {
+                        return true;
+                    }
+                }
+                // Footprint check in the fallback (no ThreadLocal) path
+                if (LayerConfig.STRUCTURE_FOOTPRINT_CHECK && !start.getPieces().isEmpty()) {
+                    BoundingBox box = start.getBoundingBox();
+                    if (box.minX() <= pos.getX() && pos.getX() <= box.maxX()
+                            && box.minZ() <= pos.getZ() && pos.getZ() <= box.maxZ()
+                            && pos.getY() <= box.maxY() + LayerConfig.STRUCTURE_FOOTPRINT_ABOVE_MARGIN
+                            && pos.getY() >= box.minY() - LayerConfig.STRUCTURE_FOOTPRINT_BELOW_MARGIN) {
+                        return true;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // Silently skip
+        }
+        return false;
+    }
+
+    public static boolean isWaterAt(ChunkAccess chunk, BlockPos pos) {
+        BlockState state = chunk.getBlockState(pos);
+        if (state.getBlock() == Blocks.WATER) return true;
+        return state.hasProperty(BlockStateProperties.WATERLOGGED) && state.getValue(BlockStateProperties.WATERLOGGED);
+    }
+
+    // ========== Core Layer Placement ==========
+
+    public static final AtomicInteger debugSkipSnowy = new AtomicInteger();
+    public static final AtomicInteger debugSkipNoSurface = new AtomicInteger();
+    public static final AtomicInteger debugSkipNoMapping = new AtomicInteger();
+    public static final AtomicInteger debugSkipLayerZero = new AtomicInteger();
+    public static final AtomicInteger debugSkipNoLayerBlock = new AtomicInteger();
+    public static final AtomicInteger debugSkipNotAir = new AtomicInteger();
+    public static final AtomicInteger debugSkipEnclosed = new AtomicInteger();
+    public static final AtomicInteger debugSkipStructureElevated = new AtomicInteger();
+    public static final AtomicInteger debugSkipConservativeSurface = new AtomicInteger();
+    /** Not a skip: invisible marker blocks (minecraft:light) the layer overwrote. */
+    public static final AtomicInteger debugReplacedMarker = new AtomicInteger();
+
+    private static final AtomicInteger[] SKIP_COUNTERS = {
+        debugSkipSnowy, debugSkipNoSurface, debugSkipNoMapping, debugSkipLayerZero,
+        debugSkipNoLayerBlock, debugSkipNotAir, debugSkipEnclosed,
+        debugSkipStructureElevated, debugSkipConservativeSurface
+    };
+    private static final String[] SKIP_NAMES = {
+        "snowy", "no_surface", "no_mapping", "layer_zero",
+        "no_layer_block", "not_air", "enclosed",
+        "structure_elevated", "conservative_surface"
+    };
+
+    /** Snapshot of the skip counters, for attributing a single column's non-placement. */
+    public static int[] skipCountersSnapshot() {
+        int[] out = new int[SKIP_COUNTERS.length];
+        for (int i = 0; i < out.length; i++) out[i] = SKIP_COUNTERS[i].get();
+        return out;
+    }
+
+    /**
+     * Which gate rejected a column, by diffing against a snapshot taken just before
+     * the injection call. Best effort only: the counters are global and worldgen is
+     * threaded, so a concurrent column can occasionally be misattributed.
+     */
+    public static String skipReasonSince(int[] before) {
+        StringBuilder moved = new StringBuilder();
+        for (int i = 0; i < SKIP_COUNTERS.length; i++) {
+            if (SKIP_COUNTERS[i].get() != before[i]) {
+                if (moved.length() > 0) moved.append('+');
+                moved.append(SKIP_NAMES[i]);
+            }
+        }
+        return moved.length() == 0 ? "unknown" : moved.toString();
+    }
+
+    // ========== Structure Elevation Block Filter ==========
+
+    private static Set<Block> elevationProcessBlocks = null;
+
+    private static Set<Block> getElevationProcessBlocks() {
+        if (elevationProcessBlocks == null) {
+            elevationProcessBlocks = new java.util.HashSet<>();
+            for (String id : io.arona74.aronalayers.gen.ConfigLoader.loadBlockList("structure_elevation_blocks.json")) {
+                String identifier = Compat.normalizeId(id);
+                if (identifier == null) {
+                    AronaLayersGen.LOGGER.warn("[ElevationFilter] Invalid block ID: {}", id);
+                    continue;
+                }
+                Block block = Compat.blockFromId(identifier);
+                if (block == Blocks.AIR) {
+                    AronaLayersGen.LOGGER.warn("[ElevationFilter] Block not found: {}", id);
+                    continue;
+                }
+                elevationProcessBlocks.add(block);
+            }
+            AronaLayersGen.LOGGER.info("[ElevationFilter] Loaded {} blocks for structure elevation processing", elevationProcessBlocks.size());
+        }
+        return elevationProcessBlocks;
+    }
+
+    /**
+     * Inject a layer at a single position.
+     * Core shared placement logic used by both RTF and vanilla injectors.
+     *
+     * @param chunk The chunk being generated
+     * @param worldX World X coordinate
+     * @param worldZ World Z coordinate
+     * @param layerCount Pre-calculated layer count (0 = no layer, 1-8 = layer depth)
+     * @param useSnowLayers If true, use vanilla snow layers instead of block mappings
+     * @return true if a layer was placed
+     */
+    /**
+     * Inject a layer with an RTF-derived natural surface base Y for structure detection.
+     * rtfExpectedBaseY = floor(rtfHeight * worldHeight) — the noise-derived integer Y of
+     * the natural terrain surface. Unaffected by block placement order or C2ME timing.
+     * Use Integer.MIN_VALUE when RTF data is not available (falls back to snapshot).
+     */
+    public static boolean injectLayerAt(ChunkAccess chunk, int worldX, int worldZ, int layerCount, boolean useSnowLayers, int rtfExpectedBaseY) {
+        return injectLayerAtImpl(chunk, worldX, worldZ, layerCount, useSnowLayers, rtfExpectedBaseY, false);
+    }
+
+    /** Non-RTF callers: no expected base Y available, falls back to snapshot. */
+    public static boolean injectLayerAt(ChunkAccess chunk, int worldX, int worldZ, int layerCount, boolean useSnowLayers) {
+        return injectLayerAtImpl(chunk, worldX, worldZ, layerCount, useSnowLayers, Integer.MIN_VALUE, false);
+    }
+
+    /**
+     * Tellus variant. Same as {@link #injectLayerAt(ChunkAccess,int,int,int,boolean,int)} but, when the
+     * OCEAN_FLOOR surface block is a {@code minecraft:snow} layer (Tellus places these — typically
+     * value 8 — as the top block on snowy columns), a snow layer of {@code layerCount} is placed
+     * ON TOP of the snow stack instead of trying to map the snow as a material surface. RTF and
+     * vanilla keep their existing snow handling, so this behaviour is Tellus-only.
+     */
+    public static boolean injectLayerAtTellus(ChunkAccess chunk, int worldX, int worldZ, int layerCount, boolean useSnowLayers, int expectedBaseY) {
+        return injectLayerAtImpl(chunk, worldX, worldZ, layerCount, useSnowLayers, expectedBaseY, true);
+    }
+
+    private static boolean injectLayerAtImpl(ChunkAccess chunk, int worldX, int worldZ, int layerCount, boolean useSnowLayers, int rtfExpectedBaseY, boolean tellusOverSnow) {
+        int localX = worldX & 15;
+        int localZ = worldZ & 15;
+
+        boolean isWorldChunk = chunk instanceof LevelChunk;
+        Heightmap.Types hmType = isWorldChunk
+            ? Heightmap.Types.OCEAN_FLOOR : Heightmap.Types.OCEAN_FLOOR_WG;
+        int surfaceY = chunk.getOrCreateHeightmapUnprimed(hmType).getFirstAvailable(localX, localZ);
+
+        boolean isPostFeaturesContext = (LayerConfig.INJECTION_MODE == LayerConfig.InjectionMode.POST_FEATURES)
+            || isWorldChunk;
+
+        if (surfaceY <= Compat.minY(chunk)) {
+            debugSkipNoSurface.incrementAndGet();
+            return false;
+        }
+
+        // OCEAN_FLOOR counts leaves, so on a forested column the heightmap top is the tree
+        // canopy rather than the ground. Correct surfaceY once, here at the source: every
+        // consumer below reads it — the conservative-surface delta, the biome and cold
+        // lookups, and surfacePos itself — and a canopy-inflated value made all of them
+        // describe a block several metres above the real surface.
+        //
+        // This is what left columns unlayered under a neighbouring chunk's overhanging tree:
+        // that chunk's feature step had already run, so the canopy was present when this
+        // column was injected, the surface resolved to leaves, and the conservative gate
+        // rejected the column before the later scan-down could look past it.
+        //
+        // Only engages when the top block really is foliage, so ordinary columns are
+        // untouched. The descent passes over the canopy's air gaps as well as its leaves
+        // and trunk, stopping at the first block that genuinely blocks motion.
+        //
+        // Coral blocks get the same treatment: a reef is not ground, so the column's surface is the
+        // sea floor under it. Where a coral block rests directly on that floor (the base of the
+        // reef), the layer position is the coral itself and the not-air guard leaves the column
+        // alone; where water separates them, the floor gets its layer.
+        BlockState heightmapTop = chunk.getBlockState(new BlockPos(worldX, surfaceY - 1, worldZ));
+        if (isTreePart(heightmapTop) || isCoralBlock(heightmapTop)) {
+            int probeY = surfaceY - 1;
+            int foliageGuard = 0;
+            while (probeY > Compat.minY(chunk) && foliageGuard++ < 64) {
+                BlockState s = chunk.getBlockState(new BlockPos(worldX, probeY, worldZ));
+                if (Compat.blocksMotion(s) && !isTreePart(s) && !isCoralBlock(s)) break;
+                probeY--;
+            }
+            surfaceY = probeY + 1;
+        }
+
+        // Tellus covers snowy columns with a snow_block (Blocks.SNOW_BLOCK) during the surface
+        // build. Without intervention the mod's snowy path converts that to snow[8] in place; we
+        // instead want a snow-layer terrace of our computed count ABOVE it. Normalise a snow_block
+        // to snow[8] so the whole stack reads as snow layers, and stack our layer above.
+        //
+        // Detection reads block states directly rather than a heightmap: Tellus builds some chunks
+        // via a section-writer fast path that can leave the WG heightmaps stale at generateFeatures
+        // time (which was making snow detection chunk-dependent). Anchor the scan on the DEM
+        // surface Y we were handed (rtfExpectedBaseY = ceil(scaled)+offset, where Tellus places the
+        // snow), falling back to WORLD_SURFACE only when no DEM base is available. Tellus-only; runs
+        // before the snowy-biome skip because these are exactly the columns the user wants layered.
+        if (tellusOverSnow) {
+            int anchor;
+            if (rtfExpectedBaseY != Integer.MIN_VALUE) {
+                anchor = rtfExpectedBaseY + 2;
+            } else {
+                Heightmap.Types wsType = isWorldChunk ? Heightmap.Types.WORLD_SURFACE : Heightmap.Types.WORLD_SURFACE_WG;
+                anchor = chunk.getOrCreateHeightmapUnprimed(wsType).getFirstAvailable(localX, localZ) + 1;
+            }
+            int topSnowY = Integer.MIN_VALUE;
+            Block topBlock = null;
+            int lo = Math.max(Compat.minY(chunk) + 1, anchor - 4);
+            for (int y = anchor; y >= lo; y--) {
+                Block b = chunk.getBlockState(new BlockPos(worldX, y, worldZ)).getBlock();
+                if (b == Blocks.SNOW_BLOCK || b == Blocks.SNOW) {
+                    topSnowY = y;
+                    topBlock = b;
+                    break;
+                }
+            }
+            if (topSnowY != Integer.MIN_VALUE) {
+                if (layerCount <= 0) {
+                    debugSkipLayerZero.incrementAndGet();
+                    return false;
+                }
+                BlockPos topPos = new BlockPos(worldX, topSnowY, worldZ);
+                BlockPos snowAbove = topPos.above();
+                if (!chunk.getBlockState(snowAbove).isAir()) {
+                    debugSkipNotAir.incrementAndGet();
+                    return false;
+                }
+                if (LayerConfig.STRUCTURE_INJECTION && isInsideStructure(chunk, snowAbove)) {
+                    return false;
+                }
+                // Normalise a full snow_block surface to snow[8] so the terrace above reads as
+                // continuous snow layers rather than sitting on a distinct snow_block.
+                if (topBlock == Blocks.SNOW_BLOCK) {
+                    setBlockStateSafe(chunk, topPos, Blocks.SNOW.defaultBlockState().setValue(BlockStateProperties.LAYERS, 8));
+                }
+                setBlockStateSafe(chunk, snowAbove, Blocks.SNOW.defaultBlockState()
+                    .setValue(BlockStateProperties.LAYERS, Math.min(8, layerCount)));
+                return true;
+            }
+        }
+
+        // Conservative surface heightmap: skip if the actual surface Y deviates from RTF's
+        // noise-derived base Y by more than the configured tolerance. A deviation means a
+        // structure (or other feature) has raised or lowered the terrain at this column.
+        // Uses the raw heightmap value (surfaceY - 1) before any scan-down adjustments so
+        // it reflects what is actually sitting at the top of the terrain right now.
+        if (LayerConfig.CONSERVATIVE_SURFACE_HEIGHTMAP && rtfExpectedBaseY != Integer.MIN_VALUE) {
+            // powder_snow doesn't block motion, so OCEAN_FLOOR reports the solid block UNDER the
+            // pile — surfaceY-1 is the buried stone, not the real surface. Climb the pile so the
+            // delta reflects the actual top; otherwise every powder column reads as "terrain
+            // lowered by the pile depth" and gets clamped to the conservative fallback value.
+            int effectiveSurfaceTop = surfaceY - 1;
+            if (chunk.getBlockState(new BlockPos(worldX, surfaceY, worldZ)).is(Blocks.POWDER_SNOW)) {
+                int y = surfaceY;
+                while (chunk.getBlockState(new BlockPos(worldX, y, worldZ)).is(Blocks.POWDER_SNOW)) {
+                    y++;
+                }
+                effectiveSurfaceTop = y - 1;
+            }
+            int delta = effectiveSurfaceTop - rtfExpectedBaseY;
+            if (delta > LayerConfig.CONSERVATIVE_SURFACE_TOLERANCE_UP
+                    || delta < -LayerConfig.CONSERVATIVE_SURFACE_TOLERANCE_DOWN) {
+                if (LayerConfig.CONSERVATIVE_SURFACE_FALLBACK) {
+                    int fallback = delta > 0
+                        ? LayerConfig.CONSERVATIVE_SURFACE_FALLBACK_VALUE_UP
+                        : LayerConfig.CONSERVATIVE_SURFACE_FALLBACK_VALUE_DOWN;
+                    if (fallback <= 0) {
+                        debugSkipConservativeSurface.incrementAndGet();
+                        return false;
+                    }
+                    layerCount = fallback;
+                } else {
+                    debugSkipConservativeSurface.incrementAndGet();
+                    return false;
+                }
+            }
+        }
+
+        boolean isSnowyBiome = false;
+        Holder<Biome> columnBiome;
+        {
+            Holder<Biome> biome = chunk.getNoiseBiome(localX >> 2, surfaceY >> 2, localZ >> 2);
+            columnBiome = biome;
+            // For Tellus, cap the cold-check Y below vanilla's altitude temperature penalty (which
+            // starts above Y 80). At low world scales terrain sits at a huge block Y, so isCold at
+            // the real surface reads every biome as cold and paints snow onto temperate plains.
+            // Tellus assigns biomes from real Köppen climate, so trust that. RTF/vanilla keep their
+            // altitude-aware behaviour.
+            int coldY = tellusOverSnow ? Math.min(surfaceY - 1, 80) : surfaceY - 1;
+            BlockPos biomePos = new BlockPos(worldX, coldY, worldZ);
+            isSnowyBiome = Compat.coldEnoughToSnow(biome.value(), biomePos);
+            layerCount = applySwampReduction(layerCount, biome);
+        }
+
+        // Peek ahead to detect powder_snow before the snowy-biome skip.
+        // OCEAN_FLOOR_WG doesn't count powder_snow as solid, so it may sit at surfaceY
+        // (one above the heightmap surface). Check both surfaceY-1 and surfaceY.
+        // NOTE: do NOT gate on !useSnowLayers — RTF may pass useSnowLayers=true for cold
+        // biomes, but powder_snow surfaces must still use the mapping path.
+        boolean surfaceIsPowderSnow = getMappingRegistry().hasMapping(Blocks.POWDER_SNOW)
+                && (chunk.getBlockState(new BlockPos(worldX, surfaceY - 1, worldZ)).getBlock() == Blocks.POWDER_SNOW
+                 || chunk.getBlockState(new BlockPos(worldX, surfaceY,     worldZ)).getBlock() == Blocks.POWDER_SNOW);
+
+        // Ice and water surfaces need the mapping path (waterlogged layers).
+        // Switching to vanilla snow layers (IMPROVE_SNOWY_BIOMES) would fail because
+        // snow layers have no WATERLOGGED property.
+        //
+        // packed_ice is here for a second, harder reason: vanilla's SnowLayerBlock.canSurvive
+        // returns false outright when the block below is ice, packed_ice or a barrier. Worldgen
+        // writes layers straight into the section and never consults canSurvive, so a snow layer
+        // placed on packed_ice looks fine until anything triggers a neighbour update — breaking a
+        // block nearby, placing one — at which point updateShape evicts every illegal layer at
+        // once. That is the "layers refresh along the same Y level" artifact, and it is why a
+        // packed_ice column must take its mapped layer block rather than snow. Unconditional:
+        // with no mapping the column gets nothing, which still beats a layer that pops.
+        //
+        // blue_ice is NOT in vanilla's exclusion list, so snow does survive on it. It joins the
+        // mapping path only once it has a mapping to go to; forcing it unconditionally would
+        // trade a working snow layer for a bare column.
+        Block topBlock = chunk.getBlockState(new BlockPos(worldX, surfaceY - 1, worldZ)).getBlock();
+        boolean surfaceIsIceOrWater = topBlock == Blocks.ICE
+                || topBlock == Blocks.FROSTED_ICE
+                || topBlock == Blocks.PACKED_ICE
+                || (topBlock == Blocks.BLUE_ICE && getMappingRegistry().hasMapping(Blocks.BLUE_ICE))
+                || topBlock == Blocks.WATER;
+
+        if (LayerConfig.SKIP_SNOWY_BIOMES && isSnowyBiome && !surfaceIsPowderSnow) {
+            debugSkipSnowy.incrementAndGet();
+            return false;
+        }
+
+        // Vanilla decides snow per position, not per biome: SnowAndFreezeFeature tests the
+        // temperature at the column, so cold spots inside a warm biome — biome borders, higher
+        // ground — receive snow[1] while the biome itself reports snowy=false. Taking the biome
+        // as the only signal left those columns with useSnowLayers=false, so the snow-replacement
+        // branch never fired and vanilla's snow blocked placement as "not air": they kept the flat
+        // one-eighth dusting while everything around them got a fractional depth. Where vanilla has
+        // already put snow down, treat that as the decision and refine its depth.
+        boolean vanillaSnowAtPlacement =
+            chunk.getBlockState(new BlockPos(worldX, surfaceY, worldZ)).getBlock() == Blocks.SNOW;
+
+        boolean superSnowy = superSnowy(columnBiome, isSnowyBiome || vanillaSnowAtPlacement);
+        if (superSnowy && !surfaceIsPowderSnow && !surfaceIsIceOrWater) {
+            useSnowLayers = true;
+        } else if (surfaceIsIceOrWater || surfaceIsPowderSnow) {
+            // Override any caller-supplied useSnowLayers=true: these surfaces need the
+            // mapping path. Ice/water columns need waterlogged layers; powder_snow columns
+            // need the powder_snow_layer block placed on top of the powder_snow.
+            useSnowLayers = false;
+        } else if (LayerConfig.IMPROVE_SNOWY_BIOMES
+                && LayerConfig.SUPER_SNOWY_MODE == LayerConfig.SuperSnowyMode.CONTROLLED_BY_LIST) {
+            // The list decides alone: a backend's own "cold biome" flag (TerraForged, Tellus's
+            // snow cover) does not add biomes the list leaves out.
+            useSnowLayers = false;
+        }
+
+        if (LayerConfig.logSnow() && surfaceIsIceOrWater) {
+            AronaLayersGen.LOGGER.info("[IceTrace] ({},{}) surfaceY={} topBlock={} iceOrWater=true useSnowLayers={} layerCount={}",
+                worldX, worldZ, surfaceY,
+                Compat.blockId(topBlock),
+                useSnowLayers, layerCount);
+        }
+
+        BlockPos surfacePos = new BlockPos(worldX, surfaceY - 1, worldZ);
+        BlockState surfaceState = chunk.getBlockState(surfacePos);
+        Block surfaceBlock = surfaceState.getBlock();
+
+        // If powder_snow is sitting on top of the detected surface block (because OCEAN_FLOOR_WG
+        // didn't count it as solid), elevate surfacePos to the powder_snow block so the layer
+        // is placed on top of it rather than replacing the underlying block.
+        if (!useSnowLayers && surfaceBlock != Blocks.POWDER_SNOW) {
+            BlockState oneAbove = chunk.getBlockState(surfacePos.above());
+            if (oneAbove.getBlock() == Blocks.POWDER_SNOW && getMappingRegistry().hasMapping(Blocks.POWDER_SNOW)) {
+                surfacePos = surfacePos.above();
+                surfaceState = oneAbove;
+                surfaceBlock = Blocks.POWDER_SNOW;
+            }
+        }
+        // Scan upward through the full powder_snow stack so the layer lands on top,
+        // not inside a multi-block-deep pile.
+        if (surfaceBlock == Blocks.POWDER_SNOW) {
+            while (true) {
+                BlockState nextAbove = chunk.getBlockState(surfacePos.above());
+                if (nextAbove.getBlock() != Blocks.POWDER_SNOW) break;
+                surfacePos = surfacePos.above();
+                surfaceState = nextAbove;
+            }
+        }
+
+        // A snow_block surface is treated as ordinary ground and layered on top of, not converted.
+        //
+        // This used to rewrite it as snow[8] and return, discarding the computed count. Since
+        // snow[8] and snow_block are both full height that changed nothing visible, so the four
+        // biomes whose surface rules place snow_block — jagged_peaks, frozen_peaks, snowy_slopes
+        // and grove — never received a depth gradient at all. It also caused the floating dusting:
+        // snow layers do not block motion while snow_block does, so demoting the surface left
+        // vanilla's snow[1] hanging a block above nothing.
+        //
+        // Leaving the snow_block alone fixes both. The layer position is exactly where vanilla put
+        // its dusting (snow_block blocks motion, so the heightmap points one block higher), so the
+        // ordinary placement path overwrites it with the real count instead of stranding it. It is
+        // also stable across the two injection passes: the snow_block keeps blocking motion, so the
+        // second pass resolves the same surface and rewrites the same value.
+
+        // A tree canopy satisfies OCEAN_FLOOR's "blocks motion" predicate, so on a forested
+        // column the heightmap top is leaves and the real ground is several blocks below.
+        // The scan below already handles that, but it was gated on isPostFeaturesContext,
+        // which is false during worldgen because the chunk is still a ProtoChunk — even
+        // though this runs at the RETURN of applyBiomeDecoration, by which point the chunk's
+        // own trees exist. So the scan was disabled exactly when it was needed, and any
+        // column under a canopy silently got no layer. Whether a given column was affected
+        // depended on whether the overhanging tree belonged to this chunk or to a neighbour
+        // whose feature step had not run yet, which is why it presented as chunk-dependent.
+        boolean surfaceIsFoliage = isTreePart(surfaceState);
+        if ((isPostFeaturesContext || surfaceIsFoliage) && !getMappingRegistry().hasMapping(surfaceBlock)) {
+            boolean found = false;
+            for (int dy = 1; dy <= 30; dy++) {
+                int checkY = surfaceY - 1 - dy;
+                if (checkY <= Compat.minY(chunk)) break;
+
+                BlockPos checkPos = new BlockPos(worldX, checkY, worldZ);
+                BlockState checkState = chunk.getBlockState(checkPos);
+
+                if (getMappingRegistry().hasMapping(checkState.getBlock())) {
+                    surfacePos = checkPos;
+                    surfaceState = checkState;
+                    surfaceBlock = checkState.getBlock();
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                if (LayerConfig.logSnow() && surfaceIsIceOrWater) {
+                    AronaLayersGen.LOGGER.info("[IceTrace] ({},{}) fallback scan found nothing -> skip", worldX, worldZ);
+                }
+                debugSkipNoMapping.incrementAndGet();
+                return false;
+            }
+            if (LayerConfig.logSnow() && surfaceIsIceOrWater) {
+                AronaLayersGen.LOGGER.info("[IceTrace] ({},{}) fallback scan found {} at Y={}",
+                    worldX, worldZ,
+                    Compat.blockId(surfaceBlock),
+                    surfacePos.getY());
+            }
+        }
+
+        if (!getMappingRegistry().hasMapping(surfaceBlock)) {
+            debugSkipNoMapping.incrementAndGet();
+            return false;
+        }
+
+        // POST_FEATURES: detect surfaces elevated above original terrain by structures.
+        //
+        // Expected base Y determination (in priority order):
+        // 1. RTF noise-derived base Y (rtfExpectedBaseY = floor(height * worldHeight)).
+        //    Computed directly from RTF's terrain noise, independent of block placement
+        //    order and C2ME parallelism. Always correct when RTF is active.
+        // 2. Surface-phase snapshot (peekSurfaceY). Fallback for non-RTF callers.
+        //    May be contaminated under C2ME if village FEATURES runs concurrently.
+        //
+        // Only skip/replace when terrain was ELEVATED (surfacePos.getY() > expectedBaseY).
+        // Terrain that went DOWN (ravines from carvers, excavated village interiors) is NOT
+        // skipped here — ravines are correct terrain, excavated interiors are caught by the
+        // bounding-box check above.
+        //
+        // Powder snow is excluded: OCEAN_FLOOR_WG does not count it as solid.
+        if (isPostFeaturesContext && LayerConfig.STRUCTURE_SKIP_ELEVATED && !surfaceIsPowderSnow) {
+            // Resolve expectedBaseY: the Y of the top solid block under natural conditions.
+            int expectedBaseY = Integer.MIN_VALUE;
+            if (rtfExpectedBaseY != Integer.MIN_VALUE) {
+                expectedBaseY = rtfExpectedBaseY; // RTF: floor(height * worldHeight)
+            } else {
+                int preY = PreStructureHeightmapStorage.peekSurfaceY(chunk, localX, localZ);
+                if (preY > Compat.minY(chunk)) {
+                    expectedBaseY = preY - 1; // snapshot is exclusive; convert to inclusive base Y
+                }
+            }
+            if (worldX == -125 && worldZ == 74) {
+                AronaLayersGen.LOGGER.info("[DebugPos] (-125,74) rtfBase={} expectedBaseY={} surfacePos.Y={} surfaceBlock={} layerCount={} isPostFeaturesCtx={} SKIP_ELEVATED={}",
+                    rtfExpectedBaseY, expectedBaseY, surfacePos.getY(),
+                    Compat.blockId(surfaceBlock),
+                    layerCount, isPostFeaturesContext, LayerConfig.STRUCTURE_SKIP_ELEVATED);
+            }
+            // Surface above expectedBaseY means structure elevated the terrain.
+            if (expectedBaseY != Integer.MIN_VALUE && surfacePos.getY() > expectedBaseY) {
+                // Only process blocks listed in structure_elevation_blocks.json.
+                if (!getElevationProcessBlocks().contains(surfaceBlock)) {
+                    // Block not in filter list — leave it untouched, fall through to normal injection.
+                } else {
+                boolean exactlyOneBlock = surfacePos.getY() == expectedBaseY + 1;
+                // Only act if the space above is clear (no building floor/wall above the surface).
+                // Replaceable blocks (grass, flowers, ferns, etc.) count as clear since they are
+                // vegetation, not structural blocks, and won't float after the elevated block is removed.
+                BlockState spaceAbove = chunk.getBlockState(surfacePos.above());
+                boolean spaceAboveClear = spaceAbove.isAir()
+                        || spaceAbove.getBlock() == Blocks.WATER
+                        || spaceAbove.canBeReplaced();
+                if (!spaceAboveClear) {
+                    if (LayerConfig.logSkipElevated()) {
+                        AronaLayersGen.LOGGER.info("[SkipElevated] ({},{}) blocked: non-air above Y={} is {}",
+                            worldX, worldZ, surfacePos.getY() + 1,
+                            Compat.blockId(spaceAbove.getBlock()));
+                    }
+                    debugSkipStructureElevated.incrementAndGet();
+                    return false;
+                }
+                if (LayerConfig.STRUCTURE_REPLACE_ELEVATED && exactlyOneBlock) {
+                    // Exactly 1-block elevation: handle based on RTF layer count.
+                    if (layerCount == 0) {
+                        // RTF terrain is at an integer height (fractional depth ≈ 0).
+                        // No layer belongs here, so remove the village-raised block by
+                        // placing AIR. This exposes the natural surface underneath so
+                        // plants placed afterward land at the correct Y, not one too high.
+                        if (LayerConfig.logSkipElevated()) {
+                            AronaLayersGen.LOGGER.info("[SkipElevated] ({},{}) REMOVE raised block Y={} expectedBase={} block={} (layerCount=0)",
+                                worldX, worldZ, surfacePos.getY(), expectedBaseY,
+                                Compat.blockId(surfaceBlock));
+                        }
+                        setBlockStateSafe(chunk, surfacePos, Blocks.AIR.defaultBlockState());
+                        clearVegetationAbove(chunk, worldX, worldZ, surfacePos.getY() + 1);
+                        if (LayerConfig.STRUCTURE_SKIP_EXTRA_CLEANUP) cleanupNearbyLayers(chunk, worldX, worldZ, surfacePos.getY());
+                        debugSkipStructureElevated.incrementAndGet();
+                        return false;
+                    }
+                    // layerCount > 0: replace the raised surface block with the layer in-place.
+                    Block layerBlock = useSnowLayers ? Blocks.SNOW : getMappingRegistry().getLayerBlock(surfaceBlock, layerCount);
+                    if (layerBlock != null) {
+                        layerBlock = resolveMaxedLayerBlock(layerBlock, layerCount);
+                        BlockState layerState = layerBlock.defaultBlockState();
+                        layerState = applyLayerCount(layerState, layerBlock, layerCount);
+                        if (LayerConfig.logSkipElevated()) {
+                            AronaLayersGen.LOGGER.info("[SkipElevated] ({},{}) REPLACE surface Y={} expectedBase={} block={} -> {} layers={}",
+                                worldX, worldZ, surfacePos.getY(), expectedBaseY,
+                                Compat.blockId(surfaceBlock),
+                                Compat.blockId(layerBlock), layerCount);
+                        }
+                        setBlockStateSafe(chunk, surfacePos, layerState);
+                        if (LayerConfig.STRUCTURE_SKIP_EXTRA_CLEANUP) cleanupNearbyLayers(chunk, worldX, worldZ, surfacePos.getY());
+                        return true;
+                    }
+                }
+                // Elevation > 1 block: optionally level the mound if REPLACE_ELEVATED_HIGH is
+                // enabled and the delta is within the configured maximum.
+                //
+                // Algorithm: clear all blocks from surfacePos down to expectedBaseY+2 (the extra
+                // fill above the first elevated position), then at expectedBaseY+1 either place
+                // a layer (layerCount>0) or AIR (layerCount=0). The layer mapping uses the natural
+                // surface block at expectedBaseY rather than the elevated surface block.
+                //
+                // Example delta=2: surfacePos=Y=75, expectedBase=73
+                //   clear Y=75 → AIR
+                //   at Y=74: place layer using block at Y=73
+                //   result: natural at Y=73, layer at Y=74, air at Y=75
+                int delta = surfacePos.getY() - expectedBaseY;
+                if (LayerConfig.STRUCTURE_REPLACE_ELEVATED_HIGH && delta <= LayerConfig.STRUCTURE_REPLACE_ELEVATED_HIGH_MAX) {
+                    // Clear elevated blocks above the first elevated position.
+                    for (int y = surfacePos.getY(); y > expectedBaseY + 1; y--) {
+                        setBlockStateSafe(chunk, new BlockPos(worldX, y, worldZ), Blocks.AIR.defaultBlockState());
+                    }
+                    // Clear any vegetation that was sitting on top of the now-removed elevated blocks.
+                    clearVegetationAbove(chunk, worldX, worldZ, surfacePos.getY() + 1);
+                    BlockPos layerTargetPos = new BlockPos(worldX, expectedBaseY + 1, worldZ);
+                    if (layerCount == 0) {
+                        // No layer at natural terrain either — clear the remaining elevated block too.
+                        setBlockStateSafe(chunk, layerTargetPos, Blocks.AIR.defaultBlockState());
+                        if (LayerConfig.logSkipElevated()) {
+                            AronaLayersGen.LOGGER.info("[SkipElevated] ({},{}) REMOVE-HIGH Y={}-{} expectedBase={} delta={} (layerCount=0)",
+                                worldX, worldZ, expectedBaseY + 1, surfacePos.getY(), expectedBaseY, delta);
+                        }
+                        if (LayerConfig.STRUCTURE_SKIP_EXTRA_CLEANUP) cleanupNearbyLayers(chunk, worldX, worldZ, surfacePos.getY());
+                        debugSkipStructureElevated.incrementAndGet();
+                        return false;
+                    }
+                    // Use the natural surface block for the layer mapping.
+                    Block naturalBlock = chunk.getBlockState(new BlockPos(worldX, expectedBaseY, worldZ)).getBlock();
+                    Block layerBlock = useSnowLayers ? Blocks.SNOW : getMappingRegistry().getLayerBlock(naturalBlock, layerCount);
+                    if (layerBlock != null) {
+                        layerBlock = resolveMaxedLayerBlock(layerBlock, layerCount);
+                        BlockState layerState = layerBlock.defaultBlockState();
+                        layerState = applyLayerCount(layerState, layerBlock, layerCount);
+                        if (LayerConfig.logSkipElevated()) {
+                            AronaLayersGen.LOGGER.info("[SkipElevated] ({},{}) LEVEL-HIGH cleared Y={}-{} layer at Y={} naturalBlock={} -> {} layers={}",
+                                worldX, worldZ, expectedBaseY + 2, surfacePos.getY(),
+                                expectedBaseY + 1,
+                                Compat.blockId(naturalBlock),
+                                Compat.blockId(layerBlock), layerCount);
+                        }
+                        setBlockStateSafe(chunk, layerTargetPos, layerState);
+                        if (LayerConfig.STRUCTURE_SKIP_EXTRA_CLEANUP) cleanupNearbyLayers(chunk, worldX, worldZ, surfacePos.getY());
+                        return true;
+                    }
+                }
+                if (LayerConfig.logSkipElevated()) {
+                    AronaLayersGen.LOGGER.info("[SkipElevated] ({},{}) SKIP Y={} expectedBase={} delta={} block={}",
+                        worldX, worldZ, surfacePos.getY(), expectedBaseY, delta,
+                        Compat.blockId(surfaceBlock));
+                }
+                if (LayerConfig.STRUCTURE_SKIP_EXTRA_CLEANUP) cleanupNearbyLayers(chunk, worldX, worldZ, surfacePos.getY());
+                debugSkipStructureElevated.incrementAndGet();
+                return false;
+                } // end elevation filter else
+            }
+        }
+
+        boolean layerPlaced = false;
+
+        if (layerCount <= 0) {
+            debugSkipLayerZero.incrementAndGet();
+        }
+
+        BlockPos abovePos = surfacePos.above();
+
+        // Under a 2x2 trunk every base cell keeps a real layer, so the trunk meets the ground the
+        // same way all round (see wideTrunkGapsLocal).
+        if (isWideTrunkGap(abovePos)) {
+            layerCount = Math.max(1, Math.min(7, layerCount));
+        }
+
+        if (LayerConfig.STRUCTURE_INJECTION && isInsideStructure(chunk, abovePos)) {
+            addSecondPassTarget(abovePos.getX(), abovePos.getZ(), abovePos.getY(), surfaceBlock);
+            return false;
+        }
+
+        if (LayerConfig.STRUCTURE_INJECTION && LayerConfig.ENCLOSED_SPACE_CHECK) {
+            if (hasEnclosingCeiling(chunk, abovePos, LayerConfig.ENCLOSED_SPACE_HEIGHT)) {
+                debugSkipEnclosed.incrementAndGet();
+                return false;
+            }
+        }
+
+        BlockState existingState = chunk.getBlockState(abovePos);
+        // Treat ice as frozen water: allow placement (replacing ice) and waterlog the layer.
+        boolean underwater = existingState.getBlock() == Blocks.WATER
+                || existingState.getBlock() == Blocks.ICE
+                || existingState.getBlock() == Blocks.FROSTED_ICE;
+        boolean isPowderSnow = existingState.getBlock() == Blocks.POWDER_SNOW;
+
+        BlockState replacedPlantState = null;
+        boolean liftedPlant = false;
+        boolean liftedWet = false;
+        int liftResult;
+        if (layerCount > 0) {
+            Block layerBlock = useSnowLayers ? Blocks.SNOW : getMappingRegistry().getLayerBlock(surfaceBlock, layerCount);
+            // A native layer block at 8 (powder_snow_layer, deepslate_layer, moss_layer) converts to
+            // its full block. Place the full block directly instead of relying on the layer's
+            // onBlockAdded conversion, which does setBlockState(NOTIFY_ALL) and can cascade / hang
+            // during LevelChunk init.
+            layerBlock = resolveMaxedLayerBlock(layerBlock, layerCount);
+            if (layerBlock == null) {
+                debugSkipNoLayerBlock.incrementAndGet();
+            } else {
+                boolean replacedTallPlant = false;
+                boolean seagrassAtSurface = false;
+                boolean overwroteHangingMoss = false;
+                boolean overwroteMossCarpet = false;
+                BlockState savedTallUpperState = null;
+                if (!existingState.isAir() && !underwater && !isPowderSnow) {
+                    // A snow layer already here is vanilla's, not ours: SnowAndFreezeFeature drops
+                    // snow[1] on every exposed snowy column during the feature step, which lands on
+                    // exactly the position this layer wants. Without this it counted as "not air"
+                    // and the column was skipped, so snowy biomes kept vanilla's flat one-eighth
+                    // dusting and never received a fractional depth at all. Overwriting is safe:
+                    // thick vanilla snow is a snow_block, handled earlier and separately.
+                    boolean isSnowBlockReplacement = useSnowLayers
+                        && (existingState.getBlock() == Blocks.SNOW_BLOCK
+                         || existingState.getBlock() == Blocks.SNOW);
+
+                    // Invisible technical markers occupy the placement position without being part
+                    // of the terrain. minecraft:light is the one seen in the wild: datapack
+                    // worldgen (Lithosphere + Still Life on snowy peaks) leaves light blocks on
+                    // exposed rock. It has no collision and no render shape, so it appears in
+                    // neither heightmap and the density field is unaware of it — every diagnostic
+                    // says the column is fine and should be layered — but isAir() is false, so the
+                    // guard below dropped the column. Whole mountainsides of calcite and
+                    // cyan_terracotta went unlayered with no counter to explain it.
+                    boolean isTechnicalMarker = existingState.getBlock() == Blocks.LIGHT;
+
+                    // Pale_garden decoration at this position (pale_hanging_moss dangling from the
+                    // canopy, or pale_moss_carpet on the floor). Neither is terrain, so let the layer
+                    // overwrite it instead of the not-air guard skipping the whole column and leaving
+                    // it unlayered.
+                    boolean isOverwritablePaleMoss = isOverwritablePaleVegetation(existingState.getBlock());
+
+                    // Vines draped over a decoration log ("fake stump") hang into the placement
+                    // position. They are decoration, not terrain, so overwrite the lowest vine with
+                    // the layer (any vines still attached to the log above stay) instead of the
+                    // not-air guard skipping the column.
+                    boolean isOverwritableVine = existingState.getBlock() == Blocks.VINE;
+
+                    boolean isSeagrass = existingState.getBlock() == Blocks.SEAGRASS
+                        || existingState.getBlock() == Blocks.TALL_SEAGRASS;
+                    // A listed plant (plant_mappings.json) is shifted one block up so it sits on the
+                    // layer; plant grounding draws it on the layer's surface.
+                    boolean canShiftPlant = isPostFeaturesContext
+                        && getPlantRegistry().isReplaceablePlant(existingState.getBlock());
+
+                    if (isSnowBlockReplacement) {
+                        // Snow_block will be overwritten by the snow layer below
+                    } else if (isTechnicalMarker) {
+                        // Overwritten by the layer below. The light it emitted goes with it.
+                        debugReplacedMarker.incrementAndGet();
+                    } else if (isOverwritablePaleMoss) {
+                        // Overwrite the pale decoration with the layer: the floor carpet is replaced
+                        // outright; for hanging moss only the lowest segment goes, the canopy-anchored
+                        // remainder above is left untouched (its new bottom segment gets tip=true below).
+                        // A stacked carpet strand has its floating remainder cleared below.
+                        overwroteHangingMoss = existingState.getBlock() == paleHangingMoss();
+                        overwroteMossCarpet = existingState.getBlock() == paleMossCarpet();
+                    } else if (isOverwritableVine) {
+                        // Overwritten by the layer; vines above stay attached to the log.
+                    } else if (canShiftPlant) {
+                        replacedTallPlant = isTallPlant(existingState);
+                        if (isSeagrass) {
+                            BlockPos waterCheckPos = replacedTallPlant ? abovePos.above().above() : abovePos.above();
+                            if (chunk.getBlockState(waterCheckPos).getBlock() == Blocks.WATER) {
+                                // Fully submerged: shift the seagrass up onto the layer
+                                replacedPlantState = existingState;
+                            } else {
+                                // Surface seagrass: no room to shift into. Place waterlogged layer only.
+                                seagrassAtSurface = true;
+                            }
+                            if (replacedTallPlant) {
+                                savedTallUpperState = chunk.getBlockState(abovePos.above());
+                                // Upper half sat in a water column (submerged or at the surface), so
+                                // restore WATER, never AIR. The shifted plant overwrites this position;
+                                // with plant_injection off the water stays instead of leaving an air
+                                // pocket underwater.
+                                setBlockStateSafe(chunk, abovePos.above(), Blocks.WATER.defaultBlockState());
+                            }
+                        } else {
+                            replacedPlantState = existingState;
+                            if (replacedTallPlant) {
+                                savedTallUpperState = chunk.getBlockState(abovePos.above());
+                                setBlockStateSafe(chunk, abovePos.above(), Blocks.AIR.defaultBlockState());
+                            }
+                        }
+                    } else if ((liftResult = liftGroundedPlant(chunk, abovePos)) != LIFT_REFUSED) {
+                        // Plant that is not listed (cactus, sugar cane, kelp, unmapped or modded
+                        // plants): lifted one block, so the layer goes under it and plant grounding
+                        // lowers it back onto the layer surface.
+                        liftedPlant = true;
+                        liftedWet = liftResult == LIFT_WET;
+                    } else if (liftChorusPlant(chunk, abovePos)) {
+                        // The root of a chorus plant: the whole plant moved up one block, and
+                        // ChorusStemModel draws the root's stem down through the layer to the ground.
+                        liftedPlant = true;
+                    } else {
+                        debugSkipNotAir.incrementAndGet();
+                        return false;
+                    }
+                }
+
+                BlockState layerState = layerBlock.defaultBlockState();
+                layerState = applyLayerCount(layerState, layerBlock, layerCount);
+
+                // Same stranding as the snow_block conversion: if vanilla's dusting was resting on
+                // whatever used to block motion here, replacing this position leaves it hanging.
+                if (layerBlock == Blocks.SNOW) {
+                    clearStrandedSnowAbove(chunk, abovePos, worldX, worldZ);
+                }
+
+                // Every snow write, with the position and what it replaced. Two entries for one
+                // column mean something is placing twice, which no amount of reading the
+                // heightmaps afterwards can distinguish from a single write.
+                if (LayerConfig.logSnow() && layerBlock == Blocks.SNOW) {
+                    AronaLayersGen.LOGGER.info("[Snow] place ({},{}) Y={} layers={} over {} (was {})",
+                        worldX, worldZ, abovePos.getY(), layerCount,
+                        Compat.blockId(surfaceBlock), Compat.blockId(existingState.getBlock()));
+                }
+
+                // Seagrass shifted or removed: waterlog the layer whenever seagrass was here
+                Block seagrassCheck = replacedPlantState != null ? replacedPlantState.getBlock() : null;
+                if ((seagrassAtSurface
+                        || (seagrassCheck != null && (seagrassCheck == Blocks.SEAGRASS || seagrassCheck == Blocks.TALL_SEAGRASS)))
+                        && layerState.hasProperty(BlockStateProperties.WATERLOGGED)) {
+                    layerState = layerState.setValue(BlockStateProperties.WATERLOGGED, true);
+                }
+
+                // An underwater plant (kelp, sea pickles) was lifted off this cell: it stood in water,
+                // so the layer that takes its place does too.
+                if (liftedWet && layerState.hasProperty(BlockStateProperties.WATERLOGGED)) {
+                    layerState = layerState.setValue(BlockStateProperties.WATERLOGGED, true);
+                }
+
+                if (underwater) {
+                    if (layerState.hasProperty(BlockStateProperties.WATERLOGGED)) {
+                        layerState = layerState.setValue(BlockStateProperties.WATERLOGGED, true);
+                    }
+                    // Block doesn't support waterlogging: place it anyway.
+                    // The water/ice at abovePos is displaced, but all water above the layer
+                    // remains, so the layer still appears correctly at the riverbed/lakebed.
+                    if (LayerConfig.logSnow()) {
+                        AronaLayersGen.LOGGER.info("[IceTrace] ({},{}) placing underwater layer {} at Y={} (waterlogged={})",
+                            worldX, worldZ,
+                            Compat.blockId(layerState.getBlock()),
+                            abovePos.getY(),
+                            layerState.hasProperty(BlockStateProperties.WATERLOGGED) && layerState.getValue(BlockStateProperties.WATERLOGGED));
+                    }
+                }
+
+                setBlockStateSafe(chunk, abovePos, layerState);
+                layerPlaced = true;
+
+                // Not under a plant that was shifted or lifted onto this layer: it reads its soil
+                // through the layer and would pop off a snow_block.
+                if (layerState.is(Blocks.SNOW) && replacedPlantState == null && !liftedPlant) {
+                    coverGroundWithSnow(chunk, surfacePos);
+                }
+
+                // A lily pad floated on the water this layer replaced. If the layer holds no water
+                // (a layer block that cannot be waterlogged), the pad would rest on dry ground: drop it.
+                BlockPos padPos = abovePos.above();
+                if (chunk.getBlockState(padPos).getBlock() == Blocks.LILY_PAD
+                        && !layerState.getFluidState().is(FluidTags.WATER)) {
+                    setBlockStateSafe(chunk, padPos, Blocks.AIR.defaultBlockState());
+                }
+
+                // The layer took the moss strand's old bottom (tip) segment; make the segment now
+                // directly above it the new tip so the strand keeps its tapered end.
+                if (overwroteHangingMoss) {
+                    fixHangingMossTipAbove(chunk, abovePos);
+                }
+                // The layer took a stacked carpet's bottom segment; clear the now-unsupported run above.
+                if (overwroteMossCarpet) {
+                    clearStackedMossCarpetAbove(chunk, abovePos);
+                }
+
+                if (LayerConfig.REPLACE_DIRT_PATH && surfaceBlock == Blocks.DIRT_PATH) {
+                    Block fullBlock = getFullBlock(layerBlock);
+                    if (fullBlock != null) {
+                        setBlockStateSafe(chunk, surfacePos, fullBlock.defaultBlockState());
+                        if (LayerConfig.logStructure()) {
+                            AronaLayersGen.LOGGER.info("[DirtPath] Replaced dirt_path at {} with {}",
+                                surfacePos, Compat.blockId(fullBlock));
+                        }
+                    }
+                }
+
+                // Shift the plant one block up so it sits on the layer
+                if (replacedPlantState != null && LayerConfig.PLANT_INJECTION) {
+                    BlockPos plantPos = abovePos.above();
+                    Block shiftedBlock = replacedPlantState.getBlock();
+                    boolean needsWater = shiftedBlock == Blocks.SEAGRASS || shiftedBlock == Blocks.TALL_SEAGRASS;
+                    // For tall seagrass, plantPos was cleared to AIR; check plantPos.up() for water instead
+                    BlockPos waterCheckPos = (needsWater && replacedTallPlant) ? plantPos.above() : plantPos;
+                    if (!needsWater || chunk.getBlockState(waterCheckPos).getBlock() == Blocks.WATER) {
+                        setBlockStateSafe(chunk, plantPos, replacedPlantState);
+                        if (replacedTallPlant && savedTallUpperState != null) {
+                            setBlockStateSafe(chunk, plantPos.above(), savedTallUpperState);
+                        }
+                    }
+                }
+            }
+        } else {
+            if (!existingState.isAir() && !underwater && !isPowderSnow) {
+                return false;
+            }
+        }
+
+        return layerPlaced;
+    }
+
+    /** Tallest plant stack {@link #liftGroundedPlant} will move. */
+    private static final int MAX_LIFTED_PLANT = 32;
+
+    /**
+     * Moves a grounded plant standing at {@code pos} up one block, so a layer can take its place.
+     *
+     * <p>The whole plant moves: every grounded block stacked from {@code pos} upward (a cactus or
+     * sugar cane column, the upper half of a double plant, a flower on a cactus). Plant grounding
+     * then draws and outlines it on the layer's surface, so it ends up where it stood, sitting on
+     * the layer instead of under it.
+     *
+     * <p>Water stays where it was; the plant moves through it. Each moved block takes the water of
+     * the cell it lands in: a waterloggable plant (small dripleaf, sea pickle) is waterlogged or
+     * dried to match, so a swamp dripleaf whose lower half stood in water and upper half in air comes
+     * out the same way one block up. A plant that only exists in water (kelp, seagrass) must land in
+     * water, and a plant that cannot hold water must land in air; otherwise nothing moves. The
+     * caller waterlogs the layer when the plant's bottom cell held water ({@link #LIFT_WET}). A sea
+     * pickle that would land out of water is removed instead of moved.
+     *
+     * <p>Refused, leaving the column unlayered as before, when grounding is off, the block is not a
+     * grounded plant, a block would land somewhere it cannot exist, or the cell above the plant is
+     * neither air nor a water source.
+     *
+     * @return {@link #LIFT_DRY}, {@link #LIFT_WET}, or {@link #LIFT_REFUSED} if nothing moved
+     */
+    private static int liftGroundedPlant(ChunkAccess chunk, BlockPos pos) {
+        if (!LayerConfig.PLANT_GROUNDING || !GroundingFlags.ready) return LIFT_REFUSED;
+
+        int x = pos.getX(), z = pos.getZ(), bottom = pos.getY();
+        int top = bottom;
+        while (PlantGrounding.isGroundedBlock(chunk.getBlockState(new BlockPos(x, top, z)).getBlock())) {
+            top++;
+            if (top - bottom > MAX_LIFTED_PLANT) return LIFT_REFUSED;
+        }
+        if (top == bottom) return LIFT_REFUSED;                 // not a grounded plant at all
+        if (top >= Compat.maxY(chunk)) return LIFT_REFUSED;
+        BlockState into = chunk.getBlockState(new BlockPos(x, top, z));
+        boolean intoWater = into.getBlock() == Blocks.WATER && into.getFluidState().isSource();
+        if (!into.isAir() && !intoWater) return LIFT_REFUSED;
+
+        // Water in each cell before the move: index i is the cell at bottom + i.
+        int height = top - bottom;
+        boolean[] wet = new boolean[height + 1];
+        for (int i = 0; i < height; i++) {
+            wet[i] = chunk.getBlockState(new BlockPos(x, bottom + i, z)).getFluidState().is(FluidTags.WATER);
+        }
+        wet[height] = intoWater;
+
+        // Each block, adjusted to the water of the cell it lands in; refuse if it cannot exist there.
+        BlockState[] moved = new BlockState[height];
+        for (int i = 0; i < height; i++) {
+            BlockState state = chunk.getBlockState(new BlockPos(x, bottom + i, z));
+            boolean landsWet = wet[i + 1];
+            if (state.getBlock() instanceof net.minecraft.world.level.block.SeaPickleBlock && !landsWet) {
+                // A sea pickle belongs in water: rather than leave it stranded on the layer, drop it.
+                state = Blocks.AIR.defaultBlockState();
+            } else if (state.hasProperty(BlockStateProperties.WATERLOGGED)) {
+                state = state.setValue(BlockStateProperties.WATERLOGGED, landsWet);
+            } else if (state.getFluidState().is(FluidTags.WATER) != landsWet) {
+                return LIFT_REFUSED;    // kelp into air, or a dry-only plant into water
+            }
+            moved[i] = state;
+        }
+
+        for (int i = height - 1; i >= 0; i--) {
+            setBlockStateSafe(chunk, new BlockPos(x, bottom + i + 1, z), moved[i]);
+        }
+        if (LayerConfig.logPlants()) {
+            AronaLayersGen.LOGGER.info("[Plant Debug] Lifted {} ({} blocks) at {} for a layer",
+                Compat.blockId(moved[0].getBlock()), height, pos);
+        }
+        return wet[0] ? LIFT_WET : LIFT_DRY;
+    }
+
+    /** Largest chorus plant {@link #liftChorusPlant} will move, in blocks. */
+    private static final int MAX_LIFTED_CHORUS = 512;
+
+    /**
+     * The feature step's region while a chunk is being layered, so a chorus lift can move the
+     * branches that reach over a neighbouring chunk. Null elsewhere (the LevelChunk.&lt;init&gt; pass,
+     * reset chunks); only plants entirely inside the chunk are lifted then.
+     */
+    private static final ThreadLocal<WorldGenLevel> liftRegionLocal = new ThreadLocal<>();
+
+    public static void setLiftRegion(WorldGenLevel region) {
+        liftRegionLocal.set(region);
+    }
+
+    public static void clearLiftRegion() {
+        liftRegionLocal.remove();
+    }
+
+    /**
+     * Whether a cell lies in a snowy biome for Super Snowy Biomes: the biome there is cold enough
+     * to snow, tested one block below the cell (at the ground), as layer placement tests it.
+     */
+    public static boolean snowyAt(ChunkAccess chunk, BlockPos cell) {
+        Holder<Biome> biome = chunk.getNoiseBiome((cell.getX() & 15) >> 2, cell.getY() >> 2, (cell.getZ() & 15) >> 2);
+        return superSnowy(biome, Compat.coldEnoughToSnow(biome.value(), cell.below()));
+    }
+
+    private static volatile List<String> superSnowyListSource;
+    private static volatile Set<String> superSnowyList = Set.of();
+
+    /**
+     * Whether Super Snowy Biomes covers a column: off, never; in ALL_SNOWY_BIOMES mode, when the
+     * column is snowy ({@code snowyHere}: cold enough to snow there, or vanilla already laid snow);
+     * in CONTROLLED_BY_LIST mode, when its biome is in the list, whatever its temperature.
+     */
+    public static boolean superSnowy(Holder<Biome> biome, boolean snowyHere) {
+        if (!LayerConfig.IMPROVE_SNOWY_BIOMES) return false;
+        if (LayerConfig.SUPER_SNOWY_MODE != LayerConfig.SuperSnowyMode.CONTROLLED_BY_LIST) return snowyHere;
+        List<String> source = LayerConfig.SUPER_SNOWY_BIOMES;
+        if (source != superSnowyListSource) {
+            superSnowyList = source == null ? Set.of() : new HashSet<>(source);
+            superSnowyListSource = source;
+        }
+        return biome.unwrapKey().map(key -> superSnowyList.contains(Compat.keyId(key))).orElse(false);
+    }
+
+    /**
+     * Super Snowy Biomes: a snow layer lies on snow. The ground block under it becomes a snow_block,
+     * so breaking or thinning the layer shows snow rather than grass or stone. Natural terrain only
+     * (a block with a layer mapping); paths, farmland and anything already snow are left alone.
+     */
+    public static void coverGroundWithSnow(ChunkAccess chunk, BlockPos groundPos) {
+        if (!LayerConfig.IMPROVE_SNOWY_BIOMES) return;
+        BlockState ground = chunk.getBlockState(groundPos);
+        Block groundBlock = ground.getBlock();
+        if (groundBlock == Blocks.SNOW_BLOCK || groundBlock == Blocks.DIRT_PATH || groundBlock == Blocks.FARMLAND) return;
+        if (!Compat.blocksMotion(ground) || isTreePart(ground) || hasLayerProperty(ground)) return;
+        if (!getMappingRegistry().hasMapping(groundBlock)) return;
+        setBlockStateSafe(chunk, groundPos, Blocks.SNOW_BLOCK.defaultBlockState());
+    }
+
+    /** The feature step's region while a chunk is being layered, or null (see liftRegionLocal). */
+    public static WorldGenLevel liftRegion() {
+        return liftRegionLocal.get();
+    }
+
+    public static boolean isChorus(BlockState state) {
+        return state.is(Blocks.CHORUS_PLANT) || state.is(Blocks.CHORUS_FLOWER);
+    }
+
+    /**
+     * Moves a whole chorus plant up one block when its root stands at {@code pos}, so a layer can
+     * take the root's cell.
+     *
+     * <p>Unlike a cactus, a chorus plant branches sideways, so moving its root column alone would
+     * tear it apart: every connected chorus block moves together, and the plant keeps its shape one
+     * block higher. Nothing lowers it back afterwards; instead ChorusStemModel extends the root's
+     * stem down through the layer to the ground it stood on, so it still reads as rooted.
+     *
+     * <p>Refused, leaving the column unlayered (the tree treatment), when this version's client has
+     * no such model, a branch reaches somewhere that cannot be read and written, the plant touches
+     * another anchored chorus plant, or a block above it is not air.
+     */
+    private static boolean liftChorusPlant(ChunkAccess chunk, BlockPos pos) {
+        if (!LayerConfig.treesOnLayers()) return false;
+        if (!chunk.getBlockState(pos).is(Blocks.CHORUS_PLANT)) return false;
+        WorldGenLevel region = liftRegionLocal.get();
+
+        Map<BlockPos, BlockState> plant = new HashMap<>();
+        ArrayDeque<BlockPos> queue = new ArrayDeque<>();
+        plant.put(pos.immutable(), chunk.getBlockState(pos));
+        queue.add(pos.immutable());
+        while (!queue.isEmpty()) {
+            BlockPos at = queue.poll();
+            for (Direction d : Direction.values()) {
+                BlockPos next = at.relative(d);
+                if (plant.containsKey(next)) continue;
+                BlockState state = readForLift(chunk, region, next);
+                if (state == null) return false;
+                if (!isChorus(state)) continue;
+                if (plant.size() >= MAX_LIFTED_CHORUS) return false;
+                plant.put(next, state);
+                queue.add(next);
+            }
+        }
+
+        for (BlockPos at : plant.keySet()) {
+            // Only the root may stand on something: a second anchor is another plant grown into
+            // this one, or a branch resting on the ground, and neither may leave its support.
+            BlockPos below = at.below();
+            if (!at.equals(pos) && !plant.containsKey(below)) {
+                BlockState belowState = readForLift(chunk, region, below);
+                if (belowState == null || !belowState.isAir()) return false;
+            }
+            BlockPos above = at.above();
+            if (!plant.containsKey(above)) {
+                if (above.getY() >= Compat.maxY(chunk)) return false;
+                BlockState aboveState = readForLift(chunk, region, above);
+                if (aboveState == null || !aboveState.isAir()) return false;
+            }
+        }
+
+        // Top down, so no block is overwritten before it has moved; then clear each column's
+        // bottom cell, which nothing moved into.
+        List<BlockPos> order = new ArrayList<>(plant.keySet());
+        order.sort(Comparator.comparingInt((BlockPos p) -> p.getY()).reversed());
+        for (BlockPos at : order) {
+            writeForLift(chunk, region, at.above(), plant.get(at));
+        }
+        for (BlockPos at : order) {
+            if (!plant.containsKey(at.below())) {
+                writeForLift(chunk, region, at, Blocks.AIR.defaultBlockState());
+            }
+        }
+        if (LayerConfig.logPlants()) {
+            AronaLayersGen.LOGGER.info("[Plant Debug] Lifted chorus plant ({} blocks) at {} for a layer",
+                plant.size(), pos);
+        }
+        return true;
+    }
+
+    /** {@code pos} in this chunk, or through the region within one chunk of it; null if neither. */
+    private static BlockState readForLift(ChunkAccess chunk, WorldGenLevel region, BlockPos pos) {
+        if (pos.getY() < Compat.minY(chunk) || pos.getY() >= Compat.maxY(chunk)) {
+            return Blocks.AIR.defaultBlockState();
+        }
+        int dx = (pos.getX() >> 4) - Compat.chunkX(chunk.getPos());
+        int dz = (pos.getZ() >> 4) - Compat.chunkZ(chunk.getPos());
+        if (dx == 0 && dz == 0) return chunk.getBlockState(pos);
+        // The feature step may write one chunk around the one it decorates, no further.
+        if (region == null || Math.abs(dx) > 1 || Math.abs(dz) > 1) return null;
+        return region.getBlockState(pos);
+    }
+
+    private static void writeForLift(ChunkAccess chunk, WorldGenLevel region, BlockPos pos, BlockState state) {
+        if ((pos.getX() >> 4) == Compat.chunkX(chunk.getPos()) && (pos.getZ() >> 4) == Compat.chunkZ(chunk.getPos())) {
+            setBlockStateSafe(chunk, pos, state);
+        } else {
+            region.setBlock(pos, state, Block.UPDATE_CLIENTS);
+        }
+    }
+
+    // ========== Trees one block higher ==========
+
+    /**
+     * Trunk bases of the trees this chunk's feature step started one block higher, consumed by
+     * {@link #fillTrunkGaps} once the chunk is layered. Same thread throughout: the trees are placed
+     * inside applyBiomeDecoration and the layer pass runs at its RETURN.
+     */
+    private static final ThreadLocal<List<BlockPos>> shiftedTrunksLocal = new ThreadLocal<>();
+
+    /**
+     * The cells under the trunks of this chunk's shifted 2x2 trees, filled by {@link #clearTrunkGaps}.
+     * Each gets its own layer count from the terrain, and across a slope those run from 0 to 8:
+     * one cell became a full block the trunk sat on, the next got no layer and the log fallback,
+     * the next a layer, so one trunk ended in three different ways. The layer pass keeps them all
+     * partial layers instead (1 to 7), and the trunk is drawn down to each.
+     */
+    private static final ThreadLocal<Set<BlockPos>> wideTrunkGapsLocal = new ThreadLocal<>();
+
+    private static boolean isWideTrunkGap(BlockPos pos) {
+        Set<BlockPos> gaps = wideTrunkGapsLocal.get();
+        return gaps != null && gaps.contains(pos);
+    }
+
+    /** Set while the tree being placed on this thread was started one block higher. */
+    private static final ThreadLocal<Boolean> placingShiftedTree = ThreadLocal.withInitial(() -> false);
+
+    /**
+     * Where a generated tree starts: one block above {@code origin} when the layer pass will run on
+     * this chunk afterwards, so the cell the trunk would have stood in is left for a layer and the
+     * tree stands on top of it. TrunkStemModel then draws the trunk down to the layer, and breaking
+     * the trunk later reveals layered ground instead of a hole.
+     *
+     * <p>Only at worldgen in POST_FEATURES mode: in CARVERS mode the layers already exist and the
+     * tree already starts on top of them, and a growing sapling stands on its layer already. Trees
+     * with a root placer (mangroves) keep their origin, as do trees standing in water or under
+     * something.
+     */
+    public static BlockPos shiftTreeOrigin(WorldGenLevel level, BlockPos origin, boolean hasRootPlacer) {
+        if (!LayerConfig.treesOnLayers() || !LayerConfig.TREE_INJECTION || !LayerConfig.LAYER_INJECTION) return origin;
+        if (LayerConfig.INJECTION_MODE != LayerConfig.InjectionMode.POST_FEATURES) return origin;
+        if (!(level instanceof WorldGenRegion region) || hasRootPlacer) return origin;
+        if (!level.getBlockState(origin).isAir() || !level.getBlockState(origin.above()).isAir()) return origin;
+        BlockState ground = level.getBlockState(origin.below());
+        if (!Compat.blocksMotion(ground) || hasLayerProperty(ground)) return origin;
+        @SuppressWarnings("deprecation")
+        ServerLevel serverLevel = region.getLevel();
+        if (LayerBackend.of(serverLevel) == LayerBackend.NONE) return origin;
+
+        BlockPos trunk = origin.above();
+        List<BlockPos> trunks = shiftedTrunksLocal.get();
+        if (trunks == null) {
+            trunks = new ArrayList<>();
+            shiftedTrunksLocal.set(trunks);
+        }
+        trunks.add(trunk.immutable());
+        placingShiftedTree.set(true);
+        return trunk;
+    }
+
+    /** Called when TreeFeature.place returns. */
+    public static void endTreePlacement() {
+        placingShiftedTree.set(false);
+    }
+
+    /**
+     * Where a tree's trunk placer puts the dirt under its trunk: under the layer, or under the empty
+     * cell {@link #shiftTreeOrigin} left, rather than in it. Vanilla turns the block under the trunk
+     * into dirt; in either case that block is the cell the layer belongs in, and a dirt block there
+     * would bury it.
+     *
+     * <p>For a shifted tree an empty cell always moves down one, whatever is under it: that is the
+     * cell vanilla aimed at before the shift. Under a 2x2 trunk across a dip it is air too, and
+     * vanilla fills it with this dirt on purpose; stopping one short left the dirt floating a
+     * block above the dip. For a tree that was not shifted an empty cell is such a dip itself, and
+     * stays where it is.
+     */
+    public static BlockPos soilUnderTrunk(LevelSimulatedReader level, BlockPos pos) {
+        if (!LayerConfig.treesOnLayers() || !LayerConfig.TREE_INJECTION) return pos;
+        if (placingShiftedTree.get() && level.isStateAtPosition(pos, BlockState::isAir)) return pos.below();
+        if (!level.isStateAtPosition(pos, PlantGrounding::isLayerSoil)) return pos;
+        return level.isStateAtPosition(pos.below(), BlockState::isAir) ? pos : pos.below();
+    }
+
+    /**
+     * Where a huge mushroom feature looks for its soil: the block under {@code query}'s layer, or
+     * under the empty cell a shifted mushroom left. The feature only grows on dirt or a mushroom
+     * grow block directly below its stem; the layer in between is neither. Also lets bone meal grow
+     * a mushroom standing on a layer.
+     */
+    public static BlockPos mushroomSoil(net.minecraft.world.level.BlockGetter level, BlockPos query) {
+        if (!LayerConfig.treesOnLayers() || !LayerConfig.TREE_INJECTION) return query;
+        BlockState state = level.getBlockState(query);
+        boolean layerCell = (placingShiftedTree.get() && state.isAir()) || PlantGrounding.isLayerSoil(state);
+        if (!layerCell || level.getBlockState(query.below()).isAir()) return query;
+        return query.below();
+    }
+
+    /** Forgets the trunks recorded on this thread; called before each chunk's feature step. */
+    public static void clearShiftedTrunks() {
+        shiftedTrunksLocal.remove();
+        wideTrunkGapsLocal.remove();
+    }
+
+    /**
+     * Empties the cells under shifted trunks before the layer pass. The vegetation features run
+     * after trees in the same feature step and see an empty cell over grass, so short grass,
+     * flowers or mushrooms land in it, the layer pass then finds the cell taken, and the tree is
+     * left floating over a tuft. Anything there that does not block motion and holds no fluid is a
+     * plant that only got there through the gap, so it goes.
+     */
+    public static void clearTrunkGaps(ChunkAccess chunk) {
+        List<BlockPos> trunks = shiftedTrunksLocal.get();
+        if (trunks == null || trunks.isEmpty()) return;
+        WorldGenLevel region = liftRegionLocal.get();
+        Set<BlockPos> wide = new java.util.HashSet<>();
+        for (BlockPos trunk : trunks) {
+            List<BlockPos> gaps = new ArrayList<>();
+            forEachTrunkGap(chunk, region, trunk, (gap, gapState, log) -> {
+                if (!gapState.isAir() && !Compat.blocksMotion(gapState) && gapState.getFluidState().isEmpty()) {
+                    writeForLift(chunk, region, gap, Blocks.AIR.defaultBlockState());
+                }
+                gaps.add(gap.immutable());
+            });
+            if (gaps.size() > 1) wide.addAll(gaps);
+        }
+        wideTrunkGapsLocal.set(wide);
+    }
+
+    @FunctionalInterface
+    private interface TrunkGapVisitor {
+        void visit(BlockPos gap, BlockState gapState, BlockState log);
+    }
+
+    /**
+     * Visits the cell under each base of a shifted trunk: the recorded base and the cells around it,
+     * which covers 2x2 trunks. Only cells with a log above and ground below.
+     */
+    private static void forEachTrunkGap(ChunkAccess chunk, WorldGenLevel region, BlockPos trunk, TrunkGapVisitor visitor) {
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                BlockPos base = trunk.offset(dx, 0, dz);
+                BlockPos gap = base.below();
+                BlockState log = readForLift(chunk, region, base);
+                if (log == null || !PlantGrounding.isTrunkBlock(log)) continue;
+                BlockState gapState = readForLift(chunk, region, gap);
+                if (gapState == null) continue;
+                BlockState ground = readForLift(chunk, region, gap.below());
+                if (ground == null || !Compat.blocksMotion(ground)) continue;
+                visitor.visit(gap, gapState, log);
+            }
+        }
+    }
+
+    /**
+     * Gives every shifted tree something to stand on where the layer pass left its cell empty (a
+     * layer count of 0, a column it skipped, or one a cleanup pass removed): the trunk's own log,
+     * so the tree is one block taller instead of floating. Covers 2x2 trunks, whose bases sit
+     * around the recorded one; those can reach into a neighbouring chunk, written through the
+     * region.
+     */
+    public static void fillTrunkGaps(ChunkAccess chunk) {
+        List<BlockPos> trunks = shiftedTrunksLocal.get();
+        shiftedTrunksLocal.remove();
+        if (trunks == null || trunks.isEmpty()) return;
+        WorldGenLevel region = liftRegionLocal.get();
+        int[] filled = {0};
+        for (BlockPos trunk : trunks) {
+            forEachTrunkGap(chunk, region, trunk, (gap, gapState, log) -> {
+                if (!gapState.isAir()) return;
+                writeForLift(chunk, region, gap, log);
+                filled[0]++;
+            });
+        }
+        if (filled[0] > 0 && LayerConfig.logTreeSoil()) {
+            AronaLayersGen.LOGGER.info("[TreeSoil] ChunkAccess {},{}: {} trunk gap(s) left unlayered, filled with log",
+                Compat.chunkX(chunk.getPos()), Compat.chunkZ(chunk.getPos()), filled[0]);
+        }
+    }
+
+    private static final int LIFT_REFUSED = 0;
+    private static final int LIFT_DRY = 1;
+    private static final int LIFT_WET = 2;
+
+    /**
+     * Sets a block state in the chunk without triggering Block.onBlockAdded notifications.
+     *
+     * When chunk is a LevelChunk, LevelChunk.setBlockState calls Block.onBlockAdded.
+     * Some blocks call back into world.setBlockState
+     * on neighbor positions inside onBlockAdded, which cascades into getChunkBlocking
+     * and deadlocks the server thread during LevelChunk initialization.
+     *
+     * Writing directly to the chunk section bypasses onBlockAdded entirely.
+     * Heightmaps are updated manually so surface/lighting data stays correct.
+     */
+    /**
+     * Remove any layer blocks within the configured Chebyshev radius of (worldX, worldZ)
+     * at Y levels near centerY. Only operates within the current chunk.
+     * Called after detecting an elevated position to clean up surrounding layers.
+     */
+    private static void cleanupNearbyLayers(ChunkAccess chunk, int worldX, int worldZ, int centerY) {
+        int radius = LayerConfig.STRUCTURE_SKIP_EXTRA_CLEANUP_DISTANCE;
+        int chunkMinX = chunk.getPos().getMinBlockX();
+        int chunkMinZ = chunk.getPos().getMinBlockZ();
+        for (int dx = -radius; dx <= radius; dx++) {
+            for (int dz = -radius; dz <= radius; dz++) {
+                if (dx == 0 && dz == 0) continue;
+                int nx = worldX + dx, nz = worldZ + dz;
+                if (nx < chunkMinX || nx >= chunkMinX + 16
+                        || nz < chunkMinZ || nz >= chunkMinZ + 16) continue;
+                for (int dy = -2; dy <= 2; dy++) {
+                    int ny = centerY + dy;
+                    if (ny < Compat.minY(chunk) || ny >= Compat.maxY(chunk)) continue;
+                    BlockPos pos = new BlockPos(nx, ny, nz);
+                    BlockState state = chunk.getBlockState(pos);
+                    boolean isLayer = state.hasProperty(BlockStateProperties.LAYERS);
+                    if (isLayer) {
+                        setBlockStateSafe(chunk, pos, Blocks.AIR.defaultBlockState());
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Clear any replaceable vegetation (grass, flowers, ferns, etc.) sitting directly
+     * above the given Y position. Continues upward until air or a non-replaceable block.
+     * Called after removing an elevated block so stranded plants don't float.
+     */
+    private static void clearVegetationAbove(ChunkAccess chunk, int worldX, int worldZ, int aboveY) {
+        for (int y = aboveY; y < Compat.maxY(chunk); y++) {
+            BlockState state = chunk.getBlockState(new BlockPos(worldX, y, worldZ));
+            if (state.isAir()) break;
+            if (!state.canBeReplaced()) break;
+            setBlockStateSafe(chunk, new BlockPos(worldX, y, worldZ), Blocks.AIR.defaultBlockState());
+        }
+    }
+
+    static void setBlockStateSafe(ChunkAccess chunk, BlockPos pos, BlockState state) {
+        if (chunk instanceof LevelChunk levelChunk) {
+            int y = pos.getY();
+            int sectionIdx = chunk.getSectionIndex(y);
+            if (sectionIdx < 0 || sectionIdx >= chunk.getSectionsCount()) return;
+            int lx = pos.getX() & 15, lz = pos.getZ() & 15;
+            BlockState previous = chunk.getSection(sectionIdx).getBlockState(lx, y & 15, lz);
+            chunk.getSection(sectionIdx).setBlockState(lx, y & 15, lz, state);
+            for (Map.Entry<Heightmap.Types, Heightmap> entry : chunk.getHeightmaps()) {
+                entry.getValue().update(lx, y, lz, state);
+            }
+            notifyLightEngine(levelChunk, pos, previous, state);
+        } else {
+            Compat.chunkSetBlockState(chunk, pos, state);
+        }
+    }
+
+    /**
+     * Tells the light engine a live chunk changed under it.
+     *
+     * <p>The branch above writes straight into the section and updates the heightmaps by hand,
+     * deliberately bypassing {@code LevelChunk.setBlockState} — that path runs the block's
+     * onBlockAdded with NOTIFY_ALL, which can cascade during chunk init. The cost is that it also
+     * bypasses the light notification that method would have issued, so on a live chunk every
+     * write leaves the light engine believing the old state is still there.
+     *
+     * <p>Removals are where that shows: taking a block out leaves the position at its previous
+     * value, dark enough to spawn mobs, and it stays that way until an unrelated block update
+     * forces a recheck — which is why placing and breaking a block next to it appears to fix it.
+     * During worldgen none of this applies, because the chunk is a ProtoChunk and lighting is
+     * computed from scratch afterwards.
+     */
+    private static void notifyLightEngine(LevelChunk chunk, BlockPos pos, BlockState previous, BlockState state) {
+        if (previous == state) return;
+        try {
+            chunk.getLevel().getLightEngine().checkBlock(pos);
+        } catch (Throwable t) {
+            // Never fail a placement over a lighting hint; the position simply keeps stale light.
+            AronaLayersGen.LOGGER.debug("[Light] Could not request relight at {}", pos, t);
+        }
+    }
+
+    // ========== Correction Passes ==========
+
+    public static void correctMismatchedLayers(ChunkAccess chunk) {
+        correctMismatchedLayers(chunk, false);
+    }
+
+    /**
+     * @param remapOnly when true, only re-map a layer's block to match the (possibly changed) surface
+     *     below it, and fix waterlogging — skipping the structure / enclosed / underwater REMOVAL
+     *     steps. Used in POST_FEATURES mode, where RTF can swap a surface after our layer was placed
+     *     (e.g. grass → beach/river sand, leaving a grass_block_layer on sand). The removal steps have
+     *     never run in that mode, so applying them here would change layer coverage; only the harmless
+     *     re-map is wanted.
+     */
+    public static void correctMismatchedLayers(ChunkAccess chunk, boolean remapOnly) {
+        BlockMappingRegistry registry = getMappingRegistry();
+        int corrected = 0;
+        int removed = 0;
+        int waterlogged = 0;
+        int structureCleanup = 0;
+
+        int startX = chunk.getPos().getMinBlockX();
+        int startZ = chunk.getPos().getMinBlockZ();
+
+        for (int localX = 0; localX < 16; localX++) {
+            for (int localZ = 0; localZ < 16; localZ++) {
+                int worldX = startX + localX;
+                int worldZ = startZ + localZ;
+
+                int heightmapY = chunk.getOrCreateHeightmapUnprimed(Heightmap.Types.OCEAN_FLOOR).getFirstAvailable(localX, localZ);
+                if (heightmapY <= Compat.minY(chunk) + 1) continue;
+
+                BlockPos layerPos = null;
+                BlockPos surfacePos = null;
+                BlockState layerState = null;
+
+                BlockPos pos1 = new BlockPos(worldX, heightmapY - 1, worldZ);
+                BlockState state1 = chunk.getBlockState(pos1);
+
+                if (isFloorLayer(state1) && state1.getBlock() != Blocks.SNOW) {
+                    layerPos = pos1;
+                    layerState = state1;
+                    surfacePos = pos1.below();
+                } else {
+                    BlockPos pos2 = new BlockPos(worldX, heightmapY, worldZ);
+                    BlockState state2 = chunk.getBlockState(pos2);
+                    if (isFloorLayer(state2) && state2.getBlock() != Blocks.SNOW) {
+                        layerPos = pos2;
+                        layerState = state2;
+                        surfacePos = pos1;
+                    }
+                }
+
+                if (layerPos == null || surfacePos == null) continue;
+
+                if (!remapOnly && LayerConfig.STRUCTURE_INJECTION && isInsideStructure(chunk, layerPos)) {
+                    setBlockStateSafe(chunk, layerPos, Blocks.AIR.defaultBlockState());
+                    removed++;
+                    continue;
+                }
+
+                if (!remapOnly && LayerConfig.STRUCTURE_INJECTION && LayerConfig.STRUCTURE_CLEANUP) {
+                    boolean shouldRemove = false;
+
+                    BlockState aboveState = chunk.getBlockState(layerPos.above());
+                    if (!aboveState.canBeReplaced() && !isPlantCover(aboveState)) {
+                        shouldRemove = true;
+                    }
+
+                    if (!shouldRemove) {
+                        Block surfaceBlock = chunk.getBlockState(surfacePos).getBlock();
+                        if (isStructureBlock(surfaceBlock)) {
+                            shouldRemove = true;
+                        }
+                    }
+
+                    if (!shouldRemove && LayerConfig.ENCLOSED_SPACE_CHECK) {
+                        if (hasEnclosingCeiling(chunk, layerPos, LayerConfig.ENCLOSED_SPACE_HEIGHT)) {
+                            shouldRemove = true;
+                        }
+                    }
+
+                    if (shouldRemove) {
+                        setBlockStateSafe(chunk, layerPos, Blocks.AIR.defaultBlockState());
+                        structureCleanup++;
+                        continue;
+                    }
+                }
+
+                boolean waterAbove = isWaterAt(chunk, layerPos.above());
+                if (!remapOnly && waterAbove && !LayerConfig.UNDERWATER_LAYERS) {
+                    // Layer was placed underwater (e.g. during CARVERS before water filled in)
+                    // but underwater layers are disabled; remove it
+                    setBlockStateSafe(chunk, layerPos, Blocks.AIR.defaultBlockState());
+                    removed++;
+                    continue;
+                }
+
+                boolean shouldBeWaterlogged = false;
+                if (LayerConfig.UNDERWATER_LAYERS) {
+                    if (waterAbove) {
+                        shouldBeWaterlogged = true;
+                    } else {
+                        for (BlockPos neighbor : new BlockPos[]{
+                                layerPos.north(), layerPos.south(),
+                                layerPos.east(), layerPos.west()}) {
+                            if (isWaterAt(chunk, neighbor)) {
+                                shouldBeWaterlogged = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                Block surfaceBlock = chunk.getBlockState(surfacePos).getBlock();
+                Block currentLayerBlock = layerState.getBlock();
+                boolean changed = false;
+
+                // Light POST_FEATURES re-map: only touch genuine fractional layers (1..7). A maxed
+                // block reads as layers=8, so re-mapping those would rewrite full blocks
+                // into layers=8 layer blocks. The surface-swap mismatches this pass exists to fix are
+                // always fractional, so skipping maxed columns is safe.
+                if (remapOnly && readLayerCount(layerState) >= 8) continue;
+
+                if (registry.hasMapping(surfaceBlock)) {
+                    int currentLayers = readLayerCount(layerState);
+                    Block correctLayerBlock = registry.getLayerBlock(surfaceBlock, currentLayers);
+
+                    if (correctLayerBlock != null && correctLayerBlock != currentLayerBlock) {
+                        BlockState newState = correctLayerBlock.defaultBlockState();
+                        newState = applyLayerCount(newState, correctLayerBlock, currentLayers);
+                        if (shouldBeWaterlogged && newState.hasProperty(BlockStateProperties.WATERLOGGED)) {
+                            newState = newState.setValue(BlockStateProperties.WATERLOGGED, true);
+                        }
+                        setBlockStateSafe(chunk, layerPos, newState);
+                        corrected++;
+                        changed = true;
+                    }
+                } else if (!remapOnly) {
+                    setBlockStateSafe(chunk, layerPos,
+                        shouldBeWaterlogged ? Blocks.WATER.defaultBlockState() : Blocks.AIR.defaultBlockState());
+                    removed++;
+                    changed = true;
+                }
+
+                if (!changed && shouldBeWaterlogged && layerState.hasProperty(BlockStateProperties.WATERLOGGED)
+                        && !layerState.getValue(BlockStateProperties.WATERLOGGED)) {
+                    setBlockStateSafe(chunk, layerPos,
+                        layerState.setValue(BlockStateProperties.WATERLOGGED, true));
+                    waterlogged++;
+                }
+            }
+        }
+
+        if ((corrected > 0 || removed > 0 || waterlogged > 0 || structureCleanup > 0) && LayerConfig.logCorrection()) {
+            AronaLayersGen.LOGGER.info("[Correction] ChunkAccess {},{}: corrected={}, removed={}, waterlogged={}, structureCleanup={}",
+                Compat.chunkX(chunk.getPos()), Compat.chunkZ(chunk.getPos()), corrected, removed, waterlogged, structureCleanup);
+        }
+    }
+
+    public static void removeLayersAtColumns(ChunkAccess chunk, Set<Integer> changedColumns) {
+        int removed = 0;
+        int preserved = 0;
+        int startX = chunk.getPos().getMinBlockX();
+        int startZ = chunk.getPos().getMinBlockZ();
+
+        for (int index : changedColumns) {
+            int localX = index % 16;
+            int localZ = index / 16;
+            int worldX = startX + localX;
+            int worldZ = startZ + localZ;
+
+            int heightmapY = chunk.getOrCreateHeightmapUnprimed(Heightmap.Types.OCEAN_FLOOR).getFirstAvailable(localX, localZ);
+            if (heightmapY <= Compat.minY(chunk) + 1) continue;
+
+            for (int dy = -1; dy <= 0; dy++) {
+                BlockPos pos = new BlockPos(worldX, heightmapY + dy, worldZ);
+                BlockState state = chunk.getBlockState(pos);
+
+                if (isFloorLayer(state) && state.getBlock() != Blocks.SNOW) {
+                    BlockState aboveState = chunk.getBlockState(pos.above());
+                    if (!aboveState.isAir() && aboveState.getBlock() != Blocks.WATER) {
+                        preserved++;
+                        break;
+                    }
+
+                    setBlockStateSafe(chunk, pos, Blocks.AIR.defaultBlockState());
+                    addSecondPassTarget(worldX, worldZ, pos.getY(), chunk.getBlockState(pos.below()).getBlock());
+                    removed++;
+                    break;
+                }
+            }
+        }
+
+        if ((removed > 0 || preserved > 0) && LayerConfig.logStructureNoLayers()) {
+            AronaLayersGen.LOGGER.info("[StructureNoLayers] ChunkAccess {},{}: removed={}, preserved={} (had plants above)",
+                Compat.chunkX(chunk.getPos()), Compat.chunkZ(chunk.getPos()), removed, preserved);
+        }
+    }
+}
