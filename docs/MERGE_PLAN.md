@@ -18,8 +18,8 @@ Generation settings become per-world data, editable from the Create World screen
 
 | # | Phase | Repo it happens in | Status |
 |---|-------|--------------------|--------|
-| 0 | Decisions confirmed by the user | — | done 2026-11-13 (1 to 5 confirmed; licence choice pending) |
-| 1 | Remove Conquest Reforged from gen | AronaLayers-gen | done 2026-11-13 (uncommitted; see notes) |
+| 0 | Decisions confirmed by the user | — | done 2026-11-13 |
+| 1 | Remove Conquest Reforged from gen | AronaLayers-gen | done 2026-11-13, gen branch `merge`, commit a124056 (see notes) |
 | 2 | Move gen into AronaLayers (pilot 1.21.1, then the other versions) | AronaLayers | todo |
 | 3 | Port extras into AronaLayers, Fabric + NeoForge | AronaLayers | todo |
 | 4 | Config: one registry, new tab order, global vs world scope | AronaLayers | todo |
@@ -111,8 +111,7 @@ Two things in the gen config do not fit "generation settings belong to the world
 ### Licence
 
 This repo is CC-BY-NC-4.0 (derived from Vanilla+ Layers by Fellter). Gen and extras are MIT, by the
-user alone, so the user can ship them under the merged mod's licence. The merged jar stays
-CC-BY-NC-4.0. README and metadata should say so once.
+user alone. Decided: both are kept, see the next section.
 
 ## Decisions to confirm (phase 0)
 
@@ -168,7 +167,8 @@ Pilot (one session, strongest model): 1.21.1 Fabric and NeoForge.
 
 1. Copy gen's shared sources to `src/main/java/io/arona74/aronalayers/gen/…`, loader sources to
    `src/fabric` and `src/neoforge`, version sources to `v1_21_1/{common,fabric,neoforge}`; rename
-   the package; mixin config becomes `aronalayers.gen.mixins.json` with its plugin.
+   the package; mixin config becomes `aronalayers.gen.mixins.json` (gen has no mixin plugin any more).
+   Source: gen branch `merge` at commit a124056; name it in the commit message.
 2. Call gen's init from this mod's entry points; drop gen's own entry points and metadata; add its
    mixin config, Mod Menu entry point and client setup to `fabric.mod.json` / `neoforge.mods.toml`.
 3. Blocks: delete the two duplicates, move powder snow and zinc layers into `ModBlocks` + datagen,
