@@ -468,7 +468,9 @@ loot tables, the pickaxe and needs-iron-tool tags, and three names.
   ore layer at 8 stays a layer without Create; both zinc tags apply; mining one with an iron
   pickaxe drops the layer; 6 data packs as before.
 
-Not checked: any client (config screen and its text from the new language folder, Mod Menu
-button, plant grounding and stem models, the three blocks' models), Create installed, a
+Client: the user tested 1.21.1 NeoForge on 2026-11-13, "seems fine". The Fabric client is untested.
+
+Not checked: the Fabric client (Mod Menu button, its plant grounding and stem models), Create
+installed, a
 NeoForge install next to the old gen jar (the `incompatible` entries), and the port script on a
 real version.
