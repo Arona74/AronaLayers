@@ -53,6 +53,16 @@ public class LayerBlock extends CompatBlock implements SimpleWaterloggedBlock {
 	protected static VoxelShape[] WEST_LAYERS_TO_SHAPE;
 	protected static VoxelShape[] CEILING_LAYERS_TO_SHAPE;
 
+	/** Replaces the drop of one layer mined off a taller block while sneaking (see onPlayerDestroy). */
+	@FunctionalInterface
+	public interface OneLayerDrop {
+		/** @return true if it dropped something else, false to drop the layer item as usual */
+		boolean drop(BlockState oneLayer, Level world, BlockPos pos, ItemStack tool);
+	}
+
+	/** Set by the gameplay code (small ores from ore layers). Null: the layer item drops. */
+	public static OneLayerDrop oneLayerDrop;
+
 	public LayerBlock(Properties settings) {
 		super(settings);
 		this.registerDefaultState(this.getStateDefinition().any().setValue(LAYERS, 1).setValue(WATERLOGGED, false).setValue(FACING, Direction.DOWN));
@@ -124,7 +134,9 @@ public class LayerBlock extends CompatBlock implements SimpleWaterloggedBlock {
 			world.setBlockAndUpdate(pos, state.setValue(LAYERS, state.getValue(LAYERS) - 1));
 			player.awardStat(Stats.BLOCK_MINED.get(this));
 			player.causeFoodExhaustion(0.005F);
-			popResource(world, pos, new ItemStack(this));
+			if (oneLayerDrop == null || !oneLayerDrop.drop(state.setValue(LAYERS, 1), world, pos, tool)) {
+				popResource(world, pos, new ItemStack(this));
+			}
 		} else {
 			super.onPlayerDestroy(world, player, pos, state, blockEntity, tool);
 		}

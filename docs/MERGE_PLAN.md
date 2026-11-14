@@ -21,7 +21,7 @@ Generation settings become per-world data, editable from the Create World screen
 | 0 | Decisions confirmed by the user | — | done 2026-11-13 |
 | 1 | Remove Conquest Reforged from gen | AronaLayers-gen | done 2026-11-13, gen branch `merge`, commit a124056 (see notes) |
 | 2 | Move gen into AronaLayers (pilot 1.21.1, then the other versions) | AronaLayers | done 2026-11-13: pilot (1.21.1) and fan-out (1.20.1, 1.21.11, 26.1.2, 26.2, 26.3), see notes |
-| 3 | Port extras into AronaLayers, Fabric + NeoForge | AronaLayers | todo |
+| 3 | Port extras into AronaLayers, Fabric + NeoForge | AronaLayers | pilot (1.21.1, both loaders) done 2026-11-14, see notes; fan-out to 1.20.1, 1.21.11, 26.1.2, 26.2, 26.3 todo |
 | 4 | Config: one registry, new tab order, global vs world scope | AronaLayers | todo |
 | 5 | Generation config stored in world data | AronaLayers | todo |
 | 6 | Generation settings button on the Create World screen | AronaLayers | todo |
@@ -567,3 +567,224 @@ grounded plants and tree stems work on 1.20.1. Two fixes:
   Client tests by the user (2026-11-14): FTF on 1.21.1 NeoForge and a vanilla world on 26.1.2,
   trees and huge mushrooms raised onto layers; the 1.20.1 config screen is fine. Not checked:
   ReTerraForged.
+
+### Phase 3 pilot (2026-11-14)
+
+Extras (branch `main`, commit 9678b43, 1.3.0) is in this repo for 1.21.1 Fabric and NeoForge, as
+`io.arona74.aronalayers.gameplay`. Not committed. The nine other jars build without it.
+
+**Where things went.**
+
+| Extras | Here |
+|--------|------|
+| `AronaLayersExtras` | `gameplay.AronaLayersGameplay.init()` |
+| `GrassSpreadHandler`, `MyceliumSpreadHandler` | `gameplay.LayerSpreadHandler` (one scan for both) |
+| `LayerFallHandler` | `gameplay.LayerFallHandler` |
+| `ore.OreLayerDrops` | `gameplay.ore.OreLayerDrops` |
+| `ore.SmallOreItems` | six fields in `item.ModItems`, ids `aronalayers:small_*` |
+| `mixin.EatGrassGoalMixin`, `FallingBlockMixin`, `OreLayerDropMixin` | `gameplay.mixin`, in root `src/main` |
+| per-version `mixin.SpreadableBlockMixin` | `vX/common/…/gameplay/mixin/SpreadableBlockMixin` |
+| per-version `Compat` | `vX/common/…/gameplay/Compat` (game rules, enchantment levels, bottom Y) |
+| `aronalayersextras.mixins.json` | `vX/common/src/main/resources/aronalayers.gameplay.mixins.json`, `defaultRequire` 1 (extras had 0) |
+| `ModConfig`, `config/aronalayersextras.json` | seven options in `gen.LayerConfig`, Gameplay tab |
+| item models, recipes, advancements, names (hand-made, per version) | datagen; the shape the six models shared is `assets/aronalayers/models/item/small_ore.json` in root resources |
+| `LICENSE` | same text as the `LICENSE-MIT` already here |
+
+Not ported: `WetSandHandler` and its two settings, every `conquest:*` id and the `_rocks` rule,
+`SheepGrassEatingHandler` and the per-version `SheepEntityMixin` (see sheep below), the three
+`mixin/compat` classes, `ModMenuIntegration`, `ClothConfigScreenFactory`, the icon.
+
+**Reconciled with what the layers already do** (plan step 2).
+
+- *Grass.* Extras cancelled the whole random tick of a vanilla grass block (to stop its decay),
+  which also stopped it spreading, and its own handler spread grass onto dirt blocks instead. With
+  the option off, both spread. Now `SpreadableBlockMixin` cancels only the tick that would turn
+  the block into dirt (`canBeGrass` false), a grass block spreads onto dirt blocks by itself as in
+  vanilla, and the handler covers what vanilla cannot: grass layer → dirt layer and dirt block,
+  grass block → dirt layer.
+- *The grass layer's own decay* (its random tick: under a full fluid block, or 8 high under a
+  covering block) is unchanged. The anonymous class in `ModBlocks` became
+  `custom_blocks.GrassLayerBlock` so the handler can ask the same question
+  (`GrassLayerBlock.canBeGrass`) before it turns a dirt layer into grass or mycelium; it also
+  skips layers with water above, and only turns a dirt *block* into grass or mycelium with air
+  above (extras checked nothing for mycelium). Otherwise the handler converts and the next
+  random tick reverts, for ever.
+- *Sheep.* Extras converted the layer in `EatBlockGoal.tick`, then again in `Sheep.ate`
+  (ignoring mobGriefing the second time), and vanilla then went on to the block under the sheep:
+  a grass layer lying on a grass block cost both and fed the sheep twice. Now one mixin
+  (`EatGrassGoalMixin`, `tick` at HEAD) does it and cancels vanilla on that tick; the `Sheep.ate`
+  mixin is gone, and with it a per-version class. It also compares with `adjustedTickDelay(4)`
+  like vanilla (extras compared with 4, before the counter was decreased), plays the break
+  effect, and eats an 8-high grass layer the sheep stands *on* when the space at its feet is air.
+- *Falling.* Every layer already falls by itself when nothing holds it (`LayerBlock.tick`), and
+  sand layers fall like sand (`FallingLayerBlock`). The option adds: layers resting on sand, red
+  sand or gravel go with it even when a block beside them would hold them. The layer's own
+  scheduled tick then finds air and does nothing (checked: one block lands, no item). What falls
+  is now decided from the block, not its id: a `LayerBlock` with `facing=down` (extras would have
+  dropped layers set against a wall or ceiling), a `Layer3DBlock` with a floor part, the
+  snow-style layers, and the ids of `additional_falling_blocks`.
+- *Ore drops.* Sneak-mining takes one layer off a `LayerBlock` and pops the layer item, without
+  going through the loot table: an ore layer would have handed out layers whatever the tool.
+  `LayerBlock.oneLayerDrop` is a hook the gameplay code sets, so that one layer mined off an ore
+  layer drops one layer's small ores (the layer item with Silk Touch). Nothing changes for the
+  other layers. Ancient debris, the 3D ore layers and the zinc ore layers keep their loot table.
+
+**Platform hooks** (plan step 3; 1.21.1 only so far).
+
+- `gen.platform.Platform`: `onServerTickEnd(Runnable)` became `onLevelTickEnd(Consumer<ServerLevel>)`;
+  new `onPlayerBlockBreak(BlockBreakListener)` (the interface is shared, in root
+  `src/main/…/gen/platform`) and `fakePlayer(ServerLevel)`. `configDir()` was already there.
+  NeoForge's `BlockEvent.BreakEvent` fires *before* the block is removed and can still be
+  cancelled: the listener is deferred through the server's task queue (`TickTask`) and runs only
+  if the block is gone.
+- `platform.Platform` (this mod's own): `addToCreativeTab(tab, Supplier<List<Item>>)`. On NeoForge
+  it is a mod-bus event, which that class already listens to; a supplier because on NeoForge the
+  call comes before the items exist. The six items are added to vanilla's Ingredients tab.
+
+**Config** (plan step 5). In the Gameplay tab, all `Apply.LIVE`, server side:
+
+| `aronalayersextras.json` | `layer_config.json` | Default |
+|--------------------------|---------------------|---------|
+| `enableGrassSpreading` | `grass_spreading` | true |
+| `enableMyceliumSpreading` | `mycelium_spreading` | true |
+| `enableSheepEatingGrassLayers` | `sheep_eat_grass_layers` | true |
+| `preventGrassDecay` | `prevent_grass_decay` | true |
+| `enableLayersFallWithSand` | `layers_fall_with_sand` | true |
+| `AdditionalFallingBlocks` | `additional_falling_blocks` | [] |
+| `enableSmallOreDrops` | `small_ore_drops` | true |
+
+`LayerConfig.loadConfig` reads `config/aronalayersextras.json` as long as `layer_config.json`
+does not hold `grass_spreading` yet, that is once; the old file is left where it is.
+`enableWetSands` and `WetSandMappings` are ignored.
+
+**The three `mixin/compat` classes** (plan step 6): none is ported. `MushroomVanillaMixin` and
+1.20.1's `BlockStateUpdateShapeMixin` only guarded a crash in a Conquest Reforged block.
+`StateWithMixin` made `setValue` with a property the state does not have return the state
+unchanged, for every block of every mod, for the same crash; it would now hide real bugs. Gen's
+plant grounding does not depend on it (gen ran without extras): its `setValue` calls are on wall
+and pane states, for properties those states have. The plant offset extras once had already
+moved to gen in 1.3.0, so nothing overlaps.
+
+**Decisions taken in the pilot, to confirm or change.**
+
+- **A test command ships with the mod**: `/algdebug gameplay mine <pos> [silk_touch|fortune|sneak|sneak_silk_touch]`
+  and `/algdebug gameplay anchor <pos>|clear` (`gameplay.command.GameplayDebugCommand`, permission
+  level 2, next to gen's `/algdebug` commands). A dedicated server with nobody on it cannot test
+  these features otherwise: spreading runs around players, and drops and block-break events need
+  a player with a tool. `mine` uses the loader's fake player; `anchor` makes spreading run around
+  a position. If it should not ship, delete the class, `Platform.fakePlayer`, `Compat.enchant`
+  and the anchors in `LayerSpreadHandler`; the test script then has nothing to drive.
+- **`prevent_grass_decay` keeps extras' default, true**: someone who only had the blocks mod now
+  gets grass blocks that stay grass under a solid block. It does not apply to grass layers (their
+  decay is this mod's own, unchanged).
+- **Vanilla grass blocks spread onto dirt at vanilla's pace again** (see Grass above), instead of
+  extras' pace near players only.
+- **The gameplay code uses gen's `Platform` and `LayerConfig`** rather than a third `Platform`
+  and config class; its `Compat` is its own, since extras' per-version one could be cut down
+  as it was.
+- Spreading looks columns up from the `MOTION_BLOCKING` heightmap instead of from the build
+  limit (same result: nothing above it is solid or grass), skips chunks that are not loaded
+  instead of loading them, and uses the level's random source.
+- Known and left as it is: a sheep grazing on a *dirt* layer eats the grass block under it, as
+  vanilla sheep do through snow. With many sheep an eaten layer therefore often ends up on dirt.
+
+**Temporary, to remove in the fan-out.**
+
+- Each of the nine other `build.gradle` files has a block marked
+  `TEMPORARY (docs/MERGE_PLAN.md, phase 3)` that leaves the gameplay package out.
+- `gameplay.AronaLayersGameplay::init` is an extra `main` entry in 1.21.1's `fabric.mod.json`, and
+  `src/neoforge/…/gameplay/neoforge/GameplayNeoForge` is a second `@Mod` class, because the
+  shared entry points are compiled by all 11 projects.
+- Shared code already in all 11 jars: the six items are registered everywhere (outside 1.21.1
+  without model, name or recipe), and the seven options show in every config screen and file
+  (outside 1.21.1 they do nothing yet).
+
+**Recipe for the other versions** (only `vX/` files change, except the last step):
+
+1. Delete the `TEMPORARY … phase 3` block in `vX/fabric/build.gradle` and `vX/neoforge/build.gradle`.
+2. `vX/common/src/main/java/io/arona74/aronalayers/gameplay/Compat.java`: take extras'
+   `vX/src/main/java/io/arona74/aronalayersextras/Compat.java`, new package, and keep only
+   `bottomY`, `randomTickSpeed`, `doMobGriefing`, `doBlockDrops`, `fortuneLevel`, `silkTouchLevel`
+   (with their private helper). Add `enchant(ServerLevel, ItemStack, boolean silkTouch, int fortune)`
+   as in 1.21.1 (on 1.20.1 enchantments are objects: `tool.enchant(Enchantments.SILK_TOUCH, 1)`,
+   `Enchantments.BLOCK_FORTUNE`).
+3. `vX/common/…/gameplay/mixin/SpreadableBlockMixin.java`: copy 1.21.1's. On 26.x the target is
+   `SpreadingSnowyBlock`. Check with `javap -p` that it has
+   `private static boolean canBeGrass(BlockState, LevelReader, BlockPos)`.
+4. `vX/common/src/main/resources/aronalayers.gameplay.mixins.json`: copy 1.21.1's;
+   `compatibilityLevel` and any `overwrites` block as in that version's `aronalayers.gen.mixins.json`.
+5. `vX/{fabric,neoforge}/…/gen/platform/Platform.java`: replace `onServerTickEnd` by
+   `onLevelTickEnd`, add `onPlayerBlockBreak` and `fakePlayer`, as in 1.21.1. Fabric's event is
+   `ServerTickEvents.END_WORLD_TICK` up to 1.21.11 and `END_LEVEL_TICK` from 26.1.2. On NeoForge
+   check `LevelTickEvent.Post`, `BlockEvent.BreakEvent`, `MinecraftServer.tell(TickTask)` and
+   `FakePlayerFactory.getMinecraft` against that version's jars.
+6. `vX/{fabric,neoforge}/…/platform/Platform.java`: `addToCreativeTab`, as in 1.21.1. Fabric from
+   26.1.2: `CreativeModeTabEvents.modifyOutputEvent(tab)` (see extras' `Compat.addToIngredientsTab`).
+7. `fabric.mod.json` and `neoforge.mods.toml`: add `aronalayers.gameplay.mixins.json`. No entry
+   point (last step).
+8. Datagen (`vX/fabric/…/datagen`): the additions of 1.21.1 in `ModModelProvider` (six models
+   with parent `aronalayers:item/small_ore`), `ModRecipeProvider`, `ModLanguageProvider`. On
+   1.21.11 and 26.x the item definitions (`items/small_*.json`) come from datagen too, as for the
+   three blocks of phase 2. Run `runDatagen`; the diff must hold six names, six models, six
+   recipes, six advancements (and six item definitions there). Compare one recipe and one
+   advancement with extras' hand-made file of that version.
+9. The shared classes name these vanilla members; check them on the version (`javap -p`) and
+   move a class to `vX/common` only if one differs: `EatBlockGoal` (`mob`, `level`,
+   `eatAnimationTick`, `canUse`, `tick`), `Goal.adjustedTickDelay`, `FallingBlockEntity`
+   (`fall`, `blockState`, `dropItem`, the `BlockState.canBeReplaced(BlockPlaceContext)` call in
+   `tick`), the six-argument `Block.dropResources`, `ServerPlayer.gameMode.destroyBlock`,
+   `ChunkAccess.getHeight(Heightmap.Types, int, int)`, `ServerChunkCache.getChunkNow`.
+10. Build, `python scripts/verify_mixins.py vX`, then on both loaders
+    `bash scripts/gameplay_test/gameplay_test.sh vX:<loader> <throwaway world> <log>` and compare
+    with "Expected" below. The script restores `server.properties`; delete `<run>/<world>`
+    afterwards. It may need adapting: 1.20.1 has no `tick sprint` (raise `randomTickSpeed`
+    instead, spreading scales with it; sheep need real time), 1.21.11 and later renamed game
+    rules (`doDaylightCycle`) and pause an empty server after 60 s.
+
+When all five are done: `fabric.AronaLayersFabric` and `neoforge.AronaLayersNeoForge` call
+`AronaLayersGameplay.init()` after `AronaLayersGen.init()`; delete `GameplayNeoForge` and the
+`::init` entry of 1.21.1's `fabric.mod.json`.
+
+**What was checked.** All 11 jars build (JDK 25). `verify_mixins.py` passes on all 11 (1.21.1:
+34 mixins on Fabric, 31 on NeoForge, four more than before; the others unchanged). The nine other
+jars hold no `gameplay` class. 1.21.1 datagen changed only: six names in `en_us.json`, six item
+models, six recipes, six advancements; the two recipes and advancements compared (coal, raw
+copper) are the same JSON as extras' apart from the namespace.
+
+Server tests, `scripts/gameplay_test/gameplay_test.sh` (flat world, set-ups at y=200, 36,000
+ticks sprinted), 1.21.1 Fabric and NeoForge, default settings. **Expected**, and what both gave:
+
+| Test | Result on both loaders |
+|------|------------------------|
+| A: one grass layer among 24 dirt layers, 5 dirt blocks beside | 24 of 24 grass layers; dirt blocks → grass blocks, 5 of 5 on NeoForge, 4 of 5 on Fabric (the fifth had not been reached yet) |
+| B: one grass block among 24 dirt layers | 24 of 24 grass layers |
+| C: one mycelium layer among 24 dirt layers | 24 of 24 mycelium layers |
+| D: 25 dirt layers, no source | 25 dirt layers |
+| Sheep, 2-high grass layers on grass blocks, after 1,500 ticks | 2 layers eaten with the grass block under them intact, on each loader (Fabric: one more where both were eaten, a second bite); never a block eaten under an uneaten layer |
+| Sheep, after 36,000 ticks | 4 of 9 layers eaten in each pen (2-high, and 8-high on stone), 8 sheep alive |
+| F1: sand under a full layer and a 3-high layer, both also held from the side | sand, full layer, low layer landed stacked; nothing left above; no item |
+| F2: sand under a layer set against a wall | the sand fell, the layer stayed |
+| F3: two low layers, a block next to where the upper one lands | the upper one is placed above the lower one, no item |
+| F4: the fake player breaks sand under a layer held from the side | the layer is where the sand was; only the sand item |
+| F5: oak slab on sand | stays (falls when listed in `additional_falling_blocks`, first Fabric run) |
+| F6: gravel under a 3D layer | both landed, the 3D layer on the gravel |
+| Coal ore layer, 5 layers | 5 Small Coal; with Silk Touch 5 coal ore layers, no experience |
+| Deepslate copper ore layer, 8 layers | 27 and 19 Small Raw Copper (16 to 40 expected) |
+| Redstone ore layer, 8 layers | 4 redstone and experience |
+| Diamond ore layer, 4 layers | 4 Small Diamond and experience; with Fortune III 16 on Fabric, 4 on NeoForge (4 to 16 expected) |
+| Iron ore layer, 6 layers, sneaking | 5 layers left and 1 Small Raw Iron; with Silk Touch 1 iron ore layer |
+| Stone layer (3) and ancient debris layer (2) | 3 stone layers, 2 ancient debris layers: untouched |
+
+A first Fabric run had a `config/aronalayersextras.json` with `enableMyceliumSpreading` false,
+`preventGrassDecay` false and `AdditionalFallingBlocks` `["minecraft:oak_slab"]`: the log says
+it was imported, `layer_config.json` got those values, test C stayed at 24 dirt layers and F5's
+slab fell. On the next run, with the old file still there and the values set back by hand, it
+was not imported again. The run folders are back as they were (`server.properties`, throwaway
+worlds deleted, the test file removed), except that both `run/config/aronalayers/layer_config.json`
+now hold the seven new keys at their defaults.
+
+Not checked: any client (Gameplay tab with its three new groups, the small ores in the
+Ingredients tab and their models, the recipe book); a real player breaking sand or an ore layer
+(the fake player goes through the same game code, but not through the network); grass block
+decay and the grass layer's own random tick (blocks only tick randomly near a real player);
+Fortune on redstone; the other nine versions beyond building.

@@ -32,6 +32,11 @@ sourceSets {
 	}
 }
 
+// TEMPORARY (docs/MERGE_PLAN.md, phase 3): the gameplay package (grass spreading, sheep, falling
+// layers, small ores) is only ported to Minecraft 1.21.1 so far. Remove this block when porting it
+// to this version.
+sourceSets.main.java.exclude 'io/arona74/aronalayers/gameplay/**'
+
 fabricApi {
 	configureDataGeneration {
 		client = true

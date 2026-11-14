@@ -364,26 +364,7 @@ public class ModBlocks {
 	public static final Block DIRT_PATH_LAYER = registerBlock("dirt_path_layer", FlattenableLayerBlock::new, Compat.copyOf("dirt_path"));
 	public static final Block FARMLAND_LAYER = registerBlock("farmland_layer", FlattenableLayerBlock::new, Compat.copyOf("farmland"));
 	public static final Block DIRT_LAYER = registerBlock("dirt_layer", LayerBlock::new, Compat.copyOf("dirt"));
-	public static final Block GRASS_LAYER = registerBlock("grass_layer", settings -> new LayerBlock(settings) {
-		private static boolean canBeGrass(BlockState state, LevelReader world, BlockPos pos) {
-			BlockPos blockPos = pos.above();
-			BlockState blockState = world.getBlockState(blockPos);
-
-			if (blockState.getFluidState().getAmount() == 8) {
-				return false;
-			} else if (state.getValue(LAYERS) == 8) {
-				return !Compat.occludes(state.getShape(EmptyBlockGetter.INSTANCE, BlockPos.ZERO), blockState.getShape(EmptyBlockGetter.INSTANCE, BlockPos.ZERO), Direction.UP);
-			}
-
-			return true;
-		}
-
-		public void randomTick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
-			if (!canBeGrass(state, world, pos)) {
-				world.setBlockAndUpdate(pos, ModBlocks.DIRT_LAYER.withPropertiesOf(state));
-			}
-		}
-	}, BlockBehaviour.Properties.of().strength(0.6f).sound(SoundType.GRASS).mapColor(MapColor.GRASS).randomTicks());
+	public static final Block GRASS_LAYER = registerBlock("grass_layer", GrassLayerBlock::new, BlockBehaviour.Properties.of().strength(0.6f).sound(SoundType.GRASS).mapColor(MapColor.GRASS).randomTicks());
 	public static final Block PODZOL_LAYER = registerBlock("podzol_layer", LayerBlock::new, Compat.copyOf("podzol"));
 	public static final Block MYCELIUM_LAYER = registerBlock("mycelium_layer", LayerBlock::new, Compat.copyOf("mycelium"));
 	public static final Block COARSE_DIRT_LAYER = registerBlock("coarse_dirt_layer", LayerBlock::new, Compat.copyOf("coarse_dirt"));

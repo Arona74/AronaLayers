@@ -11,15 +11,20 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.models.BlockModelGenerators;
 import net.minecraft.data.models.ItemModelGenerators;
 import net.minecraft.data.models.model.ModelLocationUtils;
+import net.minecraft.data.models.model.ModelTemplate;
 import net.minecraft.data.models.model.ModelTemplates;
 import net.minecraft.data.models.model.TextureMapping;
 import io.arona74.aronalayers.util.Textures;
 import net.minecraft.data.models.model.TextureSlot;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricModelProvider;
+
+import java.util.Optional;
 
 import static io.arona74.aronalayers.util.ModBlockStateModelGenerator.registerLayer3DBlock;
 import static io.arona74.aronalayers.util.ModBlockStateModelGenerator.registerLayer3DTemplates;
@@ -79,5 +84,23 @@ public class ModModelProvider extends FabricModelProvider {
 	@Override
 	public void generateItemModels(ItemModelGenerators img) {
 		img.generateFlatItem(ModItems.TAB_ICON, ModelTemplates.FLAT_ITEM);
+
+		smallOre(img, ModItems.SMALL_COAL, Items.COAL);
+		smallOre(img, ModItems.SMALL_RAW_IRON, Items.RAW_IRON);
+		smallOre(img, ModItems.SMALL_RAW_COPPER, Items.RAW_COPPER);
+		smallOre(img, ModItems.SMALL_RAW_GOLD, Items.RAW_GOLD);
+		smallOre(img, ModItems.SMALL_DIAMOND, Items.DIAMOND);
+		smallOre(img, ModItems.SMALL_EMERALD, Items.EMERALD);
+	}
+
+	// A small ore is drawn as three small pieces of the item it crafts into: the hand-made
+	// parent model item/small_ore (root resources) with that item's texture.
+	private static final TextureSlot CHUNK = TextureSlot.create("chunk");
+	private static final ModelTemplate SMALL_ORE = new ModelTemplate(
+			Optional.of(ResourceLocation.fromNamespaceAndPath(AronaLayers.MOD_ID, "item/small_ore")), Optional.empty(), CHUNK, TextureSlot.PARTICLE);
+
+	private static void smallOre(ItemModelGenerators img, Item smallOre, Item whole) {
+		ResourceLocation texture = TextureMapping.getItemTexture(whole);
+		SMALL_ORE.create(ModelLocationUtils.getModelLocation(smallOre), new TextureMapping().put(CHUNK, texture).put(TextureSlot.PARTICLE, texture), img.output);
 	}
 }

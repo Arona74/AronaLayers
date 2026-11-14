@@ -499,6 +499,29 @@ public class LayerConfig {
     /** Block ids never grounded, even though auto-detection accepts them. */
     public static List<String> PLANT_GROUNDING_EXCLUDE_BLOCKS;
 
+    // ========== Gameplay (the former Arona Layers Extras; read by the gameplay package) ==========
+
+    /** Grass spreads onto dirt layers, from grass layers and from grass blocks. */
+    public static boolean GRASS_SPREADING;
+
+    /** Mycelium layers spread onto dirt layers and dirt. */
+    public static boolean MYCELIUM_SPREADING;
+
+    /** Sheep graze grass layers down to dirt layers. */
+    public static boolean SHEEP_EAT_GRASS_LAYERS;
+
+    /** A covered vanilla grass block stays grass instead of turning into dirt. */
+    public static boolean PREVENT_GRASS_DECAY;
+
+    /** Layers resting on sand or gravel fall with it. */
+    public static boolean LAYERS_FALL_WITH_SAND;
+
+    /** Block ids that fall with the sand or gravel under them, besides this mod's layers. */
+    public static List<String> ADDITIONAL_FALLING_BLOCKS;
+
+    /** Ore layers mined without Silk Touch drop small ores and experience instead of themselves. */
+    public static boolean SMALL_ORE_DROPS;
+
     // ========== Options ==========
     //
     // One declaration per key of layer_config.json, in file and screen order. The defaults are what
@@ -522,6 +545,20 @@ public class LayerConfig {
             "place_rocks", "conquest_enhanced_rocks", "chance_to_place_rocks", "rock_density_mode", "rock_density_factor",
             "place_extra_foliage", "conquest_enhanced_extra_foliage", "chance_to_place_extra_foliage",
             "debug_log_foliage", "debug_log_rocks", "debug_log_nbt_trees");
+
+    /**
+     * The former Extras mod's file, config/aronalayersextras.json, and which option each of its keys
+     * became (see importExtrasConfig). Its wet sand keys went with Conquest Reforged support.
+     */
+    private static final String EXTRAS_CONFIG_FILE = "aronalayersextras.json";
+    private static final Map<String, String> EXTRAS_KEYS = Map.of(
+            "enableGrassSpreading", "grass_spreading",
+            "enableMyceliumSpreading", "mycelium_spreading",
+            "enableSheepEatingGrassLayers", "sheep_eat_grass_layers",
+            "preventGrassDecay", "prevent_grass_decay",
+            "enableLayersFallWithSand", "layers_fall_with_sand",
+            "AdditionalFallingBlocks", "additional_falling_blocks",
+            "enableSmallOreDrops", "small_ore_drops");
 
     /**
      * Registers an option after the last one of its tab, so each tab's options stay together in
@@ -726,6 +763,27 @@ public class LayerConfig {
                 .in(ConfigTab.STRUCTURES, "elevated").requires(O_STRUCTURE_SKIP_EXTRA_CLEANUP).mods(TERRAFORGED).advanced());
     }
 
+    // --- Gameplay (the former Extras) ---
+    static {
+        add(bool("grass_spreading", true, () -> GRASS_SPREADING, v -> GRASS_SPREADING = v)
+                .in(ConfigTab.GAMEPLAY, "grass").apply(Apply.LIVE));
+        add(bool("mycelium_spreading", true, () -> MYCELIUM_SPREADING, v -> MYCELIUM_SPREADING = v)
+                .in(ConfigTab.GAMEPLAY, "grass").apply(Apply.LIVE));
+        add(bool("sheep_eat_grass_layers", true, () -> SHEEP_EAT_GRASS_LAYERS, v -> SHEEP_EAT_GRASS_LAYERS = v)
+                .in(ConfigTab.GAMEPLAY, "grass").apply(Apply.LIVE));
+        add(bool("prevent_grass_decay", true, () -> PREVENT_GRASS_DECAY, v -> PREVENT_GRASS_DECAY = v)
+                .in(ConfigTab.GAMEPLAY, "grass").apply(Apply.LIVE));
+    }
+    private static final ConfigOption<Boolean> O_LAYERS_FALL_WITH_SAND = add(bool("layers_fall_with_sand", true,
+            () -> LAYERS_FALL_WITH_SAND, v -> LAYERS_FALL_WITH_SAND = v).in(ConfigTab.GAMEPLAY, "falling").apply(Apply.LIVE));
+    static {
+        add(blockList("additional_falling_blocks", List.of(),
+                () -> ADDITIONAL_FALLING_BLOCKS, v -> ADDITIONAL_FALLING_BLOCKS = v)
+                .in(ConfigTab.GAMEPLAY, "falling").requires(O_LAYERS_FALL_WITH_SAND).apply(Apply.LIVE));
+        add(bool("small_ore_drops", true, () -> SMALL_ORE_DROPS, v -> SMALL_ORE_DROPS = v)
+                .in(ConfigTab.GAMEPLAY, "ores").apply(Apply.LIVE));
+    }
+
     // --- Debug ---
     private static final ConfigOption<Boolean> O_DEBUG_LOGGING = add(bool("debug_logging", false,
             () -> DEBUG_LOGGING, v -> DEBUG_LOGGING = v).in(ConfigTab.DEBUG, "logging").side(Side.BOTH).apply(Apply.LIVE));
@@ -776,17 +834,45 @@ public class LayerConfig {
         Path file = CONFIG_DIR.resolve(CONFIG_FILE);
         JsonObject extra = new JsonObject();
         boolean rewrite = true;
+        // Until this file holds the gameplay options, the former Extras mod's file is their source.
+        boolean importExtras = true;
         if (Files.exists(file)) {
             try (Reader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
                 JsonObject json = GSON.fromJson(reader, JsonObject.class);
-                if (json != null) rewrite = applyJson(json, extra);
+                if (json != null) {
+                    rewrite = applyJson(json, extra);
+                    importExtras = !json.has("grass_spreading");
+                }
                 AronaLayersGen.LOGGER.info("Loaded layer config from: {}", file);
             } catch (IOException | JsonParseException e) {
                 AronaLayersGen.LOGGER.error("Could not read {}, using defaults until it is fixed: {}", file, e.getMessage());
                 rewrite = false;
+                importExtras = false;
             }
         }
+        if (importExtras) importExtrasConfig();
         if (rewrite) write(extra);
+    }
+
+    /**
+     * Takes over the settings of the former Extras mod, once: the gameplay options then are in
+     * layer_config.json, and its file, which is left where it is, is not read again.
+     */
+    private static void importExtrasConfig() {
+        Path old = Platform.configDir().resolve(EXTRAS_CONFIG_FILE);
+        if (!Files.isRegularFile(old)) return;
+        try (Reader reader = Files.newBufferedReader(old, StandardCharsets.UTF_8)) {
+            JsonObject json = GSON.fromJson(reader, JsonObject.class);
+            if (json == null) return;
+            for (ConfigOption<?> option : OPTIONS) {
+                for (Map.Entry<String, String> key : EXTRAS_KEYS.entrySet()) {
+                    if (key.getValue().equals(option.key) && json.has(key.getKey())) applyValue(option, json.get(key.getKey()));
+                }
+            }
+            AronaLayersGen.LOGGER.info("[Config] Imported the Extras settings from {}", old);
+        } catch (IOException | JsonParseException e) {
+            AronaLayersGen.LOGGER.error("[Config] Could not import the Extras settings from {}: {}", old, e.getMessage());
+        }
     }
 
     /** @return false when a value was invalid, so the file must not be overwritten */
