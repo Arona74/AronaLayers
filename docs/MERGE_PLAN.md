@@ -564,5 +564,6 @@ grounded plants and tree stems work on 1.20.1. Two fixes:
   Checked on a 1.21.1 Fabric server with FreeTerraForged 1.0.0022 (spawn region, seed 7474): of
   292 template trees, the cell they were raised from holds a layer for 240, the trunk's log for
   52 (no layer there); before, a log for all 292. A plain world: no warning, same layer count.
-  Not checked: ReTerraForged, NeoForge (the local FTF 1.0.0010 NeoForge build crashes on a
-  dedicated server by itself), other versions, huge mushrooms on TerraForged worlds.
+  Client tests by the user (2026-11-14): FTF on 1.21.1 NeoForge and a vanilla world on 26.1.2,
+  trees and huge mushrooms raised onto layers; the 1.20.1 config screen is fine. Not checked:
+  ReTerraForged.
