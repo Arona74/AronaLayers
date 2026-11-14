@@ -541,7 +541,28 @@ calls `AronaLayersGen.init()` and, on the client, `gen.neoforge.ClientSetup.init
 only this mod's entry points (plus `modmenu`). The MIT code stays under the `gen` folders; the
 entry points are this repo's.
 
-`v1_21_11/neoforge/build.gradle` had a stray `
-` from the pilot commit, so git stored it as
+`v1_21_11/neoforge/build.gradle` had a stray `\r\r\n` from the pilot commit, so git stored it as
 binary (`-text`, CRLF in the blob). Fixed in the working tree; it is now identical to 1.21.1's. Its
 index entry still holds CR bytes, so commit it with `git add --renormalize` to store LF.
+
+**After the user's client tests (2026-11-14).** Mod Menu works on 1.20.1 and 1.21.1 Fabric;
+grounded plants and tree stems work on 1.20.1. Two fixes:
+
+- 1.20.1 config screen: the option list painted dirt over its own area and over the bands above
+  and below it, across the left half (1.20.1's `AbstractSelectionList` does), hiding the first tab
+  buttons. `v1_20_1/.../OptionRows` turns that off and draws a translucent panel like the preview's.
+- Trees on layers did nothing on FreeTerraForged / ReTerraForged worlds (every version, since
+  before the merge): those mods paste most trees from templates (`TemplateFeature.paste`), not
+  `TreeFeature`, so `TreeShiftMixin` never saw them. Now `{Ftf,Rtf}TemplateTreePlacementMixin`
+  records the origin `TreePlacement.canPlaceAt` accepts and `{Ftf,Rtf}TemplateTreeShiftMixin`
+  moves `paste`'s origin up through `shiftTreeOrigin` (see `gen.injection.TemplateTreeHook`). The
+  mods also extend the trunk down to the ground, refilling the freed cell, so `clearTrunkGaps` now
+  clears a log of the trunk's own kind there too. `GenMixinPlugin` (new `"plugin"` in the six
+  `aronalayers.gen.mixins.json`) lists these four mixins only when their mod is installed, so no
+  "could not load class" warnings at start. Selectors are by name (`paste*`, `canPlaceAt`,
+  `@At("LOAD")`) because the descriptors hold the mods' own classes; `require = 0`.
+  Checked on a 1.21.1 Fabric server with FreeTerraForged 1.0.0022 (spawn region, seed 7474): of
+  292 template trees, the cell they were raised from holds a layer for 240, the trunk's log for
+  52 (no layer there); before, a log for all 292. A plain world: no warning, same layer count.
+  Not checked: ReTerraForged, NeoForge (the local FTF 1.0.0010 NeoForge build crashes on a
+  dedicated server by itself), other versions, huge mushrooms on TerraForged worlds.

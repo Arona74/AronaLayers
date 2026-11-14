@@ -3,6 +3,7 @@
   "minVersion": "0.8",
   "package": "io.arona74.aronalayers.gen.mixin",
   "compatibilityLevel": "JAVA_25",
+  "plugin": "io.arona74.aronalayers.gen.mixin.GenMixinPlugin",
   "mixins": [
     "NoiseBasedChunkGeneratorMixin",
     "ChunkGeneratorMixin",

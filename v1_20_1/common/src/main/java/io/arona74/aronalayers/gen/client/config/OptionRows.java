@@ -20,6 +20,17 @@ public final class OptionRows extends ContainerObjectSelectionList<OptionRows.Ro
     public OptionRows(Minecraft minecraft, int width, int height, int y) {
         super(minecraft, width, height, y, y + height, 24);
         setLeftPos(0);
+        // 1.20.1's list paints dirt over its own area and over the bands above and below it, across
+        // its whole width: that hid the tab buttons over the left half. A translucent panel like the
+        // preview's instead, as the later versions' list backgrounds are.
+        setRenderBackground(false);
+        setRenderTopAndBottom(false);
+    }
+
+    @Override
+    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        graphics.fill(x0, y0, x1, y1, ConfigPreview.BACKGROUND);
+        super.render(graphics, mouseX, mouseY, partialTick);
     }
 
     public void add(AbstractWidget widget) {

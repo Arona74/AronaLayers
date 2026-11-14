@@ -2132,6 +2132,11 @@ public class LayerPlacementHelper {
      * flowers or mushrooms land in it, the layer pass then finds the cell taken, and the tree is
      * left floating over a tuft. Anything there that does not block motion and holds no fluid is a
      * plant that only got there through the gap, so it goes.
+     *
+     * <p>So does the trunk's own log: FreeTerraForged and ReTerraForged paste template trees with
+     * the trunk extended down to the ground (see TemplateTreeHook), which fills the cell again.
+     * The layer pass then found a log there and skipped the column; fillTrunkGaps puts the log
+     * back where no layer comes.
      */
     public static void clearTrunkGaps(ChunkAccess chunk) {
         List<BlockPos> trunks = shiftedTrunksLocal.get();
@@ -2141,7 +2146,9 @@ public class LayerPlacementHelper {
         for (BlockPos trunk : trunks) {
             List<BlockPos> gaps = new ArrayList<>();
             forEachTrunkGap(chunk, region, trunk, (gap, gapState, log) -> {
-                if (!gapState.isAir() && !Compat.blocksMotion(gapState) && gapState.getFluidState().isEmpty()) {
+                boolean plant = !gapState.isAir() && !Compat.blocksMotion(gapState) && gapState.getFluidState().isEmpty();
+                boolean extendedTrunk = gapState.getBlock() == log.getBlock();
+                if (plant || extendedTrunk) {
                     writeForLift(chunk, region, gap, Blocks.AIR.defaultBlockState());
                 }
                 gaps.add(gap.immutable());
