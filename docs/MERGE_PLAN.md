@@ -796,9 +796,10 @@ Fortune on redstone; the other nine versions beyond building.
 The gameplay package is in all 11 jars. Not committed. 1.21.11 was done in this session as the
 model for 26.x, then one Sonnet subagent per version (1.20.1, 26.1.2, 26.2, 26.3) for the edits,
 confined to its `vX/` folder, no Gradle; builds, datagen and servers run by the orchestrating
-session one at a time. The pilot's decisions to confirm were not answered: their defaults stay
-(test command ships, `prevent_grass_decay` true, vanilla grass pace, gen's `Platform` and
-`LayerConfig`, heightmap scan).
+session one at a time. The pilot's five decisions were confirmed by the user on 2026-11-15: the
+test command ships, `prevent_grass_decay` defaults to true, vanilla grass blocks spread at
+vanilla's pace, one `Platform` and one config (`LayerConfig`) for everything, and spreading scans
+down from the heightmap (starting one block above it on every version, see the 26.3 fix below).
 
 **Entry points folded, temporary pieces gone.** `fabric.AronaLayersFabric` and
 `neoforge.AronaLayersNeoForge` call `AronaLayersGameplay.init()` after `AronaLayersGen.init()`;
