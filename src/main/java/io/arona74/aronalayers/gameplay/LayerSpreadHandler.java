@@ -75,8 +75,10 @@ public final class LayerSpreadHandler {
 
                     int x = ((chunkX + dx) << 4) + random.nextInt(16);
                     int z = ((chunkZ + dz) << 4) + random.nextInt(16);
-                    // Nothing above the highest motion-blocking block is solid or grass.
-                    int top = chunk.getHeight(Heightmap.Types.MOTION_BLOCKING, x & 15, z & 15);
+                    // ChunkAccess.getHeight is the Y of the highest motion-blocking block. Nothing
+                    // above it is solid or grass, except a layer lying on it: from 26.3 a low
+                    // layer no longer counts as motion-blocking. Hence the scan starts one higher.
+                    int top = chunk.getHeight(Heightmap.Types.MOTION_BLOCKING, x & 15, z & 15) + 1;
 
                     for (int y = top; y > bottom; y--) {
                         cursor.set(x, y, z);

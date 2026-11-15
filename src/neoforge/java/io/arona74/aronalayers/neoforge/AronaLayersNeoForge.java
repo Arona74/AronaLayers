@@ -1,6 +1,7 @@
 package io.arona74.aronalayers.neoforge;
 
 import io.arona74.aronalayers.AronaLayers;
+import io.arona74.aronalayers.gameplay.AronaLayersGameplay;
 import io.arona74.aronalayers.gen.AronaLayersGen;
 import io.arona74.aronalayers.platform.Platform;
 
@@ -15,7 +16,9 @@ import net.neoforged.neoforge.registries.RegisterEvent;
 /**
  * NeoForge entry point. The shared code registers straight into the vanilla registries, which
  * NeoForge only allows while it fires RegisterEvent, so it runs from the event for blocks.
- * Terrain generation's setup only adds event listeners and reads its config, so it runs here.
+ * The setup of terrain generation and of the vanilla mechanics for layers only adds event
+ * listeners, reads config and sets hooks (the items it puts in a creative tab are looked up
+ * when the tab is built), so it runs here.
  * Platform and the two ClientSetup classes are each Minecraft version's own.
  */
 @Mod(AronaLayers.MOD_ID)
@@ -28,6 +31,7 @@ public class AronaLayersNeoForge {
 		});
 		Platform.addListeners(modBus);
 		AronaLayersGen.init();
+		AronaLayersGameplay.init();
 
 		if (dist.isClient()) {
 			ClientSetup.addListeners(modBus);

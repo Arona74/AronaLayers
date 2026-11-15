@@ -2,6 +2,7 @@ package io.arona74.aronalayers.datagen;
 
 import io.arona74.aronalayers.AronaLayers;
 import io.arona74.aronalayers.block.LayerBlock;
+import io.arona74.aronalayers.item.ModItems;
 import io.arona74.aronalayers.registry.Args;
 import io.arona74.aronalayers.registry.DatagenArgs;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -11,6 +12,7 @@ import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.data.recipes.SingleItemRecipeBuilder;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ItemLike;
 import java.util.function.Consumer;
@@ -56,6 +58,24 @@ public class ModRecipeProvider extends FabricRecipeProvider {
 				}
 			}
 		});
+
+		smallOreRecipe(exporter, ModItems.SMALL_COAL, Items.COAL);
+		smallOreRecipe(exporter, ModItems.SMALL_RAW_IRON, Items.RAW_IRON);
+		smallOreRecipe(exporter, ModItems.SMALL_RAW_COPPER, Items.RAW_COPPER);
+		smallOreRecipe(exporter, ModItems.SMALL_RAW_GOLD, Items.RAW_GOLD);
+		smallOreRecipe(exporter, ModItems.SMALL_DIAMOND, Items.DIAMOND);
+		smallOreRecipe(exporter, ModItems.SMALL_EMERALD, Items.EMERALD);
+	}
+
+	// Eight small ores, one per layer of an ore layer, make the ore's normal drop.
+	private void smallOreRecipe(Consumer<FinishedRecipe> exporter, ItemLike smallOre, ItemLike whole) {
+		ShapedRecipeBuilder.shaped(RecipeCategory.MISC, whole)
+				.define('#', smallOre)
+				.pattern("###")
+				.pattern("# #")
+				.pattern("###")
+				.unlockedBy(getHasName(smallOre), has(smallOre))
+				.save(exporter, new ResourceLocation(AronaLayers.MOD_ID, getItemName(whole) + "_from_" + getItemName(smallOre)));
 	}
 
 	@Override

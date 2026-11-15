@@ -19,8 +19,7 @@
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"io.arona74.aronalayers.fabric.AronaLayersFabric",
-			"io.arona74.aronalayers.gameplay.AronaLayersGameplay::init"
+			"io.arona74.aronalayers.fabric.AronaLayersFabric"
 		],
 		"fabric-datagen": [
 			"io.arona74.aronalayers.AronaLayersDataGenerator"

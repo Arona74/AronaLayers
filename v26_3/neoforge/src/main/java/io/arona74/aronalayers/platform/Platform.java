@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import io.arona74.aronalayers.AronaLayers;
 import io.arona74.aronalayers.compat.Compat;
@@ -12,10 +13,12 @@ import io.arona74.aronalayers.registry.RegistryArgs;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackSource;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.component.CookingFuel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -25,6 +28,7 @@ import net.minecraft.world.level.storage.loot.providers.number.floats.ContextFlo
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.event.AddPackFindersEvent;
+import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.ModifyDefaultComponentsEvent;
 
 /**
@@ -37,6 +41,7 @@ public final class Platform {
 	private static final Map<String, Component> BUILTIN_PACKS = new HashMap<>();
 	private static final Map<Block, RegistryArgs.Fuel> FUELS = new HashMap<>();
 	private static final List<Runnable> FLAMMABLES = new ArrayList<>();
+	private static final List<Map.Entry<ResourceKey<CreativeModeTab>, Supplier<List<Item>>>> TAB_ENTRIES = new ArrayList<>();
 
 	private Platform() {
 	}
@@ -53,6 +58,11 @@ public final class Platform {
 				BUILTIN_PACKS.forEach((name, title) -> event.addPackFinders(id("resourcepacks/" + name), PackType.SERVER_DATA, title, PackSource.BUILT_IN, false, Pack.Position.TOP));
 			}
 		});
+		modBus.addListener(BuildCreativeModeTabContentsEvent.class, event -> TAB_ENTRIES.forEach(entry -> {
+			if (event.getTabKey() == entry.getKey()) {
+				entry.getValue().get().forEach(event::accept);
+			}
+		}));
 		modBus.addListener(FMLCommonSetupEvent.class, event -> event.enqueueWork(() -> FLAMMABLES.forEach(Runnable::run)));
 		modBus.addListener(ModifyDefaultComponentsEvent.class, event -> FUELS.forEach((block, parent) ->
 				event.modify(block, (components, registries, item) -> components.set(DataComponents.COOKING_FUEL,
@@ -61,6 +71,11 @@ public final class Platform {
 
 	public static CreativeModeTab.Builder tabBuilder() {
 		return CreativeModeTab.builder();
+	}
+
+	/** Adds items at the end of a creative tab that is not this mod's. */
+	public static void addToCreativeTab(ResourceKey<CreativeModeTab> tab, Supplier<List<Item>> items) {
+		TAB_ENTRIES.add(Map.entry(tab, items));
 	}
 
 	/** Registers a built-in data pack shipped in the mod jar under resourcepacks/, enabled by default. */

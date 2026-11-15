@@ -19,6 +19,9 @@ config = "aronalayers.mixins.json"
 [[mixins]]
 config = "aronalayers.gen.mixins.json"
 
+[[mixins]]
+config = "aronalayers.gameplay.mixins.json"
+
 [[accessTransformers]]
 file = "META-INF/accesstransformer.cfg"
 

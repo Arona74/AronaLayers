@@ -387,6 +387,12 @@
   "block.aronalayers.yellow_terracotta_layer": "Yellow Terracotta Layer",
   "block.aronalayers.yellow_wool_layer": "Yellow Wool Layer",
   "block.aronalayers.zinc_ore_layer": "Zinc Ore Layer",
+  "item.aronalayers.small_coal": "Small Coal",
+  "item.aronalayers.small_diamond": "Small Diamond",
+  "item.aronalayers.small_emerald": "Small Emerald",
+  "item.aronalayers.small_raw_copper": "Small Raw Copper",
+  "item.aronalayers.small_raw_gold": "Small Raw Gold",
+  "item.aronalayers.small_raw_iron": "Small Raw Iron",
   "itemgroup.aronalayers": "AronaLayers",
   "itemgroup.aronalayers_3d": "AronaLayers 3D"
 }

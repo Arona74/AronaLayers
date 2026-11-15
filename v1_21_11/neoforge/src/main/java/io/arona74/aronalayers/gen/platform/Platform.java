@@ -2,15 +2,24 @@ package io.arona74.aronalayers.gen.platform;
 
 import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.fml.loading.LoadingModList;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.common.util.FakePlayerFactory;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
+import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.level.ChunkEvent;
-import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.neoforge.event.tick.LevelTickEvent;
 
 import java.nio.file.Path;
 import java.util.function.BiConsumer;
@@ -52,7 +61,45 @@ public final class Platform {
         });
     }
 
-    public static void onServerTickEnd(Runnable task) {
-        NeoForge.EVENT_BUS.addListener(ServerTickEvent.Post.class, event -> task.run());
+    /** The end of every tick of every server level. */
+    public static void onLevelTickEnd(Consumer<ServerLevel> handler) {
+        NeoForge.EVENT_BUS.addListener(LevelTickEvent.Post.class, event -> {
+            if (event.getLevel() instanceof ServerLevel level) handler.accept(level);
+        });
+    }
+
+    /** The loader's stand-in for a player, for code that acts as one (the gameplay test command). */
+    public static ServerPlayer fakePlayer(ServerLevel level) {
+        return FakePlayers.get(level);
+    }
+
+    /**
+     * Its own class so that loading Platform loads no Minecraft class: the mixin plugin calls
+     * isModLoaded before the mixins are applied, and verifying the FakePlayer returned below as
+     * a ServerPlayer would load ServerPlayer and with it Entity, which would then miss every
+     * mixin (on Fabric 26.x no entity could be added to a level any more).
+     */
+    private static final class FakePlayers {
+        static ServerPlayer get(ServerLevel level) {
+            return FakePlayerFactory.getMinecraft(level);
+        }
+    }
+
+    /**
+     * A player broke a block; called once the block is gone. NeoForge's BreakEvent fires before
+     * the block is removed and can still be cancelled, so the listener runs from the server's
+     * task queue, later in the same tick, and only if the block really went.
+     */
+    public static void onPlayerBlockBreak(BlockBreakListener listener) {
+        NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, BlockEvent.BreakEvent.class, event -> {
+            if (!(event.getLevel() instanceof ServerLevel level)) return;
+            BlockPos pos = event.getPos().immutable();
+            BlockState state = event.getState();
+            Player player = event.getPlayer();
+            MinecraftServer server = level.getServer();
+            server.schedule(new TickTask(server.getTickCount(), () -> {
+                if (!level.getBlockState(pos).is(state.getBlock())) listener.afterBreak(level, player, pos, state);
+            }));
+        });
     }
 }

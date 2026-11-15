@@ -3,6 +3,7 @@ package io.arona74.aronalayers.datagen;
 import io.arona74.aronalayers.AronaLayers;
 import io.arona74.aronalayers.block.Layer3DBlock;
 import io.arona74.aronalayers.block.ModBlocks;
+import io.arona74.aronalayers.item.ModItems;
 import io.arona74.aronalayers.registry.Args;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -35,6 +36,13 @@ public class ModLanguageProvider extends FabricLanguageProvider {
 				translationBuilder.add(block, var10001);
 			}
 		});
+
+		translationBuilder.add(ModItems.SMALL_COAL, "Small Coal");
+		translationBuilder.add(ModItems.SMALL_RAW_IRON, "Small Raw Iron");
+		translationBuilder.add(ModItems.SMALL_RAW_COPPER, "Small Raw Copper");
+		translationBuilder.add(ModItems.SMALL_RAW_GOLD, "Small Raw Gold");
+		translationBuilder.add(ModItems.SMALL_DIAMOND, "Small Diamond");
+		translationBuilder.add(ModItems.SMALL_EMERALD, "Small Emerald");
 
 		translationBuilder.add(ResourceKey.create(Registries.CREATIVE_MODE_TAB, new ResourceLocation(AronaLayers.MOD_ID, "layers")), "AronaLayers");
 		translationBuilder.add(ResourceKey.create(Registries.CREATIVE_MODE_TAB, new ResourceLocation(AronaLayers.MOD_ID, "3d_layers")), "AronaLayers 3D");

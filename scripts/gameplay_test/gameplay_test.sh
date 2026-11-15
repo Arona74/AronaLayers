@@ -14,13 +14,21 @@
 # Run from the repo root with JAVA_HOME = the JDK the module's server needs. server.properties is
 # put back as it was at the end; the world folder <run>/<world name> is left for you to delete.
 # Never creates eula.txt.
+#
+# Per version: from 1.21.2 an empty server pauses after 60 s (pause-when-empty-seconds, set to 0
+# here); 1.21.11 renamed the game rules (doDaylightCycle is advance_time, both are sent, the
+# unknown one fails harmlessly); 1.20.1 has no "tick sprint", so it runs in real time with a raised
+# randomTickSpeed for the long run instead (spreading scales with it; sheep get fewer ticks, so
+# fewer layers are eaten than on the other versions).
 mod=$1; world=$2; log=$3
 run="${mod//://}/run"
 props="$run/server.properties"
+legacy=0; case $mod in v1_20_1:*) legacy=1;; esac
 cp "$props" "$log.server.properties.bak"
 trap 'cp "$log.server.properties.bak" "$props"; rm -f "$log.server.properties.bak"' EXIT
 sed -i -e "s/^level-name=.*/level-name=$world/" -e "s/^level-seed=.*/level-seed=7474/" \
-       -e 's/^level-type=.*/level-type=minecraft\\:flat/' "$props"
+       -e 's/^level-type=.*/level-type=minecraft\\:flat/' \
+       -e 's/^pause-when-empty-seconds=.*/pause-when-empty-seconds=0/' "$props"
 : > "$log"
 
 # wait_for <pattern> <times> <seconds>: until the log holds the pattern that many times
@@ -29,6 +37,22 @@ wait_for() {
   until [ "$(grep -c "$1" "$log" 2>/dev/null)" -ge "$2" ]; do
     sleep 0.5; t=$((t+1)); [ $t -gt $(($3*2)) ] && { echo "say TIMEOUT waiting for $1"; return 1; }
   done
+}
+
+# advance <ticks> <sprints so far, this one included>: lets that much game time pass. On 1.20.1
+# (no tick sprint): the short run in real time; the long one 2 minutes at randomTickSpeed 300,
+# about 80 times the spreading of the same time at 3.
+advance() {
+  if [ $legacy = 1 ]; then
+    if [ "$1" -gt 2000 ]; then
+      echo "gamerule randomTickSpeed 300"; sleep 120; echo "gamerule randomTickSpeed 3"
+    else
+      sleep $(( $1 / 20 ))
+    fi
+  else
+    echo "tick sprint $1"
+    wait_for 'Sprint completed' "$2" 600
+  fi
 }
 
 # count <label> <fill command>: "fill ... replace X" says how many X there were. Destructive, so
@@ -49,6 +73,7 @@ block() {
   sleep 2
   echo "forceload add 0 0 63 47"
   echo "gamerule doDaylightCycle false"
+  echo "gamerule advance_time false"
   echo "time set noon"
   sleep 3
 
@@ -88,8 +113,7 @@ block() {
   # A short run first: a few layers eaten, each once. In pen 1 an eaten layer must still lie on
   # its grass block ("layer only"). Later a sheep grazing on a dirt layer eats the grass block
   # under it, as vanilla sheep do through snow, so this can only be told apart early.
-  echo "tick sprint 1500"
-  wait_for 'Sprint completed' 1 600
+  advance 1500 1
   sleep 1
   for x in 49 50 51; do for z in 20 21 22; do
     echo "execute if block $x 200 $z aronalayers:dirt_layer if block $x 199 $z minecraft:grass_block run say CHECK pen1 early: layer only eaten"
@@ -98,8 +122,7 @@ block() {
   done; done
   sleep 0.5
 
-  echo "tick sprint 34500"
-  wait_for 'Sprint completed' 2 600
+  advance 34500 2
   sleep 1
 
   count "A dirt layers left of 24" "fill 0 200 0 4 200 4 minecraft:stone replace aronalayers:dirt_layer"

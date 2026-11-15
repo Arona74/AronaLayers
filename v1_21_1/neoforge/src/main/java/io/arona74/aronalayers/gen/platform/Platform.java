@@ -70,7 +70,19 @@ public final class Platform {
 
     /** The loader's stand-in for a player, for code that acts as one (the gameplay test command). */
     public static ServerPlayer fakePlayer(ServerLevel level) {
-        return FakePlayerFactory.getMinecraft(level);
+        return FakePlayers.get(level);
+    }
+
+    /**
+     * Its own class so that loading Platform loads no Minecraft class: the mixin plugin calls
+     * isModLoaded before the mixins are applied, and verifying the FakePlayer returned below as
+     * a ServerPlayer would load ServerPlayer and with it Entity, which would then miss every
+     * mixin (on Fabric 26.x no entity could be added to a level any more).
+     */
+    private static final class FakePlayers {
+        static ServerPlayer get(ServerLevel level) {
+            return FakePlayerFactory.getMinecraft(level);
+        }
     }
 
     /**

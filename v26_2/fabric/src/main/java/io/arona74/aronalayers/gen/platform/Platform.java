@@ -2,11 +2,14 @@ package io.arona74.aronalayers.gen.platform;
 
 import com.mojang.brigadier.CommandDispatcher;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.entity.FakePlayer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.chunk.LevelChunk;
 
 import java.nio.file.Path;
@@ -38,7 +41,32 @@ public final class Platform {
         ServerChunkEvents.CHUNK_LOAD.register((level, chunk, generated) -> handler.accept(level, chunk));
     }
 
-    public static void onServerTickEnd(Runnable task) {
-        ServerTickEvents.END_SERVER_TICK.register(server -> task.run());
+    /** The end of every tick of every server level. */
+    public static void onLevelTickEnd(Consumer<ServerLevel> handler) {
+        ServerTickEvents.END_LEVEL_TICK.register(handler::accept);
+    }
+
+    /** The loader's stand-in for a player, for code that acts as one (the gameplay test command). */
+    public static ServerPlayer fakePlayer(ServerLevel level) {
+        return FakePlayers.get(level);
+    }
+
+    /**
+     * Its own class so that loading Platform loads no Minecraft class: the mixin plugin calls
+     * isModLoaded before the mixins are applied, and verifying "return FakePlayer.get(level)" as
+     * a ServerPlayer would load ServerPlayer and with it Entity, which then misses every mixin
+     * (Fabric API's included: no entity could be added to a level).
+     */
+    private static final class FakePlayers {
+        static ServerPlayer get(ServerLevel level) {
+            return FakePlayer.get(level);
+        }
+    }
+
+    /** A player broke a block; called once the block is gone. */
+    public static void onPlayerBlockBreak(BlockBreakListener listener) {
+        PlayerBlockBreakEvents.AFTER.register((level, player, pos, state, blockEntity) -> {
+            if (level instanceof ServerLevel serverLevel) listener.afterBreak(serverLevel, player, pos, state);
+        });
     }
 }

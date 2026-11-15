@@ -1,16 +1,21 @@
 package io.arona74.aronalayers.platform;
 
+import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import io.arona74.aronalayers.AronaLayers;
 import io.arona74.aronalayers.registry.RegistryArgs;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.HoeItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 
+import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
 import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab;
 import net.fabricmc.fabric.api.registry.FlammableBlockRegistry;
 import net.fabricmc.fabric.api.registry.FuelValueEvents;
@@ -38,6 +43,11 @@ public final class Platform {
 
 	public static CreativeModeTab.Builder tabBuilder() {
 		return FabricCreativeModeTab.builder();
+	}
+
+	/** Adds items at the end of a creative tab that is not this mod's. */
+	public static void addToCreativeTab(ResourceKey<CreativeModeTab> tab, Supplier<List<Item>> items) {
+		CreativeModeTabEvents.modifyOutputEvent(tab).register(output -> items.get().forEach(output::accept));
 	}
 
 	/** Registers a built-in data pack shipped in the mod jar, enabled by default. */

@@ -1,0 +1,7 @@
+{
+  "parent": "aronalayers:item/small_ore",
+  "textures": {
+    "chunk": "minecraft:item/raw_copper",
+    "particle": "minecraft:item/raw_copper"
+  }
+}

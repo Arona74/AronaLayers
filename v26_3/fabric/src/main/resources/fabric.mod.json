@@ -33,7 +33,8 @@
 	},
 	"mixins": [
 		"aronalayers.mixins.json",
-		"aronalayers.gen.mixins.json"
+		"aronalayers.gen.mixins.json",
+		"aronalayers.gameplay.mixins.json"
 	],
 	"depends": {
 		"fabricloader": ">=0.19.5",

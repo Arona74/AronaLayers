@@ -21,7 +21,7 @@ Generation settings become per-world data, editable from the Create World screen
 | 0 | Decisions confirmed by the user | — | done 2026-11-13 |
 | 1 | Remove Conquest Reforged from gen | AronaLayers-gen | done 2026-11-13, gen branch `merge`, commit a124056 (see notes) |
 | 2 | Move gen into AronaLayers (pilot 1.21.1, then the other versions) | AronaLayers | done 2026-11-13: pilot (1.21.1) and fan-out (1.20.1, 1.21.11, 26.1.2, 26.2, 26.3), see notes |
-| 3 | Port extras into AronaLayers, Fabric + NeoForge | AronaLayers | pilot (1.21.1, both loaders) done 2026-11-14, see notes; fan-out to 1.20.1, 1.21.11, 26.1.2, 26.2, 26.3 todo |
+| 3 | Port extras into AronaLayers, Fabric + NeoForge | AronaLayers | done 2026-11-14: pilot (1.21.1) and fan-out (1.20.1, 1.21.11, 26.1.2, 26.2, 26.3), entry points folded, see notes |
 | 4 | Config: one registry, new tab order, global vs world scope | AronaLayers | todo |
 | 5 | Generation config stored in world data | AronaLayers | todo |
 | 6 | Generation settings button on the Create World screen | AronaLayers | todo |
@@ -258,7 +258,8 @@ Platform classes, memory files updated.
 - Never create or copy `eula.txt`.
 - Run `scripts/verify_mixins.py` before calling a phase done: a wrong mixin target still builds.
 - Foreign-mod mixins need both an intermediary-named and a Mojang-named selector.
-- Python rewrites must keep CRLF line endings.
+- Python rewrites must keep CRLF line endings. Files are mixed CRLF / LF; never `sed -i` a tracked
+  file (Git Bash's sed turns CRLF into LF), and count `\r` bytes rather than `grep -c $'\r$'`.
 - Pilot on 1.21.1 (both loaders) before touching the other versions.
 
 ## Notes from finished phases
@@ -542,8 +543,9 @@ only this mod's entry points (plus `modmenu`). The MIT code stays under the `gen
 entry points are this repo's.
 
 `v1_21_11/neoforge/build.gradle` had a stray `\r\r\n` from the pilot commit, so git stored it as
-binary (`-text`, CRLF in the blob). Fixed in the working tree; it is now identical to 1.21.1's. Its
-index entry still holds CR bytes, so commit it with `git add --renormalize` to store LF.
+binary (`-text`, CRLF in the blob). Fixed in the working tree; it is now identical to 1.21.1's.
+(Resolved: since the phase 2 fan-out commit the index holds it as LF, `git ls-files --eol` shows
+`i/lf`; nothing more to do.)
 
 **After the user's client tests (2026-11-14).** Mod Menu works on 1.20.1 and 1.21.1 Fabric;
 grounded plants and tree stems work on 1.20.1. Two fixes:
@@ -788,3 +790,76 @@ Ingredients tab and their models, the recipe book); a real player breaking sand 
 (the fake player goes through the same game code, but not through the network); grass block
 decay and the grass layer's own random tick (blocks only tick randomly near a real player);
 Fortune on redstone; the other nine versions beyond building.
+
+### Phase 3 fan-out (2026-11-14)
+
+The gameplay package is in all 11 jars. Not committed. 1.21.11 was done in this session as the
+model for 26.x, then one Sonnet subagent per version (1.20.1, 26.1.2, 26.2, 26.3) for the edits,
+confined to its `vX/` folder, no Gradle; builds, datagen and servers run by the orchestrating
+session one at a time. The pilot's decisions to confirm were not answered: their defaults stay
+(test command ships, `prevent_grass_decay` true, vanilla grass pace, gen's `Platform` and
+`LayerConfig`, heightmap scan).
+
+**Entry points folded, temporary pieces gone.** `fabric.AronaLayersFabric` and
+`neoforge.AronaLayersNeoForge` call `AronaLayersGameplay.init()` after `AronaLayersGen.init()`;
+`GameplayNeoForge` is deleted, 1.21.1's `fabric.mod.json` lists only `AronaLayersFabric` again, and
+no `TEMPORARY (docs/MERGE_PLAN.md, phase 3)` block is left in any `build.gradle`.
+
+**What each version needed beyond the recipe.**
+
+| | Compat | `SpreadableBlockMixin` | gen `Platform` | creative tab | gameplay mixins json | datagen |
+|---|---|---|---|---|---|---|
+| 1.20.1 (Fabric) | `getMinBuildHeight`, `GameRules.RULE_*` with `getInt`/`getBoolean`, enchantments as objects (`Enchantments.BLOCK_FORTUNE`, `tool.enchant(Enchantment, int)`) | `SpreadingSnowyDirtBlock.canBeGrass` | as 1.21.1 (`END_WORLD_TICK`) | `ItemGroupEvents` | `JAVA_17` | old API: `Consumer<FinishedRecipe>`, `new ResourceLocation`; `ItemModelGenerators.output` is private, so the six models go through `generateFlatItem` with an anonymous `ModelTemplate` that swaps in the whole item's texture; recipes in `recipes/`, advancements in `advancements/` |
+| 1.21.11 | `getMinY`, `gamerules.GameRules.RANDOM_TICK_SPEED` / `MOB_GRIEFING` / `BLOCK_DROPS` with `get`; `doMobGriefing` only on a `ServerLevel` | as 1.21.1 | NeoForge `MinecraftServer.schedule` (was `tell`) | as 1.21.1 | as 1.21.1 | `Identifier`; models through `img.modelOutput`, item definitions through `img.itemModelOutput.accept(item, ItemModelUtils.plainModel(model))`; recipe `save(output, "aronalayers:…")` |
+| 26.1.2, 26.2 | as 1.21.11 | target `SpreadingSnowyBlock`, `canBeGrass` renamed `canStayAlive` | Fabric `END_LEVEL_TICK`; NeoForge `BlockEvent.BreakEvent` is now `event.level.block.BreakBlockEvent` | Fabric `CreativeModeTabEvents.modifyOutputEvent` | `JAVA_25`, `overwrites.requireAnnotations` as the gen json | as 1.21.11, but `TextureMapping.getItemTexture` returns a `Material` |
+| 26.3 | as 1.21.11 | as 26.1.2 | as 26.1.2 | as 26.1.2 | as 26.1.2 | as 26.1.2, recipes through the provider's own `shaped(category, result)` |
+
+No shared class had to move to `vX/common`: every vanilla member the shared code names (recipe
+step 9) exists with the same signature on all six versions.
+
+**Two bugs found by the servers, fixed in shared or every-version code.**
+
+- *26.x Fabric: no entity could be added to a level* (summon, falling sand, sheep: "unexpected
+  error", then a crash on the first falling block). Cause: `gen.platform.Platform.fakePlayer`
+  returned `FakePlayer.get(level)` as a `ServerPlayer`; verifying that method loads
+  `ServerPlayer` and up to `Entity`, and `GenMixinPlugin` loads `Platform` (`isModLoaded`) before
+  the mixins are applied, so `Entity` was defined without Fabric API's lifecycle mixin
+  (`ClassCastException … EntityLoadDataSetter`). It showed only on 26.x Fabric, but the pattern is
+  in all 11: each `gen.platform.Platform` now calls a nested `FakePlayers` class, which is verified
+  only when the test command runs. Rule for later: `gen.platform.Platform` (both loaders) must
+  not name a Minecraft class in a way the verifier has to load (a subtype returned or passed as
+  its supertype).
+- *26.3: grass and mycelium did not spread from layers* (only from a grass block, onto its eight
+  neighbours). `ChunkAccess.getHeight` is the Y of the highest motion-blocking block (it is
+  `Level.getHeight` that adds 1), and from 26.3 a low layer no longer counts as motion-blocking, so
+  the column scan started on the block under the layer. `LayerSpreadHandler` now starts one block
+  higher, on every version. Gen reads `OCEAN_FLOOR` / `WORLD_SURFACE` heightmaps in many places;
+  whether 26.3's change matters there was not looked at.
+
+**What was checked.** All 11 jars build (JDK 25). `verify_mixins.py` passes on all 11, four more
+mixins than after phase 2 everywhere: Fabric 34 on 1.20.1 and 1.21.1, 35 on 1.21.11 / 26.1.2 /
+26.2, 32 on 26.3; NeoForge 31 on 1.21.1, 32 on the others. Datagen on each of the five versions
+changed only six names, six item models, six recipes, six advancements, and on 1.21.11 and 26.x
+six item definitions; the raw copper recipe, advancement and item definition are the same JSON as
+extras' hand-made file of that version apart from the namespace (26.1.2's recipe leaves out
+`"count": 1`, the default; 1.20.1's advancement lists its two requirements in the other order).
+
+`gameplay_test.sh` now sets `pause-when-empty-seconds=0`, sends both `doDaylightCycle` and
+`advance_time`, and on 1.20.1 (no `tick sprint`) waits 75 s for the short run and 2 minutes at
+`randomTickSpeed 300` for the long one. Last run, after both fixes, on all 11 (fresh flat world,
+deleted afterwards, `server.properties` restored, the only ERROR line is vanilla's
+`No key layers in MapLike[{}]` about the flat world's empty generator settings):
+
+| Test | All 11 |
+|------|--------|
+| A, B, C, D | 25 grass layers, 24 of 24, 25 mycelium layers, 25 dirt layers, except a cell or two not reached yet (B 23 of 24 on 26.2 and 26.3 NeoForge, C 24 on 26.1.2 NeoForge); A's dirt blocks all grass except 1.21.11 Fabric (3 of 5) |
+| Sheep | 8 alive, 4 of 9 layers eaten in each pen (1.20.1 too, with its shorter run); never a block eaten under an uneaten layer |
+| F1-F6 | all as expected, the slab stays, only F4's sand item |
+| Ores | coal 5 → 5 Small Coal, Silk Touch 5 layers; copper 8 → 25 to 32; redstone 8 → 4 or 5 with experience; diamond 4 → 4, Fortune III 4 to 16; iron sneaking → 1 Small Raw Iron and 5 layers left, with Silk Touch 1 layer; stone and ancient debris layers untouched |
+
+The three 26.x Fabric servers of the first run crashed (the entity bug above) and left a crash
+report each in `v26_x/fabric/run/crash-reports/`.
+
+Client test by the user (2026-11-15): 26.3, the small ores and the config screen look fine. Not
+checked: a client on the other versions (Gameplay tab, small ores in the Ingredients tab and
+their models, recipe book); a real player breaking sand or an ore layer; Fortune on redstone.
