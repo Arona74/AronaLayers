@@ -32,12 +32,12 @@ public class GroundedPlantModelPlugin implements ModelLoadingPlugin {
             if (original == null) return null;
             if (context.topLevelId() instanceof ModelResourceLocation id && !"inventory".equals(id.variant())) {
                 Block block = Compat.blockFromId(id.id().toString());
-                boolean trunk = LayerConfig.treesOnLayers() && (block instanceof RotatedPillarBlock || block == Blocks.MUSHROOM_STEM);
+                boolean trunk = LayerConfig.trunksOnLayers() && (block instanceof RotatedPillarBlock || block == Blocks.MUSHROOM_STEM);
                 if (trunk || LayerConfig.postsOnLayers() && PlantGrounding.isPostBlock(block)) {
                     ForgeRenderTypeBridge.carryOver(original, block.defaultBlockState());
                     return new TrunkStemModel(original);
                 }
-                if (LayerConfig.treesOnLayers() && block == Blocks.CHORUS_PLANT) {
+                if (LayerConfig.trunksOnLayers() && block == Blocks.CHORUS_PLANT) {
                     ForgeRenderTypeBridge.carryOver(original, block.defaultBlockState());
                     return new ChorusStemModel(original);
                 }

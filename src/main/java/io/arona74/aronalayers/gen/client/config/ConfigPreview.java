@@ -22,7 +22,8 @@ import java.util.Map;
 /**
  * The right half of the config screen: a preview image of the option last hovered, and below it
  * that option's name and description. Before any option is hovered it describes the tab instead
- * (on a world generation tab, the warning that changes only reach new chunks).
+ * (on a world generation tab, also the warning that changes only reach new chunks, or outside a
+ * world that these are the defaults for new worlds).
  *
  * <p>This class decides what is shown and where; each version's {@code PreviewPanel} only draws the
  * {@link Frame} it returns, since drawing is what differs between versions.
@@ -146,12 +147,9 @@ public final class ConfigPreview {
     private Component body() {
         if (shown != null) return widgets.description(shown);
         MutableComponent text = Component.empty();
-        if (tab.worldgen) {
-            for (int line = 1; line < ConfigWidgets.WORLDGEN_WARNING_LINES; line++) {
-                if (line > 1) text.append(" ");
-                text.append(ConfigWidgets.worldgenWarning(line));
-            }
-            text.append("\n\n");
+        if (tab.generation()) {
+            text.append(Component.translatable("config.aronalayers.section." + tab.id())).append("\n\n");
+            text.append(ConfigWidgets.generationText()).append("\n\n");
         } else {
             text.append(Component.translatable("config.aronalayers.section." + tab.id())).append("\n\n");
         }

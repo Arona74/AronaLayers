@@ -25,9 +25,9 @@ public class GroundedPlantModelPlugin implements ModelLoadingPlugin {
         ctx.modifyBlockModelAfterBake().register((model, context) -> {
             if (model == null) return null;
             Block block = context.state().getBlock();
-            boolean trunk = LayerConfig.treesOnLayers() && (block instanceof RotatedPillarBlock || block == Blocks.MUSHROOM_STEM);
+            boolean trunk = LayerConfig.trunksOnLayers() && (block instanceof RotatedPillarBlock || block == Blocks.MUSHROOM_STEM);
             if (trunk || LayerConfig.postsOnLayers() && PlantGrounding.isPostBlock(block)) return new TrunkStemModel(model, context.state());
-            if (LayerConfig.treesOnLayers() && block == Blocks.CHORUS_PLANT) return new ChorusStemModel(model);
+            if (LayerConfig.trunksOnLayers() && block == Blocks.CHORUS_PLANT) return new ChorusStemModel(model);
             return PlantGrounding.isGroundedBlock(block)
                 ? new GroundedPlantModel(model)
                 : model;

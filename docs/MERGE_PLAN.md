@@ -22,7 +22,7 @@ Generation settings become per-world data, editable from the Create World screen
 | 1 | Remove Conquest Reforged from gen | AronaLayers-gen | done 2026-11-13, gen branch `merge`, commit a124056 (see notes) |
 | 2 | Move gen into AronaLayers (pilot 1.21.1, then the other versions) | AronaLayers | done 2026-11-13: pilot (1.21.1) and fan-out (1.20.1, 1.21.11, 26.1.2, 26.2, 26.3), see notes |
 | 3 | Port extras into AronaLayers, Fabric + NeoForge | AronaLayers | done 2026-11-14: pilot (1.21.1) and fan-out (1.20.1, 1.21.11, 26.1.2, 26.2, 26.3), entry points folded, see notes |
-| 4 | Config: one registry, new tab order, global vs world scope | AronaLayers | todo |
+| 4 | Config: one registry, new tab order, global vs world scope | AronaLayers | done 2026-11-15: two files, six tabs, `trees_on_layers` split, see notes |
 | 5 | Generation config stored in world data | AronaLayers | todo |
 | 6 | Generation settings button on the Create World screen | AronaLayers | todo |
 | 7 | Cleanup, README, CI, retire the two old mods | all three | todo |
@@ -864,3 +864,114 @@ report each in `v26_x/fabric/run/crash-reports/`.
 Client test by the user (2026-11-15): 26.3, the small ores and the config screen look fine. Not
 checked: a client on the other versions (Gameplay tab, small ores in the Ingredients tab and
 their models, recipe book); a real player breaking sand or an ore layer; Fortune on redstone.
+
+### Phase 4 (2026-11-15)
+
+Done in one session, shared code only, no subagents. Not committed. Decided with the user before
+coding: the scope table below, the `trees_on_layers` split, `layer_config.json` **deleted** once
+carried over, the ⚠ kept on the generation tab labels.
+
+**Scopes and tabs.** `ConfigTab` has a `scope` (`ConfigTab.Scope.GLOBAL` / `WORLD`, replacing the
+`worldgen` flag; `tab.generation()` is the test). Order: Visuals, Gameplay, ⚠ Terrain,
+⚠ Plants & Trees, ⚠ Structures, Debug. The screen opens on Visuals the first time.
+
+| Scope | File | Tabs and groups |
+|-------|------|-----------------|
+| GLOBAL | `config/aronalayers/config.json` | Visuals (trunks, posts, grounding), Gameplay (snow break, grass, falling, ores), Debug |
+| WORLD | `config/aronalayers/generation_defaults.json` | Terrain (layer generation, 3D layers, layer count, snow, surfaces, swamps), Plants & Trees (plants, trees), Structures |
+
+A fresh start writes 30 GLOBAL and 46 WORLD options. Both files keep the old format (`_comment`,
+`_section_<tab>`, `_comment_<key>` from en_us.json); the WORLD file is the format phase 5 reuses for
+`<world>/aronalayers/generation.json`. Until then every world generates from
+`generation_defaults.json` (its `_comment` and the screen say so), so nothing changes for worlds.
+`LayerConfig.load(scope, …)` / `write(scope, …)` take the scope, for phase 5 to point WORLD at a
+world's file. A key of the other scope found in a file is warned about and kept at the end.
+
+**The two mixed options.**
+
+- `trees_on_layers` is now WORLD (Plants & Trees, server, new chunks): generated trees, huge
+  mushrooms and chorus start one block higher, saplings and mushrooms grow on the layer
+  (`LayerPlacementHelper.shiftTreeOrigin`, `soilUnderTrunk`, `mushroomSoil`, `liftChorusPlant`,
+  both `TreeSoilMixin`). New GLOBAL `trunks_on_layers` (Visuals, both sides, restart): the trunk
+  drawn down to the layer, with outline and collision (`ClientSetup`, every
+  `GroundedPlantModelPlugin`, `PlantGrounding.isStandingTrunk` / `trunkFooting` / `clipLowered`).
+  `LayerConfig.trunksOnLayers()` = `Compat.STEM_MODELS && TRUNKS_ON_LAYERS`; `treesOnLayers()` =
+  `trunksOnLayers() && TREES_ON_LAYERS`, so without trunks trees are never shifted (they would
+  float); on screen `trees_on_layers` requires `trunks_on_layers`. The only per-version edits of
+  the phase: `treesOnLayers()` → `trunksOnLayers()` in the five NeoForge `ClientSetup` and the 11
+  `GroundedPlantModelPlugin` (one token each), and 1.20.1's own `AronaConfigScreen` (same three
+  lines as the shared one: `lastTab`, the heading row).
+- `3D_layer_injection` needed no global part: its `RESTART` dated from gen's first alpha, where it
+  gated a start-up step that no longer exists; `Layer3D.isActive()` reads it per chunk and the 3D
+  blocks are always registered. The three 3D options are WORLD, new chunks, in their own group;
+  `LayerConfig.onValuesChanged()` clears `Layer3D`'s excluded-blocks cache
+  (`Layer3D.invalidateExcluded()`).
+
+**Carrying old files over** (`LayerConfig.loadConfig`). After `ConfigFiles` has copied an old
+`config/aronalayersgen/` (unchanged), a file that does not exist yet is made from
+`layer_config.json`: config.json from the defaults, then `aronalayersextras.json` (only while
+`layer_config.json` has no `grass_spreading`, phase 3's rule), then the GLOBAL keys of
+`layer_config.json`, the old `trees_on_layers` also becoming `trunks_on_layers`, unknown keys kept at
+the end; generation_defaults.json from the defaults and the WORLD keys, with the backend-switch
+migration. Obsolete keys are dropped. When both files exist and nothing failed,
+`layer_config.json` is deleted. If it cannot be read, or holds an invalid value for the scope being
+created, that file is not written and the old one is kept, so the next start tries again.
+
+**Screen.** On a generation tab the heading row and the preview text are the seam warning in a
+world, and "Defaults for new worlds" outside one (`ConfigWidgets.generationHeading()` /
+`generationText()`, lang `config.aronalayers.new_world_defaults.1-3`; the text says that until
+worlds keep their own copy, existing worlds also use them; phase 5 drops that sentence). The
+preview also names the tab's section. `tab_worldgen.png` is now `tab_terrain.png`;
+`trunks_on_layers.png` is a copy of `trees_on_layers.png`; Plants & Trees has no tab image. The
+remote tooltip now says "edit the server's files in config/aronalayers/".
+
+**For phase 5** (step 5's audit): `plant_injection` (WORLD) is also read at runtime, on the client
+too, by `PlantPlacementHook.lookThroughLayers` (plant `canSurvive` on a layer, `|| plant_grounding`).
+A remote client will not know the world's value; let that check rely on `plant_grounding` alone
+on the client, or sync the value. `tree_injection` also governs sapling growth through layers
+(`TreeFeatureMixin.validTreePos`), server side only, so WORLD is fine.
+
+**What was checked.**
+
+- All 11 jars build (JDK 25); `verify_mixins.py` passes on all 11, counts unchanged from phase 3.
+- Worldgen, 1.21.1 Fabric, `gen_seq.sh` seed 7474, chunks `-3,-3,6,6`, the run folder's dev config:
+  7579 layer blocks before the change and 7579 after (the after run also carried that
+  `layer_config.json` over: all 79 keys in the two files with the same values, the four unknown
+  `dh_*` keys kept in config.json, the old file deleted). Podzol / coarse dirt 4375 / 2786 before,
+  4388 / 2773 after: the run-to-run noise phase 2 saw; grass, dirt, mossy cobblestone identical.
+- Config start test on all 11 servers (throwaway world, deleted; `server.properties` and the
+  original config folder put back): with no `config/aronalayers/` the server writes config.json
+  (30 options) and generation_defaults.json (46) and no `layer_config.json`; with only a crafted
+  `layer_config.json` (19 non-default values across both scopes, `trees_on_layers` false, an
+  obsolete and an unknown key) every value lands in the right file, `trunks_on_layers` is false,
+  the unknown key is kept in config.json, the obsolete one dropped, the old file deleted.
+- `gameplay_test.sh` on 1.21.1 Fabric and NeoForge and 26.3 Fabric and NeoForge, each run folder's
+  own dev config (carried over to the two files at that start): every line within phase 3's
+  "Expected" (A-D spread, 8 sheep and 4 of 9 eaten in each pen, F1-F6, coal 5 / Silk Touch 5
+  layers, copper 24 to 32, redstone 4-5, diamond 4 and Fortune III 4 to 16, iron sneaking 1 and 5
+  left, stone and ancient debris untouched); 26.3 Fabric left one dirt layer and one dirt block of
+  test A not reached yet, as seen before.
+- Every run folder is back as it was: its original `config/aronalayers/` (still with
+  `layer_config.json`, which the next start carries over), `server.properties`, no test world.
+
+Not checked: a client (see below); a `layer_config.json` with an invalid value (code path only);
+the Mod Menu / `/algconfig` screen on a remote server.
+
+**For the user to check in a client** (1.20.1, 1.21.1, 26.3): tab order and that "⚠ Plants & Trees"
+fits its button (80 px at most; vanilla scrolls a label that does not fit); from the title screen
+the three generation tabs start with "Defaults for new worlds" and the preview says the same,
+inside a world they show the seam warning; Visuals has "Trunks on layers" first, Plants & Trees
+has Trees On Layers greyed out with a "requires" line when Trunks is off; Terrain has the
+"3D layers" group with no restart note; Done writes the two files; an existing
+`layer_config.json` in a client's config folder is carried over and deleted.
+
+Client test by the user (2026-11-15) on 1.20.1, 1.21.1 and 26.3: fine but for one thing on 26.3,
+the text rows of the option list (group headings, list labels, the generation heading) drawn at
+the left instead of centred. Older than phase 4: from 1.21.11 `StringWidget` has no
+`alignCenter()` and always draws at the left (1.21.1 centres by default), so 1.21.11, 26.1.2 and
+26.2 did the same. Fixed with a new seam, `ScreenCompat.centeredText(width, height, text, font)`:
+a plain `StringWidget` on 1.20.1 and 1.21.1, on the four later versions a `StringWidget` whose
+`visitLines` draws through `ActiveTextCollector.accept(TextAlignment.CENTER, …)`. The shared
+`AronaConfigScreen.fillRows` and `ConfigWidgets.label` use it; 1.20.1's own screen keeps its plain
+`StringWidget`. 11 jars build, verify_mixins passes. Checked in a 26.3 client by the user
+(2026-11-15): centred.

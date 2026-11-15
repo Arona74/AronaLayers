@@ -3,6 +3,7 @@ package io.arona74.aronalayers.gen.client.config;
 import io.arona74.aronalayers.gen.Compat;
 import io.arona74.aronalayers.gen.config.ConfigDraft;
 import io.arona74.aronalayers.gen.config.ConfigOption;
+import io.arona74.aronalayers.gen.config.ConfigTab;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -69,21 +70,47 @@ public final class ConfigWidgets {
         return widget;
     }
 
-    /** Lines of the warning on a world generation tab (ConfigTab.worldgen). */
-    public static final int WORLDGEN_WARNING_LINES = 4;
+    /** Lines of the warning on a world generation tab ({@link ConfigTab#generation()}), opened in a world. */
+    private static final int WORLDGEN_WARNING_LINES = 4;
+    /** Lines of the "defaults for new worlds" text on the same tabs, opened outside a world. */
+    private static final int NEW_WORLD_LINES = 3;
+
+    /** Whether a world is open: the generation tabs then warn about seams instead of naming defaults. */
+    private static boolean inWorld() {
+        return Minecraft.getInstance().level != null;
+    }
 
     /**
-     * One line of that warning: the first is its heading, kept as a row at the top of the option
-     * list; the preview panel shows the whole of it until an option is hovered.
+     * Line {@code line} of what a world generation tab says: in a world, the warning that changes
+     * leave seams; outside one, that these are the defaults for new worlds. The first line is the
+     * heading, kept as a row at the top of the option list; the preview panel shows the whole text
+     * until an option is hovered.
      */
-    public static Component worldgenWarning(int line) {
-        MutableComponent text = Component.translatable("config.aronalayers.worldgen_warning." + (line + 1));
+    private static Component generationLine(int line) {
+        String key = inWorld() ? "config.aronalayers.worldgen_warning." : "config.aronalayers.new_world_defaults.";
+        MutableComponent text = Component.translatable(key + (line + 1));
         return line == 0 ? text.withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD) : text.withStyle(ChatFormatting.YELLOW);
+    }
+
+    /** The heading row of a world generation tab. */
+    public static Component generationHeading() {
+        return generationLine(0);
+    }
+
+    /** The rest of that text, for the preview panel. */
+    public static Component generationText() {
+        MutableComponent text = Component.empty();
+        int lines = inWorld() ? WORLDGEN_WARNING_LINES : NEW_WORLD_LINES;
+        for (int line = 1; line < lines; line++) {
+            if (line > 1) text.append(" ");
+            text.append(generationLine(line));
+        }
+        return text;
     }
 
     /** The label shown above a block-list box, which has no label of its own. */
     public AbstractWidget label(ConfigOption<?> option) {
-        AbstractWidget widget = new net.minecraft.client.gui.components.StringWidget(WIDTH, HEIGHT, label(option.langKey()), font);
+        AbstractWidget widget = ScreenCompat.centeredText(WIDTH, HEIGHT, label(option.langKey()), font);
         labels.add(new Bound(option, widget));
         return widget;
     }

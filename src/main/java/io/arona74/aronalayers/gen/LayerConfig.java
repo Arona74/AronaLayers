@@ -37,7 +37,9 @@ import static io.arona74.aronalayers.gen.config.ConfigOption.decimal;
 import static io.arona74.aronalayers.gen.config.ConfigOption.integer;
 
 /**
- * Configuration for layer generation, stored in config/aronalayers/layer_config.json.
+ * The mod's settings, in two files of config/aronalayers/: config.json for the GLOBAL tabs (visuals,
+ * gameplay, debug) and generation_defaults.json for the WORLD tabs (world generation: the settings
+ * new worlds get). See {@link ConfigTab.Scope}.
  *
  * <p>Values live in the static fields below, which worldgen reads directly. Each field is bound to a
  * {@link ConfigOption} in the Options section, which holds its default, range and screen placement;
@@ -46,8 +48,15 @@ import static io.arona74.aronalayers.gen.config.ConfigOption.integer;
 public class LayerConfig {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
     private static final Path CONFIG_DIR = ConfigFiles.DIR;
-    private static final String CONFIG_FILE = "layer_config.json";
+    private static final String GLOBAL_FILE = "config.json";
+    private static final String WORLD_FILE = "generation_defaults.json";
+    /** The single file of earlier versions; split into the two above once, then deleted. */
+    private static final String OLD_FILE = "layer_config.json";
     private static final String LANG_FILE = "assets/aronalayers_config/lang/en_us.json";
+
+    private static String fileName(ConfigTab.Scope scope) {
+        return scope == ConfigTab.Scope.GLOBAL ? GLOBAL_FILE : WORLD_FILE;
+    }
 
     /**
      * Master switch for layer generation. Where the layer counts come from is not configured:
@@ -206,16 +215,28 @@ public class LayerConfig {
     public static boolean TREE_INJECTION;
 
     /**
-     * Trees, huge mushrooms and chorus plants stand on top of the layer instead of in it:
-     * generated ones start one block higher, and their trunk or stem is drawn down to the layer.
+     * World generation: trees, huge mushrooms and chorus plants stand on top of the layer instead of
+     * in it: generated ones start one block higher, and saplings and mushrooms grow on the layer.
      * false = the old behaviour, where the soil layer under a tree turns into dirt and chorus
-     * columns are left unlayered.
+     * columns are left unlayered. Only acts with {@link #TRUNKS_ON_LAYERS}, which draws the trunks
+     * down to the layer; without it such trees would float.
      */
     public static boolean TREES_ON_LAYERS;
 
-    /** True when {@link #TREES_ON_LAYERS} is on and this version's client has the stem models. */
+    /**
+     * A log, huge mushroom stem or chorus root standing on a layer is drawn down to it, and its
+     * outline and collision reach down with it. Global: registered with the models at startup.
+     */
+    public static boolean TRUNKS_ON_LAYERS;
+
+    /** True when {@link #TRUNKS_ON_LAYERS} is on and this version's client has the stem models. */
+    public static boolean trunksOnLayers() {
+        return Compat.STEM_MODELS && TRUNKS_ON_LAYERS;
+    }
+
+    /** True when generation and growth put trees on top of layers (see {@link #TREES_ON_LAYERS}). */
     public static boolean treesOnLayers() {
-        return Compat.STEM_MODELS && TREES_ON_LAYERS;
+        return trunksOnLayers() && TREES_ON_LAYERS;
     }
 
     /**
@@ -453,7 +474,7 @@ public class LayerConfig {
      * each step (see Layer3DWalls): a floor layer beside a higher terrain block becomes a 3D layer:
      * the floor merged with a wall toward the step, and the open cells up the step
      * get a 3D layer with no floor part (vertical_layers 0), so only hard materials (those with a 3D
-     * layer) get one. Read once, at the first world load; changes need a restart.
+     * layer) get one. Read for each chunk, so a change reaches the next chunks generated.
      */
     public static boolean THREE_D_LAYER_INJECTION;
 
@@ -468,7 +489,7 @@ public class LayerConfig {
      * Materials that never get a 3D layer, though AronaLayers has one: the full block or its layer
      * ({@code minecraft:snow_block} or {@code minecraft:snow}). Their floor layers stay normal layers
      * and their walls get no pieces, as if they had no 3D variant. Snow by default: its 3D layer
-     * reads poorly on slopes. Read when the 3D layers are first looked up; changes need a restart.
+     * reads poorly on slopes. Cached per layer block, and the cache is dropped when values change.
      */
     public static List<String> THREE_D_LAYER_EXCLUDED_BLOCKS;
 
@@ -524,7 +545,8 @@ public class LayerConfig {
 
     // ========== Options ==========
     //
-    // One declaration per key of layer_config.json, in file and screen order. The defaults are what
+    // One declaration per key of config.json or generation_defaults.json (the tab's scope says which),
+    // in file and screen order. The defaults are what
     // a new install gets; the label and description of each key live in en_us.json under
     // config.aronalayers.option.<key>, and the file's comments are generated from them.
 
@@ -562,8 +584,8 @@ public class LayerConfig {
 
     /**
      * Registers an option after the last one of its tab, so each tab's options stay together in
-     * the screen and in layer_config.json even where their declarations are interleaved (a tree
-     * option in World Gen next to a post option in Visuals). Within a tab, declaration order holds.
+     * the screen and in the files even where their declarations are interleaved (a tree option in
+     * Plants & Trees next to a post option in Visuals). Within a tab, declaration order holds.
      */
     private static <T> ConfigOption<T> add(ConfigOption.Builder<T> builder) {
         ConfigOption<T> option = builder.build();
@@ -577,79 +599,83 @@ public class LayerConfig {
 
     // --- Terrain ---
     private static final ConfigOption<Boolean> O_LAYER_INJECTION = add(bool("layer_injection", true,
-            () -> LAYER_INJECTION, v -> LAYER_INJECTION = v).in(ConfigTab.WORLDGEN, "backends"));
+            () -> LAYER_INJECTION, v -> LAYER_INJECTION = v).in(ConfigTab.TERRAIN, "backends"));
     private static final ConfigOption<InjectionMode> O_INJECTION_MODE = add(choice("injection_mode", InjectionMode.POST_FEATURES,
-            () -> INJECTION_MODE, v -> INJECTION_MODE = v).in(ConfigTab.WORLDGEN, "backends"));
+            () -> INJECTION_MODE, v -> INJECTION_MODE = v).in(ConfigTab.TERRAIN, "backends"));
     private static final ConfigOption<Boolean> O_3D_LAYER_INJECTION = add(bool("3D_layer_injection", false,
             () -> THREE_D_LAYER_INJECTION, v -> THREE_D_LAYER_INJECTION = v)
-            .in(ConfigTab.WORLDGEN, "backends").apply(Apply.RESTART));
+            .in(ConfigTab.TERRAIN, "layers_3d"));
     static {
         add(bool("3D_layer_cross_chunk", false, () -> THREE_D_LAYER_CROSS_CHUNK, v -> THREE_D_LAYER_CROSS_CHUNK = v)
-                .in(ConfigTab.WORLDGEN, "backends").requires(O_3D_LAYER_INJECTION));
+                .in(ConfigTab.TERRAIN, "layers_3d").requires(O_3D_LAYER_INJECTION));
         add(blockList("3D_layer_excluded_blocks", List.of("minecraft:snow_block"),
                 () -> THREE_D_LAYER_EXCLUDED_BLOCKS, v -> THREE_D_LAYER_EXCLUDED_BLOCKS = v)
-                .in(ConfigTab.WORLDGEN, "backends").requires(O_3D_LAYER_INJECTION)
-                .apply(Apply.RESTART));
+                .in(ConfigTab.TERRAIN, "layers_3d").requires(O_3D_LAYER_INJECTION));
 
         add(bool("tellus_reduce_layer_count", true, () -> TELLUS_REDUCE_LAYER_COUNT, v -> TELLUS_REDUCE_LAYER_COUNT = v)
-                .in(ConfigTab.WORLDGEN, "tuning").mods("tellus"));
+                .in(ConfigTab.TERRAIN, "tuning").mods("tellus"));
         add(bool("fractional_surface_reduce_layer_count", false,
                 () -> FRACTIONAL_SURFACE_REDUCE_LAYER_COUNT, v -> FRACTIONAL_SURFACE_REDUCE_LAYER_COUNT = v)
-                .in(ConfigTab.WORLDGEN, "tuning").requires(O_LAYER_INJECTION));
+                .in(ConfigTab.TERRAIN, "tuning").requires(O_LAYER_INJECTION));
         add(decimal("fractional_surface_min_gradient", 0.0, 0.0, 0.1, 0.005,
                 () -> FRACTIONAL_SURFACE_MIN_GRADIENT, v -> FRACTIONAL_SURFACE_MIN_GRADIENT = v)
-                .in(ConfigTab.WORLDGEN, "tuning").requires(O_LAYER_INJECTION).advanced());
+                .in(ConfigTab.TERRAIN, "tuning").requires(O_LAYER_INJECTION).advanced());
         add(decimal("fractional_surface_max_disagreement", 1.0, 0.0, 1.0, 0.05,
                 () -> FRACTIONAL_SURFACE_MAX_DISAGREEMENT, v -> FRACTIONAL_SURFACE_MAX_DISAGREEMENT = v)
-                .in(ConfigTab.WORLDGEN, "tuning").requires(O_LAYER_INJECTION).advanced());
+                .in(ConfigTab.TERRAIN, "tuning").requires(O_LAYER_INJECTION).advanced());
         add(bool("fractional_surface_exact_interpolation", false,
                 () -> FRACTIONAL_SURFACE_EXACT_INTERPOLATION, v -> FRACTIONAL_SURFACE_EXACT_INTERPOLATION = v)
-                .in(ConfigTab.WORLDGEN, "tuning").requires(O_LAYER_INJECTION).advanced());
+                .in(ConfigTab.TERRAIN, "tuning").requires(O_LAYER_INJECTION).advanced());
     }
 
     // --- Biomes ---
     private static final ConfigOption<Boolean> O_SKIP_SNOWY_BIOMES = add(bool("skip_snowy_biomes", false,
-            () -> SKIP_SNOWY_BIOMES, v -> SKIP_SNOWY_BIOMES = v).in(ConfigTab.WORLDGEN, "snow"));
+            () -> SKIP_SNOWY_BIOMES, v -> SKIP_SNOWY_BIOMES = v).in(ConfigTab.TERRAIN, "snow"));
     private static final ConfigOption<Boolean> O_IMPROVE_SNOWY_BIOMES = add(bool("improve_snowy_biomes", false,
             () -> IMPROVE_SNOWY_BIOMES, v -> IMPROVE_SNOWY_BIOMES = v)
-            .in(ConfigTab.WORLDGEN, "snow").requiresOff(O_SKIP_SNOWY_BIOMES));
+            .in(ConfigTab.TERRAIN, "snow").requiresOff(O_SKIP_SNOWY_BIOMES));
     private static final ConfigOption<SuperSnowyMode> O_SUPER_SNOWY_MODE = add(choice("super_snowy_mode",
             SuperSnowyMode.ALL_SNOWY_BIOMES, () -> SUPER_SNOWY_MODE, v -> SUPER_SNOWY_MODE = v)
-            .in(ConfigTab.WORLDGEN, "snow").requiresOff(O_SKIP_SNOWY_BIOMES).requires(O_IMPROVE_SNOWY_BIOMES));
+            .in(ConfigTab.TERRAIN, "snow").requiresOff(O_SKIP_SNOWY_BIOMES).requires(O_IMPROVE_SNOWY_BIOMES));
     static {
         add(biomeList("super_snowy_biomes", List.of(
                     "minecraft:snowy_plains", "minecraft:ice_spikes", "minecraft:snowy_taiga", "minecraft:snowy_beach",
                     "minecraft:frozen_river", "minecraft:snowy_slopes", "minecraft:grove", "minecraft:frozen_peaks",
                     "minecraft:jagged_peaks"),
                 () -> SUPER_SNOWY_BIOMES, v -> SUPER_SNOWY_BIOMES = v)
-                .in(ConfigTab.WORLDGEN, "snow").requiresOff(O_SKIP_SNOWY_BIOMES).requires(O_IMPROVE_SNOWY_BIOMES)
+                .in(ConfigTab.TERRAIN, "snow").requiresOff(O_SKIP_SNOWY_BIOMES).requires(O_IMPROVE_SNOWY_BIOMES)
                 .requires(O_SUPER_SNOWY_MODE, SuperSnowyMode.CONTROLLED_BY_LIST));
         add(bool("break_snow_layers_to_mapped_layers", true,
                 () -> BREAK_SNOW_LAYERS_TO_MAPPED_LAYERS, v -> BREAK_SNOW_LAYERS_TO_MAPPED_LAYERS = v)
                 .in(ConfigTab.GAMEPLAY, "snow").apply(Apply.LIVE));
 
         add(bool("underwater_layers", true, () -> UNDERWATER_LAYERS, v -> UNDERWATER_LAYERS = v)
-                .in(ConfigTab.WORLDGEN, "surface"));
+                .in(ConfigTab.TERRAIN, "surface"));
         add(bool("replace_dirt_path", true, () -> REPLACE_DIRT_PATH, v -> REPLACE_DIRT_PATH = v)
-                .in(ConfigTab.WORLDGEN, "surface"));
+                .in(ConfigTab.TERRAIN, "surface"));
     }
     private static final ConfigOption<Boolean> O_REDUCE_SWAMP_LAYERS = add(bool("reduce_swamp_layers", false,
-            () -> REDUCE_SWAMP_LAYERS, v -> REDUCE_SWAMP_LAYERS = v).in(ConfigTab.WORLDGEN, "swamps"));
+            () -> REDUCE_SWAMP_LAYERS, v -> REDUCE_SWAMP_LAYERS = v).in(ConfigTab.TERRAIN, "swamps"));
     static {
         add(integer("reduce_swamp_layers_value", 2, 0, 8, () -> REDUCE_SWAMP_LAYERS_VALUE, v -> REDUCE_SWAMP_LAYERS_VALUE = v)
-                .in(ConfigTab.WORLDGEN, "swamps").requires(O_REDUCE_SWAMP_LAYERS));
+                .in(ConfigTab.TERRAIN, "swamps").requires(O_REDUCE_SWAMP_LAYERS));
         add(bool("swamp_puddles_as_water", true, () -> SWAMP_PUDDLES_AS_WATER, v -> SWAMP_PUDDLES_AS_WATER = v)
-                .in(ConfigTab.WORLDGEN, "swamps"));
+                .in(ConfigTab.TERRAIN, "swamps"));
     }
+
+    // --- Trunks (the drawing half of trees on layers; the generation half is in Plants & Trees) ---
+    private static final ConfigOption<Boolean> O_TRUNKS_ON_LAYERS = add(bool("trunks_on_layers", true,
+            () -> TRUNKS_ON_LAYERS, v -> TRUNKS_ON_LAYERS = v).in(ConfigTab.VISUALS, "trunks")
+            .side(Side.BOTH).apply(Apply.RESTART));
 
     // --- Plants & trees ---
     static {
         add(bool("plant_injection", true, () -> PLANT_INJECTION, v -> PLANT_INJECTION = v)
-                .in(ConfigTab.WORLDGEN, "plants"));
+                .in(ConfigTab.PLANTS_TREES, "plants"));
         add(bool("tree_injection", true, () -> TREE_INJECTION, v -> TREE_INJECTION = v)
-                .in(ConfigTab.WORLDGEN, "trees"));
+                .in(ConfigTab.PLANTS_TREES, "trees"));
         add(bool("trees_on_layers", true, () -> TREES_ON_LAYERS, v -> TREES_ON_LAYERS = v)
-                .in(ConfigTab.WORLDGEN, "trees").side(Side.BOTH).apply(Apply.RESTART));
+                .in(ConfigTab.PLANTS_TREES, "trees").requires(O_TRUNKS_ON_LAYERS));
     }
     private static final ConfigOption<Boolean> O_POSTS_ON_LAYERS = add(bool("posts_on_layers", true,
             () -> POSTS_ON_LAYERS, v -> POSTS_ON_LAYERS = v).in(ConfigTab.VISUALS, "posts")
@@ -824,39 +850,92 @@ public class LayerConfig {
     // ========== Loading and saving ==========
 
     /**
-     * Resets every option to its default, then applies the file's values. The file is then rewritten
-     * in the current layout — new options added with their default, comments refreshed — unless it
-     * could not be read or held an invalid value, in which case it is left for the user to fix.
+     * Resets every option to its default, then reads both files, config.json (GLOBAL tabs) and
+     * generation_defaults.json (WORLD tabs). Each is then rewritten in the current layout — new
+     * options added with their default, comments refreshed — unless it could not be read or held an
+     * invalid value, in which case it is left for the user to fix.
+     *
+     * <p>A file that does not exist yet takes its values from layer_config.json, the single file of
+     * earlier versions, if there is one; config.json first from the former Extras mod's file. Once
+     * both files exist and every value was carried over, layer_config.json is deleted.
      */
     public static void loadConfig() {
         for (ConfigOption<?> option : OPTIONS) option.reset();
 
-        Path file = CONFIG_DIR.resolve(CONFIG_FILE);
+        Path oldFile = CONFIG_DIR.resolve(OLD_FILE);
+        boolean globalExists = Files.exists(CONFIG_DIR.resolve(GLOBAL_FILE));
+        boolean worldExists = Files.exists(CONFIG_DIR.resolve(WORLD_FILE));
+        boolean oldExists = Files.exists(oldFile);
+        JsonObject old = null;
+        boolean oldReadable = true;
+        if (oldExists && (!globalExists || !worldExists)) {
+            try (Reader reader = Files.newBufferedReader(oldFile, StandardCharsets.UTF_8)) {
+                old = GSON.fromJson(reader, JsonObject.class);
+                if (old == null) old = new JsonObject();
+            } catch (IOException | JsonParseException e) {
+                AronaLayersGen.LOGGER.error("[Config] Could not read {}, its settings are carried over once it is fixed: {}",
+                        oldFile, e.getMessage());
+                oldReadable = false;
+            }
+        }
+
+        boolean carried = load(ConfigTab.Scope.GLOBAL, globalExists, old, oldReadable);
+        carried &= load(ConfigTab.Scope.WORLD, worldExists, old, oldReadable);
+
+        if (oldExists && carried && Files.exists(CONFIG_DIR.resolve(GLOBAL_FILE)) && Files.exists(CONFIG_DIR.resolve(WORLD_FILE))) {
+            try {
+                Files.delete(oldFile);
+                AronaLayersGen.LOGGER.info("[Config] Deleted {}: its settings are now in {} and {}", oldFile, GLOBAL_FILE, WORLD_FILE);
+            } catch (IOException e) {
+                AronaLayersGen.LOGGER.error("[Config] Could not delete {}, which is no longer read: {}", oldFile, e.toString());
+            }
+        }
+    }
+
+    /**
+     * Reads one scope's file, or, when it does not exist yet, takes that scope's values from the old
+     * single file {@code old} (null when there is none); then rewrites it.
+     *
+     * @return false when the file was missing and its values could not all be carried over, so the
+     *         old file must be kept
+     */
+    private static boolean load(ConfigTab.Scope scope, boolean exists, JsonObject old, boolean oldReadable) {
+        String name = fileName(scope);
+        Path file = CONFIG_DIR.resolve(name);
         JsonObject extra = new JsonObject();
-        boolean rewrite = true;
-        // Until this file holds the gameplay options, the former Extras mod's file is their source.
-        boolean importExtras = true;
-        if (Files.exists(file)) {
+        if (exists) {
+            boolean rewrite;
             try (Reader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
                 JsonObject json = GSON.fromJson(reader, JsonObject.class);
-                if (json != null) {
-                    rewrite = applyJson(json, extra);
-                    importExtras = !json.has("grass_spreading");
-                }
-                AronaLayersGen.LOGGER.info("Loaded layer config from: {}", file);
+                rewrite = json == null || applyJson(scope, json, extra, name, true);
+                AronaLayersGen.LOGGER.info("Loaded config from: {}", file);
             } catch (IOException | JsonParseException e) {
                 AronaLayersGen.LOGGER.error("Could not read {}, using defaults until it is fixed: {}", file, e.getMessage());
                 rewrite = false;
-                importExtras = false;
             }
+            if (rewrite) write(scope, extra);
+            return true;
         }
-        if (importExtras) importExtrasConfig();
-        if (rewrite) write(extra);
+
+        // A new file. Until the old one can be read, nothing is written, so it is tried again.
+        if (!oldReadable) return false;
+        // The former Extras mod's file is the gameplay options' source until a file holds them.
+        if (scope == ConfigTab.Scope.GLOBAL && (old == null || !old.has("grass_spreading"))) importExtrasConfig();
+        boolean valid = true;
+        if (old != null) {
+            valid = applyJson(scope, old, extra, OLD_FILE, scope == ConfigTab.Scope.GLOBAL);
+            // trees_on_layers used to cover the trunk models too, which are now their own option.
+            if (scope == ConfigTab.Scope.GLOBAL && old.has("trees_on_layers") && !old.has("trunks_on_layers")) {
+                valid &= applyValue(O_TRUNKS_ON_LAYERS, old.get("trees_on_layers"));
+            }
+            if (valid) AronaLayersGen.LOGGER.info("[Config] Carried the settings of {} over to {}", OLD_FILE, name);
+        }
+        return valid && write(scope, extra);
     }
 
     /**
      * Takes over the settings of the former Extras mod, once: the gameplay options then are in
-     * layer_config.json, and its file, which is left where it is, is not read again.
+     * config.json, and its file, which is left where it is, is not read again.
      */
     private static void importExtrasConfig() {
         Path old = Platform.configDir().resolve(EXTRAS_CONFIG_FILE);
@@ -875,19 +954,32 @@ public class LayerConfig {
         }
     }
 
-    /** @return false when a value was invalid, so the file must not be overwritten */
-    private static boolean applyJson(JsonObject json, JsonObject extra) {
+    /**
+     * Applies the values of {@code json} that belong to {@code scope}. With {@code keepUnknown},
+     * keys no option has (from a newer version, or a typo) are kept in {@code extra}, to be written
+     * at the end of the file, so a downgrade and upgrade does not lose them.
+     *
+     * @return false when a value was invalid, so the file must not be overwritten
+     */
+    private static boolean applyJson(ConfigTab.Scope scope, JsonObject json, JsonObject extra, String source, boolean keepUnknown) {
         boolean valid = true;
         for (ConfigOption<?> option : OPTIONS) {
-            if (json.has(option.key)) valid &= applyValue(option, json.get(option.key));
+            if (option.tab.scope == scope && json.has(option.key)) valid &= applyValue(option, json.get(option.key));
         }
-        migrateBackendSwitches(json);
-        // Keys this version does not know (from a newer version, or a typo) are kept at the end
-        // rather than dropped, so a downgrade and upgrade does not lose them.
+        if (scope == ConfigTab.Scope.WORLD) migrateBackendSwitches(json);
+        if (!keepUnknown) return valid;
         for (Map.Entry<String, JsonElement> entry : json.entrySet()) {
             String key = entry.getKey();
-            if (key.startsWith("_") || OBSOLETE_KEYS.contains(key) || OPTIONS.stream().anyMatch(o -> o.key.equals(key))) continue;
-            AronaLayersGen.LOGGER.warn("[Config] Unknown key '{}' in {} is ignored", key, CONFIG_FILE);
+            if (key.startsWith("_") || OBSOLETE_KEYS.contains(key)) continue;
+            ConfigOption<?> known = OPTIONS.stream().filter(o -> o.key.equals(key)).findFirst().orElse(null);
+            if (known != null && known.tab.scope == scope) continue;
+            // In the old single file every option was at home; the other scope's go to its own file.
+            if (known != null && source.equals(OLD_FILE)) continue;
+            if (known != null) {
+                AronaLayersGen.LOGGER.warn("[Config] '{}' in {} is ignored: it belongs in {}", key, source, fileName(known.tab.scope));
+            } else {
+                AronaLayersGen.LOGGER.warn("[Config] Unknown key '{}' in {} is ignored", key, source);
+            }
             extra.add(key, entry.getValue());
         }
         return valid;
@@ -934,34 +1026,47 @@ public class LayerConfig {
     /** Drops what was derived from config values; called after a reload or a save from the screen. */
     public static void onValuesChanged() {
         io.arona74.aronalayers.gen.grounding.PlantGrounding.invalidate();
+        io.arona74.aronalayers.gen.injection.Layer3D.invalidateExcluded();
     }
 
-    /** Writes the current values. */
+    /** Writes the current values to both files; a file whose text would not change is left alone. */
     public static void save() {
-        write(new JsonObject());
+        write(ConfigTab.Scope.GLOBAL, new JsonObject());
+        write(ConfigTab.Scope.WORLD, new JsonObject());
     }
 
-    private static void write(JsonObject extra) {
-        Path file = CONFIG_DIR.resolve(CONFIG_FILE);
-        String text = GSON.toJson(toJson(extra)) + "\n";
+    /** @return false when the file could not be written */
+    private static boolean write(ConfigTab.Scope scope, JsonObject extra) {
+        Path file = CONFIG_DIR.resolve(fileName(scope));
+        String text = GSON.toJson(toJson(scope, extra)) + "\n";
         try {
-            if (Files.exists(file) && Files.readString(file, StandardCharsets.UTF_8).equals(text)) return;
+            if (Files.exists(file) && Files.readString(file, StandardCharsets.UTF_8).equals(text)) return true;
             Files.createDirectories(CONFIG_DIR);
             Files.writeString(file, text, StandardCharsets.UTF_8);
             AronaLayersGen.LOGGER.info("Saved config to: {}", file);
+            return true;
         } catch (IOException e) {
             AronaLayersGen.LOGGER.error("Failed to save config to {}", file, e);
+            return false;
         }
     }
 
-    private static JsonObject toJson(JsonObject extra) {
+    private static JsonObject toJson(ConfigTab.Scope scope, JsonObject extra) {
         Map<String, String> lang = englishText();
         JsonObject json = new JsonObject();
-        json.addProperty("_comment", "Arona Layers Generator settings. Edit them here or in game (Mod Menu, or the"
-                + " /algconfig command). The mod rewrites this file at startup and on save: your values are kept,"
-                + " comments are refreshed and options added by an update appear with their default.");
+        json.addProperty("_comment", scope == ConfigTab.Scope.GLOBAL
+                ? "AronaLayers settings for every world: visuals, gameplay and debug logging. World generation"
+                + " settings are in " + WORLD_FILE + ". Edit them here or in game (Mod Menu, or the /algconfig"
+                + " command). The mod rewrites this file at startup and on save: your values are kept, comments"
+                + " are refreshed and options added by an update appear with their default."
+                : "AronaLayers world generation settings: the defaults new worlds are created with. Until worlds"
+                + " keep their own copy, every world generates its new chunks with these; chunks already generated"
+                + " keep the old result. The other settings are in " + GLOBAL_FILE + ". Edit them here or in game"
+                + " (Mod Menu, or the /algconfig command). The mod rewrites this file at startup and on save: your"
+                + " values are kept, comments are refreshed and options added by an update appear with their default.");
         ConfigTab tab = null;
         for (ConfigOption<?> option : OPTIONS) {
+            if (option.tab.scope != scope) continue;
             if (option.tab != tab) {
                 tab = option.tab;
                 json.addProperty("_section_" + tab.id(),

@@ -13,7 +13,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
- * One key of layer_config.json: its type, default, valid range, where it is shown and when a change
+ * One key of config.json or generation_defaults.json (its tab's scope decides which): its type, default, valid range, where it is shown and when a change
  * takes effect. The value itself stays in a LayerConfig static field (read by hot worldgen paths),
  * which the option reaches through {@link #get()} and {@link #set}.
  *

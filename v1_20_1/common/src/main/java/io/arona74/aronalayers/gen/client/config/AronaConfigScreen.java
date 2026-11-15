@@ -35,7 +35,7 @@ public class AronaConfigScreen extends Screen {
     private static final int FOOTER_HEIGHT = 32;
 
     /** Remembered for the session, so reopening the screen returns to where the user was. */
-    private static ConfigTab lastTab = ConfigTab.WORLDGEN;
+    private static ConfigTab lastTab = ConfigTab.VISUALS;
     private static boolean showAdvanced;
 
     private final Screen lastScreen;
@@ -106,12 +106,13 @@ public class AronaConfigScreen extends Screen {
     }
 
     /**
-     * The open tab's rows: on a world generation tab the warning's heading first, then each group
+     * The open tab's rows: on a world generation tab its heading first (the seam warning in a world,
+     * "defaults for new worlds" outside one), then each group
      * under its heading, one option per row. A block-list box has no label of its own, so its name
      * gets a row above it.
      */
     static void fillRows(OptionRows list, ConfigWidgets widgets, ConfigTab tab, net.minecraft.client.gui.Font font) {
-        if (tab.worldgen) list.add(new StringWidget(ConfigWidgets.WIDTH, ConfigWidgets.HEIGHT, ConfigWidgets.worldgenWarning(0), font));
+        if (tab.generation()) list.add(new StringWidget(ConfigWidgets.WIDTH, ConfigWidgets.HEIGHT, ConfigWidgets.generationHeading(), font));
         String group = null;
         for (ConfigOption<?> option : LayerConfig.options()) {
             if (option.tab != tab || (option.advanced && !showAdvanced)) continue;

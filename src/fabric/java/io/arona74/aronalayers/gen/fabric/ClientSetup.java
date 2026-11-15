@@ -23,7 +23,7 @@ public final class ClientSetup {
 
         // The plugin also carries the trunk, post and chorus stem models, which trees_on_layers and
         // posts_on_layers need even with grounding off.
-        if (!LayerConfig.PLANT_GROUNDING && !LayerConfig.treesOnLayers() && !LayerConfig.postsOnLayers()) return;
+        if (!LayerConfig.PLANT_GROUNDING && !LayerConfig.trunksOnLayers() && !LayerConfig.postsOnLayers()) return;
         warnIfRendererLacksFrapi();
         ModelLoadingPlugin.register(new GroundedPlantModelPlugin());
     }

@@ -30,9 +30,9 @@ public final class GroundedPlantModelPlugin {
     private static BlockStateModel wrap(BlockState state, BlockStateModel model) {
         if (model == null) return null;
         Block block = state.getBlock();
-        boolean trunk = LayerConfig.treesOnLayers() && (block instanceof RotatedPillarBlock || block == Blocks.MUSHROOM_STEM);
+        boolean trunk = LayerConfig.trunksOnLayers() && (block instanceof RotatedPillarBlock || block == Blocks.MUSHROOM_STEM);
         if (trunk || LayerConfig.postsOnLayers() && PlantGrounding.isPostBlock(block)) return new TrunkStemModel(model, state);
-        if (LayerConfig.treesOnLayers() && block == Blocks.CHORUS_PLANT) return new ChorusStemModel(model);
+        if (LayerConfig.trunksOnLayers() && block == Blocks.CHORUS_PLANT) return new ChorusStemModel(model);
         return PlantGrounding.isGroundedBlock(block)
             ? new GroundedPlantModel(model)
             : model;

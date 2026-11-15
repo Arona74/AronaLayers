@@ -1,5 +1,8 @@
 package io.arona74.aronalayers.gen.client.config;
 
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.StringWidget;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.CycleButton;
 import net.minecraft.client.gui.screens.Screen;
@@ -23,6 +26,14 @@ public final class ScreenCompat {
 
     public static CycleButton.Builder<Boolean> onOff(boolean initial) {
         return CycleButton.onOffBuilder(initial);
+    }
+
+    /**
+     * A line of text centred in its row: group headings and list labels of the option list. A
+     * StringWidget centres its text on this version.
+     */
+    public static AbstractWidget centeredText(int width, int height, Component text, Font font) {
+        return new StringWidget(width, height, text, font);
     }
 
     public static void setScreen(Screen screen) {

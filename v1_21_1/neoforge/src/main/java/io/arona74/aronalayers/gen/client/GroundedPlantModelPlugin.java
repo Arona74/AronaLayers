@@ -41,11 +41,11 @@ public final class GroundedPlantModelPlugin {
     private static BakedModel wrap(ModelResourceLocation id, BakedModel original) {
         if (original == null || "inventory".equals(id.variant())) return original;
         Block block = Compat.blockFromId(id.id().toString());
-        boolean trunk = LayerConfig.treesOnLayers() && (block instanceof RotatedPillarBlock || block == Blocks.MUSHROOM_STEM);
+        boolean trunk = LayerConfig.trunksOnLayers() && (block instanceof RotatedPillarBlock || block == Blocks.MUSHROOM_STEM);
         if (trunk || LayerConfig.postsOnLayers() && PlantGrounding.isPostBlock(block)) {
             return new TrunkStemModel(original);
         }
-        if (LayerConfig.treesOnLayers() && block == Blocks.CHORUS_PLANT) {
+        if (LayerConfig.trunksOnLayers() && block == Blocks.CHORUS_PLANT) {
             return new ChorusStemModel(original);
         }
         if (block != Blocks.AIR && PlantGrounding.isGroundedBlock(block)) {

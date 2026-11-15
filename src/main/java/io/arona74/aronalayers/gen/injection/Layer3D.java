@@ -89,6 +89,11 @@ public final class Layer3D {
     /** Per layer block: whether its material is excluded. The config is read at first use. */
     private static final Map<Block, Boolean> excludedCache = new java.util.concurrent.ConcurrentHashMap<>();
 
+    /** Forgets the excluded materials, so the next chunks read 3D_layer_excluded_blocks again. */
+    public static void invalidateExcluded() {
+        excludedCache.clear();
+    }
+
     /** Listed by the layer's id or by the full block it is mapped from (snow_block for snow). */
     private static boolean excluded(Block layer) {
         return excludedCache.computeIfAbsent(layer, l -> {

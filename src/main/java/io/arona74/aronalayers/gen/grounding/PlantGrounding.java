@@ -385,7 +385,7 @@ public final class PlantGrounding {
      * over it.
      */
     public static boolean isStandingTrunk(BlockState state, BlockGetter level, BlockPos pos) {
-        if (!LayerConfig.treesOnLayers() || !GroundingFlags.ready || level == null || pos == null) return false;
+        if (!LayerConfig.trunksOnLayers() || !GroundingFlags.ready || level == null || pos == null) return false;
         Block block = state.getBlock();
         if (!(block instanceof RotatedPillarBlock) && block != Blocks.MUSHROOM_STEM) return false;
         BlockGetter view = nonBlocking(level, pos);
@@ -771,7 +771,7 @@ public final class PlantGrounding {
      * pen built on low layers: a chicken fits under a fence 7/8 of a block above the ground.
      */
     public static VoxelShape trunkFooting(BlockGetter level, BlockPos pos, VoxelShape shape) {
-        if ((!LayerConfig.treesOnLayers() && !LayerConfig.postsOnLayers())
+        if ((!LayerConfig.trunksOnLayers() && !LayerConfig.postsOnLayers())
                 || level == null || pos == null || MEASURING_LAYER.get()) return shape;
         BlockGetter view = nonBlocking(level, pos);
         if (view == null) return shape;
@@ -810,7 +810,7 @@ public final class PlantGrounding {
      */
     public static BlockHitResult clipLowered(BlockGetter level, ClipContext context, BlockHitResult original) {
         boolean plants = LayerConfig.PLANT_GROUNDING && LayerConfig.PLANT_GROUNDING_SHAPES;
-        if (!plants && !LayerConfig.treesOnLayers() && !LayerConfig.postsOnLayers()) return null;
+        if (!plants && !LayerConfig.trunksOnLayers() && !LayerConfig.postsOnLayers()) return null;
         if (((ClipContextAccessor) context).aronalayers$block() != ClipContext.Block.OUTLINE) return null;
 
         BlockHitResult plantHit = BlockGetter.traverseBlocks(context.getFrom(), context.getTo(), context, (ctx, cell) -> {
