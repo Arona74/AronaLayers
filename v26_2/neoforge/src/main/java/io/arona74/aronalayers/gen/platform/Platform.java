@@ -19,6 +19,8 @@ import net.neoforged.neoforge.common.util.FakePlayerFactory;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.level.ChunkEvent;
 import net.neoforged.neoforge.event.level.block.BreakBlockEvent;
+import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
+import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 
 import java.nio.file.Path;
@@ -66,6 +68,20 @@ public final class Platform {
         NeoForge.EVENT_BUS.addListener(LevelTickEvent.Post.class, event -> {
             if (event.getLevel() instanceof ServerLevel level) handler.accept(level);
         });
+    }
+
+    /**
+     * A server is starting, before it creates its levels: NeoForge posts ServerAboutToStartEvent in
+     * DedicatedServer.initServer and IntegratedServer.initServer just before loadLevel, so no chunk
+     * of its world, spawn chunks included, has generated yet.
+     */
+    public static void onServerStarting(Consumer<MinecraftServer> handler) {
+        NeoForge.EVENT_BUS.addListener(ServerAboutToStartEvent.class, event -> handler.accept(event.getServer()));
+    }
+
+    /** A server has stopped: its levels are saved and closed. */
+    public static void onServerStopped(Consumer<MinecraftServer> handler) {
+        NeoForge.EVENT_BUS.addListener(ServerStoppedEvent.class, event -> handler.accept(event.getServer()));
     }
 
     /** The loader's stand-in for a player, for code that acts as one (the gameplay test command). */

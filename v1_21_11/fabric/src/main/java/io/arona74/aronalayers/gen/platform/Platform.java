@@ -4,10 +4,12 @@ import com.mojang.brigadier.CommandDispatcher;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.FakePlayer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.chunk.LevelChunk;
@@ -44,6 +46,20 @@ public final class Platform {
     /** The end of every tick of every server level. */
     public static void onLevelTickEnd(Consumer<ServerLevel> handler) {
         ServerTickEvents.END_WORLD_TICK.register(handler::accept);
+    }
+
+    /**
+     * A server is starting, before it creates its levels: Fabric API fires SERVER_STARTING in
+     * MinecraftServer.runServer just before initServer, which loads them, so no chunk of its world,
+     * spawn chunks included, has generated yet. Dedicated and integrated servers alike.
+     */
+    public static void onServerStarting(Consumer<MinecraftServer> handler) {
+        ServerLifecycleEvents.SERVER_STARTING.register(handler::accept);
+    }
+
+    /** A server has stopped: its levels are saved and closed. */
+    public static void onServerStopped(Consumer<MinecraftServer> handler) {
+        ServerLifecycleEvents.SERVER_STOPPED.register(handler::accept);
     }
 
     /** The loader's stand-in for a player, for code that acts as one (the gameplay test command). */

@@ -22,10 +22,14 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -37,13 +41,16 @@ import static io.arona74.aronalayers.gen.config.ConfigOption.decimal;
 import static io.arona74.aronalayers.gen.config.ConfigOption.integer;
 
 /**
- * The mod's settings, in two files of config/aronalayers/: config.json for the GLOBAL tabs (visuals,
- * gameplay, debug) and generation_defaults.json for the WORLD tabs (world generation: the settings
- * new worlds get). See {@link ConfigTab.Scope}.
+ * The mod's settings: config/aronalayers/config.json for the GLOBAL tabs (visuals, gameplay, debug),
+ * and for the WORLD tabs (world generation) each world's own {@code <world>/aronalayers/generation.json},
+ * made from config/aronalayers/generation_defaults.json, the settings new worlds get. See
+ * {@link ConfigTab.Scope}.
  *
  * <p>Values live in the static fields below, which worldgen reads directly. Each field is bound to a
  * {@link ConfigOption} in the Options section, which holds its default, range and screen placement;
  * the fields have no initializers of their own because {@link #loadConfig()} sets every one of them.
+ * The WORLD fields hold the open world's values while a server runs in this game (see
+ * {@link #openWorld}), and the defaults for new worlds otherwise.
  */
 public class LayerConfig {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
@@ -54,8 +61,37 @@ public class LayerConfig {
     private static final String OLD_FILE = "layer_config.json";
     private static final String LANG_FILE = "assets/aronalayers_config/lang/en_us.json";
 
+    /** The folder of a world that holds its settings, and the file in it. */
+    public static final String WORLD_DIR = "aronalayers";
+    public static final String WORLD_GENERATION_FILE = "generation.json";
+
+    /**
+     * The generation.json of the world a server in this game is running (dedicated, or the
+     * integrated server of singleplayer and LAN), or null when there is none: the WORLD fields then
+     * hold the defaults for new worlds.
+     */
+    private static volatile Path worldFile;
+
     private static String fileName(ConfigTab.Scope scope) {
         return scope == ConfigTab.Scope.GLOBAL ? GLOBAL_FILE : WORLD_FILE;
+    }
+
+    /** The file a scope's values are read from and saved to now. */
+    private static Path file(ConfigTab.Scope scope) {
+        Path world = worldFile;
+        if (scope == ConfigTab.Scope.WORLD && world != null) return world;
+        return CONFIG_DIR.resolve(fileName(scope));
+    }
+
+    /** Whether a server in this game has a world open, whose file the WORLD values come from. */
+    public static boolean worldOpen() {
+        return worldFile != null;
+    }
+
+    /** The folder holding the open world's settings, or null when no world is open. */
+    public static Path worldConfigDir() {
+        Path world = worldFile;
+        return world == null ? null : world.getParent();
     }
 
     /**
@@ -200,10 +236,10 @@ public class LayerConfig {
     public static boolean UNDERWATER_LAYERS;
 
     /**
-     * Enable plant injection during terrain generation. Layer blocks become transparent to plant
-     * placement, and a plant listed in plant_mappings.json (seagrass included) standing where a
-     * layer goes is moved up onto the layer.
-     * Requires game restart to take effect.
+     * Enable plant injection during terrain generation: a plant listed in plant_mappings.json
+     * (seagrass included) standing where a layer goes is moved up onto the layer. Plants survive on
+     * a layer whatever this says (see PlantPlacementHook): that is read on the client too, which
+     * does not know a remote world's value.
      */
     public static boolean PLANT_INJECTION;
 
@@ -901,7 +937,7 @@ public class LayerConfig {
      */
     private static boolean load(ConfigTab.Scope scope, boolean exists, JsonObject old, boolean oldReadable) {
         String name = fileName(scope);
-        Path file = CONFIG_DIR.resolve(name);
+        Path file = file(scope);
         JsonObject extra = new JsonObject();
         if (exists) {
             boolean rewrite;
@@ -967,7 +1003,15 @@ public class LayerConfig {
             if (option.tab.scope == scope && json.has(option.key)) valid &= applyValue(option, json.get(option.key));
         }
         if (scope == ConfigTab.Scope.WORLD) migrateBackendSwitches(json);
-        if (!keepUnknown) return valid;
+        if (keepUnknown) keepUnknown(scope, json, extra, source);
+        return valid;
+    }
+
+    /**
+     * Keeps the keys of {@code json} no option of {@code scope} has in {@code extra}, warning about
+     * each: an option of the other scope (its file is elsewhere), or an unknown key.
+     */
+    private static void keepUnknown(ConfigTab.Scope scope, JsonObject json, JsonObject extra, String source) {
         for (Map.Entry<String, JsonElement> entry : json.entrySet()) {
             String key = entry.getKey();
             if (key.startsWith("_") || OBSOLETE_KEYS.contains(key)) continue;
@@ -982,7 +1026,6 @@ public class LayerConfig {
             }
             extra.add(key, entry.getValue());
         }
-        return valid;
     }
 
     /**
@@ -1018,12 +1061,146 @@ public class LayerConfig {
         }
     }
 
-    public static void reload() {
-        loadConfig();
+    // ========== The open world ==========
+
+    /**
+     * Makes the generation settings of the world in {@code worldDir} the WORLD values. Called as a
+     * server starts, before it creates its levels, so before any of its chunks can generate.
+     *
+     * <p>The world's generation.json is read over generation_defaults.json, so a key it lacks (an
+     * option added by an update) takes the defaults' value. A world without the file gets a copy of
+     * the defaults: what every world generated with before worlds kept their own. The file is then
+     * rewritten in the current layout, unless it could not be read or held an invalid value.
+     */
+    public static synchronized void openWorld(Path worldDir) {
+        Path file = worldDir.resolve(WORLD_DIR).resolve(WORLD_GENERATION_FILE).toAbsolutePath().normalize();
+        Map<ConfigOption<?>, Object> values = defaults(ConfigTab.Scope.WORLD);
+        List<String> errors = new ArrayList<>();
+        stage(ConfigTab.Scope.WORLD, CONFIG_DIR.resolve(WORLD_FILE), values, null, errors);
+        int defaultsErrors = errors.size();
+        boolean exists = Files.exists(file);
+        JsonObject extra = new JsonObject();
+        if (exists) stage(ConfigTab.Scope.WORLD, file, values, extra, errors);
+        set(values);
+        worldFile = file;
+        if (!exists) {
+            if (write(ConfigTab.Scope.WORLD, extra)) AronaLayersGen.LOGGER.info("[Config] Created {}, a copy of {}", file, WORLD_FILE);
+        } else if (errors.size() == defaultsErrors) {
+            write(ConfigTab.Scope.WORLD, extra);
+        }
         onValuesChanged();
+        AronaLayersGen.LOGGER.info("[Config] World generation settings from {}: layer_injection={} plant_injection={} tree_injection={}"
+                + " (each dimension's layer source is detected when it first generates)",
+                file, LAYER_INJECTION, PLANT_INJECTION, TREE_INJECTION);
     }
 
-    /** Drops what was derived from config values; called after a reload or a save from the screen. */
+    /** The world has closed (its server stopped): the WORLD values are the defaults for new worlds again. */
+    public static synchronized void closeWorld() {
+        if (worldFile == null) return;
+        Map<ConfigOption<?>, Object> values = defaults(ConfigTab.Scope.WORLD);
+        stage(ConfigTab.Scope.WORLD, CONFIG_DIR.resolve(WORLD_FILE), values, null, new ArrayList<>());
+        worldFile = null;
+        set(values);
+        onValuesChanged();
+        AronaLayersGen.LOGGER.info("[Config] World closed: the generation settings are the defaults for new worlds again");
+    }
+
+    /**
+     * What {@link #reloadFiles} did: the files' problems (nothing was applied then), the keys that
+     * changed, and the keys whose new value needs a restart and was therefore not applied.
+     */
+    public record Reloaded(List<String> errors, List<String> changed, List<String> needRestart) {}
+
+    /**
+     * Reads config.json and the WORLD values again (generation_defaults.json, and over it the open
+     * world's generation.json), for the reload command. Every value is parsed before any is applied,
+     * so worldgen threads never see a half-read file; if a file cannot be read or holds an invalid
+     * value nothing changes. A RESTART option keeps its running value. The files are not rewritten.
+     */
+    public static synchronized Reloaded reloadFiles() {
+        List<String> errors = new ArrayList<>();
+        Map<ConfigOption<?>, Object> values = defaults(ConfigTab.Scope.GLOBAL);
+        stage(ConfigTab.Scope.GLOBAL, CONFIG_DIR.resolve(GLOBAL_FILE), values, null, errors);
+        values.putAll(defaults(ConfigTab.Scope.WORLD));
+        stage(ConfigTab.Scope.WORLD, CONFIG_DIR.resolve(WORLD_FILE), values, null, errors);
+        Path world = worldFile;
+        if (world != null) stage(ConfigTab.Scope.WORLD, world, values, null, errors);
+        if (!errors.isEmpty()) return new Reloaded(errors, List.of(), List.of());
+
+        List<String> changed = new ArrayList<>();
+        List<String> needRestart = new ArrayList<>();
+        values.entrySet().removeIf(entry -> {
+            ConfigOption<?> option = entry.getKey();
+            if (Objects.equals(option.get(), entry.getValue())) return true;
+            if (option.apply == Apply.RESTART) {
+                needRestart.add(option.key);
+                return true;
+            }
+            changed.add(option.key);
+            return false;
+        });
+        set(values);
+        if (!changed.isEmpty()) onValuesChanged();
+        return new Reloaded(List.of(), changed, needRestart);
+    }
+
+    /** Each option of {@code scope} with its built-in default, in file order. */
+    private static Map<ConfigOption<?>, Object> defaults(ConfigTab.Scope scope) {
+        Map<ConfigOption<?>, Object> values = new LinkedHashMap<>();
+        for (ConfigOption<?> option : OPTIONS) {
+            if (option.tab.scope == scope) values.put(option, copyOf(option, option.defaultValue));
+        }
+        return values;
+    }
+
+    /**
+     * Puts the values {@code file} holds for {@code scope} into {@code values}, without applying
+     * them. A missing file holds nothing. A file that cannot be read, or a value that is invalid,
+     * adds a line to {@code errors}. With {@code extra}, unknown keys are kept there for a rewrite.
+     */
+    private static void stage(ConfigTab.Scope scope, Path file, Map<ConfigOption<?>, Object> values,
+                              JsonObject extra, List<String> errors) {
+        if (!Files.exists(file)) return;
+        JsonObject json;
+        try (Reader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
+            json = GSON.fromJson(reader, JsonObject.class);
+        } catch (IOException | JsonParseException e) {
+            AronaLayersGen.LOGGER.error("[Config] Could not read {}: {}", file, e.getMessage());
+            errors.add(file.getFileName() + ": " + e.getMessage());
+            return;
+        }
+        if (json == null) return;
+        String source = file.getFileName().toString();
+        for (ConfigOption<?> option : OPTIONS) {
+            if (option.tab.scope != scope || !json.has(option.key)) continue;
+            try {
+                values.put(option, option.fromJson(json.get(option.key)));
+            } catch (RuntimeException e) {
+                AronaLayersGen.LOGGER.error("[Config] Invalid value {} for '{}' in {} ({}), ignored",
+                        json.get(option.key), option.key, file, e.getMessage());
+                errors.add(option.key + " in " + source + ": " + e.getMessage());
+            }
+        }
+        if (extra != null) keepUnknown(scope, json, extra, source);
+        AronaLayersGen.LOGGER.info("Loaded config from: {}", file);
+    }
+
+    /** Sets each option in {@code values} to its value there. */
+    private static void set(Map<ConfigOption<?>, Object> values) {
+        for (Map.Entry<ConfigOption<?>, Object> entry : values.entrySet()) setUnchecked(entry.getKey(), entry.getValue());
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> void setUnchecked(ConfigOption<T> option, Object value) {
+        option.set((T) value);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> Object copyOf(ConfigOption<T> option, Object value) {
+        return option.copy((T) value);
+    }
+
+    /** Drops what was derived from config values; called after a load, a reload or a save from the screen. */
     public static void onValuesChanged() {
         io.arona74.aronalayers.gen.grounding.PlantGrounding.invalidate();
         io.arona74.aronalayers.gen.injection.Layer3D.invalidateExcluded();
@@ -1031,17 +1208,24 @@ public class LayerConfig {
 
     /** Writes the current values to both files; a file whose text would not change is left alone. */
     public static void save() {
-        write(ConfigTab.Scope.GLOBAL, new JsonObject());
-        write(ConfigTab.Scope.WORLD, new JsonObject());
+        save(EnumSet.allOf(ConfigTab.Scope.class));
+    }
+
+    /**
+     * Writes the current values of {@code scopes}: GLOBAL to config.json, WORLD to the open world's
+     * generation.json, or to generation_defaults.json when no world is open.
+     */
+    public static void save(Set<ConfigTab.Scope> scopes) {
+        for (ConfigTab.Scope scope : scopes) write(scope, new JsonObject());
     }
 
     /** @return false when the file could not be written */
     private static boolean write(ConfigTab.Scope scope, JsonObject extra) {
-        Path file = CONFIG_DIR.resolve(fileName(scope));
+        Path file = file(scope);
         String text = GSON.toJson(toJson(scope, extra)) + "\n";
         try {
             if (Files.exists(file) && Files.readString(file, StandardCharsets.UTF_8).equals(text)) return true;
-            Files.createDirectories(CONFIG_DIR);
+            Files.createDirectories(file.getParent());
             Files.writeString(file, text, StandardCharsets.UTF_8);
             AronaLayersGen.LOGGER.info("Saved config to: {}", file);
             return true;
@@ -1059,11 +1243,21 @@ public class LayerConfig {
                 + " settings are in " + WORLD_FILE + ". Edit them here or in game (Mod Menu, or the /algconfig"
                 + " command). The mod rewrites this file at startup and on save: your values are kept, comments"
                 + " are refreshed and options added by an update appear with their default."
-                : "AronaLayers world generation settings: the defaults new worlds are created with. Until worlds"
-                + " keep their own copy, every world generates its new chunks with these; chunks already generated"
-                + " keep the old result. The other settings are in " + GLOBAL_FILE + ". Edit them here or in game"
-                + " (Mod Menu, or the /algconfig command). The mod rewrites this file at startup and on save: your"
-                + " values are kept, comments are refreshed and options added by an update appear with their default.");
+                : worldFile != null
+                ? "AronaLayers world generation settings of this world: its new chunks generate with these, chunks"
+                + " already generated keep the old result. Made from config/aronalayers/" + WORLD_FILE + " when the"
+                + " world was first opened; a setting missing here takes its value from that file. Edit them here"
+                + " (on a running server, then run /aronalayers reload) or in game while in this world, in"
+                + " singleplayer or as host (Mod Menu, or the /algconfig command). The mod rewrites this file when"
+                + " the world starts and on save: your values are kept, comments are refreshed and options added by"
+                + " an update appear with their value from " + WORLD_FILE + "."
+                : "AronaLayers world generation settings: the defaults new worlds are created with. Each world"
+                + " keeps its own copy in <world>/" + WORLD_DIR + "/" + WORLD_GENERATION_FILE + ", made from this file"
+                + " the first time the world is opened (older worlds too), so a change here does not reach a world"
+                + " that has its copy; a setting missing from a copy takes its value from here. The other settings"
+                + " are in " + GLOBAL_FILE + ". Edit them here or in game outside a world (Mod Menu, or the"
+                + " /algconfig command). The mod rewrites this file at startup and on save: your values are kept,"
+                + " comments are refreshed and options added by an update appear with their default.");
         ConfigTab tab = null;
         for (ConfigOption<?> option : OPTIONS) {
             if (option.tab.scope != scope) continue;

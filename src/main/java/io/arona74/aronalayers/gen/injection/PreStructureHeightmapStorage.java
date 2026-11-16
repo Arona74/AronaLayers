@@ -132,6 +132,15 @@ public class PreStructureHeightmapStorage {
     }
 
     /**
+     * Drops every snapshot: called as a world opens and closes. The keys are chunk positions only,
+     * so a snapshot left by a chunk the last world never finished would be read by the next world.
+     */
+    public static void clear() {
+        surfaceSnapshots.clear();
+        heightmapSnapshots.clear();
+    }
+
+    /**
      * Compare captured (pre-structure) heightmap with current (post-structure) heightmap.
      * Returns a Set of local coordinate indices (localZ * 16 + localX) where the
      * heightmap changed. Returns null if no snapshot was captured for this chunk.

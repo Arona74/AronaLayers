@@ -23,7 +23,7 @@ Generation settings become per-world data, editable from the Create World screen
 | 2 | Move gen into AronaLayers (pilot 1.21.1, then the other versions) | AronaLayers | done 2026-11-13: pilot (1.21.1) and fan-out (1.20.1, 1.21.11, 26.1.2, 26.2, 26.3), see notes |
 | 3 | Port extras into AronaLayers, Fabric + NeoForge | AronaLayers | done 2026-11-14: pilot (1.21.1) and fan-out (1.20.1, 1.21.11, 26.1.2, 26.2, 26.3), entry points folded, see notes |
 | 4 | Config: one registry, new tab order, global vs world scope | AronaLayers | done 2026-11-15: two files, six tabs, `trees_on_layers` split, see notes |
-| 5 | Generation config stored in world data | AronaLayers | todo |
+| 5 | Generation config stored in world data | AronaLayers | done 2026-11-16: `<world>/aronalayers/generation.json`, `/aronalayers reload`, see notes |
 | 6 | Generation settings button on the Create World screen | AronaLayers | todo |
 | 7 | Cleanup, README, CI, retire the two old mods | all three | todo |
 
@@ -975,3 +975,145 @@ a plain `StringWidget` on 1.20.1 and 1.21.1, on the four later versions a `Strin
 `AronaConfigScreen.fillRows` and `ConfigWidgets.label` use it; 1.20.1's own screen keeps its plain
 `StringWidget`. 11 jars build, verify_mixins passes. Checked in a 26.3 client by the user
 (2026-11-15): centred.
+
+### Phase 5 (2026-11-16)
+
+Done in one session, no subagents. Not committed. Decided with the user before coding: plants
+stand on layers whatever the options (A), a key missing from a world's file takes the value in
+`generation_defaults.json` (B), the reload command covers `config.json` too except restart options
+(C), a remote client's generation tabs show only where the server keeps them (D), and the Folder
+button opens the world's folder on a generation tab in a world (E).
+
+**Storage and lifecycle.** Each world has `<world>/aronalayers/generation.json`, the format of
+`generation_defaults.json` with its own `_comment`. `gen.WorldLifecycle` (shared) registers two new
+`gen.platform.Platform` hooks:
+
+| | Fabric (6 versions) | NeoForge (5 versions) |
+|---|---|---|
+| `onServerStarting` → `LayerConfig.openWorld(server.getWorldPath(LevelResource.ROOT))` | `ServerLifecycleEvents.SERVER_STARTING` | `ServerAboutToStartEvent` |
+| `onServerStopped` → `LayerConfig.closeWorld()` | `SERVER_STOPPED` | `ServerStoppedEvent` |
+
+These two methods are the only per-version edit of the phase: each loader and version has its own
+`Platform`; the event classes have the same names on every version (checked in each version's
+jar). The server is only passed on as `Consumer.accept(Object)`, so verifying `Platform` (loaded by
+`GenMixinPlugin`) still loads no Minecraft class. Why it is early enough: Fabric API fires
+`SERVER_STARTING` in `MinecraftServer.runServer` just before `initServer()` (all six Fabric API
+versions, read in the jars), and NeoForge posts `ServerAboutToStartEvent` two lines above
+`this.loadLevel()` in both `DedicatedServer.initServer` and `IntegratedServer.initServer` (all five);
+levels, and so chunks, spawn chunks included, only come from `loadLevel`. Checked on a server per
+version by the log order, see below.
+
+- `openWorld`: built-in defaults, then `generation_defaults.json`, then the world's file over them,
+  parsed before anything is applied. No file: the copy of the defaults is written (log
+  `[Config] Created …, a copy of generation_defaults.json`). Then the file is rewritten in the
+  current layout (unknown keys kept), unless it could not be read or held an invalid value. The
+  `layer_injection / plant_injection / tree_injection` log line moved here from `AronaLayersGen.init`.
+- `closeWorld`: the WORLD fields go back to `generation_defaults.json`. Outside a world they hold
+  the defaults; while a world is open the defaults file is not read.
+- Both, and a new start in case a stop failed, clear the static worldgen state of one world
+  (`WorldLifecycle.resetWorldState`): `RandomStateHolder`, `RTFCompat.resetWorldState`,
+  `LayerBackend.clear` (all three also cleared by `ChunkMapMixin.onClose`, as before),
+  `PreStructureHeightmapStorage.clear` (both snapshot maps, keyed by chunk position only),
+  `TellusCompat.resetWorldState` (chunks awaiting a rerun, counters, one-time log flags),
+  `LayerPlacementHelper.resetWorldState` (swamp cache keyed by the old server's `Biome` objects,
+  debug counters); the gameplay test anchors are cleared at stop by `AronaLayersGameplay`. The
+  worldgen ThreadLocals are cleared as each chunk or tree finishes and are not touched;
+  `placingShiftedTree` stays true on its thread if a tree placement throws (not changed).
+  Layer3D's excluded-blocks cache and plant grounding are reset by `onValuesChanged()` after every
+  load.
+
+**Reads of WORLD fields outside worldgen** (plan step 5).
+
+- `plant_injection` in `PlantPlacementHook.lookThroughLayers`, `lookThroughLayersForSturdyFace`
+  and `lookThroughLayerForColumnPlant` (plant, leaf litter, column plant, bamboo, mushroom,
+  dripstone survival), which the client runs too: the look-through is now always on (only
+  `GroundingFlags.ready` is checked), so client and server agree whatever the world's value.
+  `plant_injection` keeps its generation meaning only (plants moved up onto layers); its
+  description says plants can stand on layers either way. Behaviour change: with both
+  `plant_injection` and `plant_grounding` off, plants can now be placed on layers.
+- `tree_injection` (`TreeFeatureMixin.validTreePos`) and `treesOnLayers()` (`shiftTreeOrigin`,
+  `soilUnderTrunk`, `mushroomSoil`, both `TreeSoilMixin`): server only, they follow the open world.
+- `ChunkDebugCommand`, `TellusDebugCommand`: server thread, report the open world's values.
+- Block bootstrap and `GenMixinPlugin` read no WORLD field; `PlantGrounding` reads only GLOBAL ones.
+
+**Screen.** `ConfigWidgets.generation()` says what the generation tabs edit:
+
+| State | Generation tabs | Done / `ConfigDraft.commit` writes |
+|---|---|---|
+| singleplayer or LAN host (`LayerConfig.worldOpen()`) | editable, seam warning | `config.json` if a GLOBAL value changed, the world's `generation.json` if a WORLD one did |
+| outside a world | editable, "Defaults for new worlds" (2 lines, the phase 4 sentence about existing worlds dropped) | `config.json` and/or `generation_defaults.json` |
+| remote server | heading "Set by the server" only, no rows; the preview says the file is `aronalayers/generation.json` in the server's world folder and to run `/aronalayers reload`; Reset Tab inactive | `config.json` only |
+
+`LayerConfig.save(Set<Scope>)` writes only the scopes that changed (it wrote both before). On a
+generation tab in a world, Folder opens `<world>/aronalayers/` (its own tooltip); elsewhere
+`config/aronalayers/`. 1.20.1's own `AronaConfigScreen` got the same three lines.
+
+**Reload command.** `/aronalayers reload`, permission level 2 (`gen.command.ConfigCommand`), not
+under `/algconfig` (a client command on both loaders). `LayerConfig.reloadFiles()` parses
+`config.json`, `generation_defaults.json` and the open world's `generation.json` before applying
+anything; a file that cannot be read or an invalid value changes nothing and is reported. RESTART
+options keep their running value and are listed. Then `onValuesChanged()`
+(`PlantGrounding.invalidate`, `Layer3D.invalidateExcluded`). Files are not rewritten; the mapping
+files are not reloaded.
+
+**What was checked.**
+
+- All 11 jars build (JDK 25); `verify_mixins.py` passes on all 11, counts unchanged from phase 4.
+- Worldgen, 1.21.1 Fabric, `gen_seq.sh` seed 7474, chunks `-3,-3,6,6`, the run folder's dev config
+  (its `layer_config.json` carried over at each start, so the world's `generation.json` is a copy
+  of that): 7578 layer blocks before the change, 7579 and 7578 in two runs after. The second
+  after-run has the same grass (271), dirt (58) and mossy cobblestone (89) layers as the before-run;
+  podzol / coarse dirt 4423 / 2737 before, 4397 / 2801 and 4402 / 2758 after. The two after-runs
+  differ from each other in 24 of 36 chunks (ore blobs, leaves), as many as before vs after: the
+  run-to-run noise of earlier phases. Both plant options are on in that config, so the
+  always-on look-through changed nothing there.
+- Start test on all 11 dedicated servers (throwaway world, seed 7474, deleted; `server.properties`
+  and `config/aronalayers/` put back): first start writes `<world>/aronalayers/generation.json`
+  (46 options, values equal to `generation_defaults.json`); with the file deleted, the next start
+  of the same world writes it again, the same text. In every log the hook's line
+  (`[Config] World generation settings from …`) comes before the first
+  `[ChunkMap Mixin] Capturing NoiseConfig` (ChunkMap construction, before any chunk of that level)
+  and before the first chunk line (`[Layers] minecraft:overworld: layers from …` / `Preparing …`);
+  `World closed` at stop; no ERROR.
+- Reload, 1.21.1 Fabric and 26.3 NeoForge, fresh world: 2×2 chunks at 0,0 generated with the
+  copied defaults (863 / 872 layers); a non-number in `structure_footprint_below_margin` →
+  "AronaLayers settings not reloaded, nothing changed: structure_footprint_below_margin in
+  generation.json: expected a number"; fixed, plus `layer_injection` false → "reloaded, changed:
+  layer_injection". 2×2 chunks then generated 30 chunks out in four directions: 0 layers at
+  30,0 / 0,30 / 0,-30, which in a control run (same steps, `layer_injection` left on) got 741 /
+  782 / 951 (Fabric) and 743 / 879 / 955 (NeoForge). (-30,0 and -30,-30 have no layers even in
+  the control on Fabric; chunks near spawn were already generated before the reload.)
+- `gameplay_test.sh`, 1.21.1 Fabric: every line within phase 3's "Expected" (A-D spread 25 / 24 /
+  25 / 25 and the 5 dirt blocks, 8 sheep and 4 of 9 eaten in each pen, F1-F6, coal 5 / Silk Touch 5
+  layers, copper 24, redstone 4, diamond 4 and Fortune III 12, iron sneaking 1 and 5 left, stone and
+  ancient debris untouched); the flat world got its `generation.json` too.
+
+Not checked: a client (below); a world whose `generation.json` is unreadable at start (code path:
+logged, values from the defaults, file left alone); TerraForged or Tellus worlds; the reload
+command on an integrated server.
+
+**For the user to check in a client** (1.20.1, 1.21.1, 26.3):
+
+- Two singleplayer worlds in one session: create world 1, change a generation option (say
+  Terrain → Swamps → Reduce Swamp Layers on), Done, leave; create world 2. World 2's tabs show
+  the defaults (option off), world 1's `saves/<world 1>/aronalayers/generation.json` has it on,
+  `config/aronalayers/generation_defaults.json` does not. Reopen world 1: the option is on again.
+  The log names each world's file (`[Config] World generation settings from …`) and says
+  `World closed` on leaving.
+- Generation tabs inside a world: the seam warning; Folder opens `saves/<world>/aronalayers/`
+  (tooltip says so); a GLOBAL change alone (Visuals) does not touch the world's file.
+- Outside a world (title screen, Mod Menu): "Defaults for new worlds", the preview text has two
+  sentences, no longer the one about existing worlds; Done writes `generation_defaults.json`; a
+  world created afterwards gets the new values.
+- Joining a dedicated server: the three generation tabs show only "Set by the server", the
+  preview names `aronalayers/generation.json` and `/aronalayers reload`; Reset Tab is greyed
+  there; Visuals and Debug still edit the client's `config.json`, Gameplay is read-only as before.
+- Plants placed by hand on a layer (flower on a grass layer) stay, in singleplayer and on the
+  server, and do not vanish client-side when a neighbouring block is broken.
+
+Client test by the user (2026-11-16) on 1.20.1, 1.21.1 and 26.3: everything above is fine (two
+worlds in one session, the generation tabs inside and outside a world, plants on layers). The
+dedicated-server item was then checked on 1.21.1 Fabric (dev client joining a dev server,
+offline mode, throwaway world, run folder put back afterwards): the generation tabs show only the
+"Set by the server" text, and a flower on a grass layer stays when a block next to it is broken.
+A remote client on the other versions was not tried.

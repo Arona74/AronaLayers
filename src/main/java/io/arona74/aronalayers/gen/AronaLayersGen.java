@@ -2,6 +2,7 @@ package io.arona74.aronalayers.gen;
 
 import io.arona74.aronalayers.AronaLayers;
 import io.arona74.aronalayers.gen.command.ChunkDebugCommand;
+import io.arona74.aronalayers.gen.command.ConfigCommand;
 import io.arona74.aronalayers.gen.command.TellusDebugCommand;
 import io.arona74.aronalayers.gen.grounding.GroundingFlags;
 import io.arona74.aronalayers.gen.injection.RTFLayerInjector;
@@ -26,7 +27,11 @@ public final class AronaLayersGen {
         Platform.registerCommands(dispatcher -> {
             ChunkDebugCommand.register(dispatcher);
             TellusDebugCommand.register(dispatcher);
+            ConfigCommand.register(dispatcher);
         });
+
+        // Each world's generation settings are loaded as its server starts (and logged then).
+        WorldLifecycle.register();
 
         // Re-map layers whose RTF surface was swapped to beach/river sand after POST_FEATURES
         // injection; runs at chunk-load so it catches spawn/cross-border chunks the in-init pass misses.
@@ -35,9 +40,5 @@ public final class AronaLayersGen {
         // Plant grounding answers "not grounded" until now: shapes are queried during vanilla's
         // block bootstrap, before the config can safely load (see GroundingFlags).
         GroundingFlags.ready = true;
-
-        LOGGER.info("[Config] layer_injection={} plant_injection={} tree_injection={}"
-            + " (each dimension's layer source is detected when it first generates)",
-            LayerConfig.LAYER_INJECTION, LayerConfig.PLANT_INJECTION, LayerConfig.TREE_INJECTION);
     }
 }

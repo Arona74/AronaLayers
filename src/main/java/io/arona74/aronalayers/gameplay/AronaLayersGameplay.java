@@ -30,6 +30,8 @@ public final class AronaLayersGameplay {
         Platform.onPlayerBlockBreak(LayerFallHandler::onBlockBroken);
         LayerBlock.oneLayerDrop = OreLayerDrops::dropOneLayer;
         Platform.registerCommands(GameplayDebugCommand::register);
+        // The test command's anchors hold that world's levels.
+        Platform.onServerStopped(server -> LayerSpreadHandler.clearAnchors());
 
         // A supplier: on NeoForge this runs before the items are registered.
         io.arona74.aronalayers.platform.Platform.addToCreativeTab(CreativeModeTabs.INGREDIENTS, () -> List.of(

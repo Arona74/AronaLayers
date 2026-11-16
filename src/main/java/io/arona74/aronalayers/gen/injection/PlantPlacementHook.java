@@ -1,6 +1,5 @@
 package io.arona74.aronalayers.gen.injection;
 
-import io.arona74.aronalayers.gen.LayerConfig;
 import io.arona74.aronalayers.gen.grounding.GroundingFlags;
 import io.arona74.aronalayers.gen.grounding.PlantGrounding;
 import net.minecraft.core.BlockPos;
@@ -30,10 +29,15 @@ public final class PlantPlacementHook {
      * Makes layer blocks transparent to plant placement checks: when a layer block
      * sits directly below, the check is re-run against the real surface underneath.
      *
+     * <p>Always on, whatever plant_injection and plant_grounding say. The client runs the same
+     * checks (its own placement and neighbour updates), and a remote client does not know the
+     * world's plant_injection; with different answers on the two sides it would drop plants the
+     * server keeps. Nothing to do before the mod has initialised (vanilla's block bootstrap).
+     *
      * @return the value canSurvive should return, or null to leave vanilla alone
      */
     public static Boolean lookThroughLayers(LevelReader world, BlockPos pos, FloorCheck check) {
-        if (!LayerConfig.PLANT_INJECTION && !LayerConfig.PLANT_GROUNDING) {
+        if (!GroundingFlags.ready) {
             return null;
         }
 
@@ -62,7 +66,8 @@ public final class PlantPlacementHook {
      */
     public static BlockPos lookThroughLayerForColumnPlant(LevelReader world, BlockPos pos, BlockPos query) {
         if (query.getY() != pos.getY() - 1) return query;
-        if (!GroundingFlags.ready || !(LayerConfig.PLANT_GROUNDING || LayerConfig.PLANT_INJECTION)) return query;
+        // Always on, as lookThroughLayers.
+        if (!GroundingFlags.ready) return query;
         return PlantGrounding.isLayerSoil(world.getBlockState(pos.below())) ? query.below() : query;
     }
 
@@ -94,7 +99,8 @@ public final class PlantPlacementHook {
      * @return the value canSurvive should return, or null to leave vanilla alone
      */
     public static Boolean lookThroughLayersForSturdyFace(LevelReader world, BlockPos pos) {
-        if (!LayerConfig.PLANT_INJECTION && !LayerConfig.PLANT_GROUNDING) {
+        // Always on, as lookThroughLayers.
+        if (!GroundingFlags.ready) {
             return null;
         }
 

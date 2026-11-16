@@ -972,6 +972,16 @@ public class LayerPlacementHelper {
         debugSkipNoLayerBlock, debugSkipNotAir, debugSkipEnclosed,
         debugSkipStructureElevated, debugSkipConservativeSurface
     };
+    /**
+     * Forgets what belongs to one world: the swamp answers, keyed by that server's Biome objects,
+     * and the debug counters.
+     */
+    public static void resetWorldState() {
+        swampBiomeCache.clear();
+        for (AtomicInteger counter : SKIP_COUNTERS) counter.set(0);
+        debugReplacedMarker.set(0);
+    }
+
     private static final String[] SKIP_NAMES = {
         "snowy", "no_surface", "no_mapping", "layer_zero",
         "no_layer_block", "not_air", "enclosed",

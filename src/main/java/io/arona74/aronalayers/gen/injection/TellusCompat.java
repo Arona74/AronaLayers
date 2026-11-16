@@ -95,6 +95,19 @@ public class TellusCompat {
         return chunksNeedingRerun.remove(Compat.chunkPosToLong(chunk.getPos()));
     }
 
+    /**
+     * Forgets what belongs to one world: the chunks awaiting a rerun (keyed by position only, so a
+     * later world would claim them), the counters and the one-time log lines. The binding to Tellus
+     * itself is the mod's, not the world's, and stays.
+     */
+    public static void resetWorldState() {
+        chunksNeedingRerun.clear();
+        debugSkipSubmerged.set(0);
+        debugSkipNoElevation.set(0);
+        loggedNotTellusGenerator = false;
+        loggedEngaged = false;
+    }
+
     /** True when the Tellus mod is loaded. Cheap; does not touch reflection. */
     public static boolean isAvailable() {
         if (!modPresentChecked) {

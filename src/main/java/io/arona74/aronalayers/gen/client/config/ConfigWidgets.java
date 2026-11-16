@@ -1,6 +1,7 @@
 package io.arona74.aronalayers.gen.client.config;
 
 import io.arona74.aronalayers.gen.Compat;
+import io.arona74.aronalayers.gen.LayerConfig;
 import io.arona74.aronalayers.gen.config.ConfigDraft;
 import io.arona74.aronalayers.gen.config.ConfigOption;
 import io.arona74.aronalayers.gen.config.ConfigTab;
@@ -18,6 +19,7 @@ import net.minecraft.world.level.block.Blocks;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -70,25 +72,59 @@ public final class ConfigWidgets {
         return widget;
     }
 
-    /** Lines of the warning on a world generation tab ({@link ConfigTab#generation()}), opened in a world. */
-    private static final int WORLDGEN_WARNING_LINES = 4;
-    /** Lines of the "defaults for new worlds" text on the same tabs, opened outside a world. */
-    private static final int NEW_WORLD_LINES = 3;
+    /**
+     * What the world generation tabs ({@link ConfigTab#generation()}) edit, with the lang key and line
+     * count of the text they show.
+     */
+    public enum Generation {
+        /** Outside a world: generation_defaults.json, the settings new worlds get. */
+        DEFAULTS("config.aronalayers.new_world_defaults.", 2),
+        /** In singleplayer or as LAN host: the open world's generation.json; changes leave seams. */
+        WORLD("config.aronalayers.worldgen_warning.", 4),
+        /** On a server this client does not run: its world's file, which this client cannot see. */
+        SERVER("config.aronalayers.server_generation.", 3);
 
-    /** Whether a world is open: the generation tabs then warn about seams instead of naming defaults. */
-    private static boolean inWorld() {
-        return Minecraft.getInstance().level != null;
+        private final String langKey;
+        private final int lines;
+
+        Generation(String langKey, int lines) {
+            this.langKey = langKey;
+            this.lines = lines;
+        }
+    }
+
+    /** What the generation tabs edit right now. */
+    public static Generation generation() {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.level != null && !minecraft.hasSingleplayerServer()) return Generation.SERVER;
+        return LayerConfig.worldOpen() ? Generation.WORLD : Generation.DEFAULTS;
+    }
+
+    /** Whether {@code tab}'s options are shown: not a remote server's generation settings, which are its own. */
+    public static boolean showsOptions(ConfigTab tab) {
+        return !tab.generation() || generation() != Generation.SERVER;
+    }
+
+    /** The folder the screen's Folder button opens on {@code tab}: the open world's on a generation tab. */
+    public static Path folder(ConfigTab tab) {
+        Path world = LayerConfig.worldConfigDir();
+        return tab.generation() && world != null && generation() == Generation.WORLD ? world : LayerConfig.configDir();
+    }
+
+    /** The Folder button's tooltip on {@code tab}. */
+    public static Component folderTooltip(ConfigTab tab) {
+        return Component.translatable(folder(tab).equals(LayerConfig.configDir())
+                ? "config.aronalayers.open_folder.tooltip" : "config.aronalayers.open_folder.world.tooltip");
     }
 
     /**
      * Line {@code line} of what a world generation tab says: in a world, the warning that changes
-     * leave seams; outside one, that these are the defaults for new worlds. The first line is the
-     * heading, kept as a row at the top of the option list; the preview panel shows the whole text
-     * until an option is hovered.
+     * leave seams; outside one, that these are the defaults for new worlds; on a remote server, where
+     * its settings are. The first line is the heading, kept as a row at the top of the option list;
+     * the preview panel shows the whole text until an option is hovered.
      */
     private static Component generationLine(int line) {
-        String key = inWorld() ? "config.aronalayers.worldgen_warning." : "config.aronalayers.new_world_defaults.";
-        MutableComponent text = Component.translatable(key + (line + 1));
+        MutableComponent text = Component.translatable(generation().langKey + (line + 1));
         return line == 0 ? text.withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD) : text.withStyle(ChatFormatting.YELLOW);
     }
 
@@ -100,7 +136,7 @@ public final class ConfigWidgets {
     /** The rest of that text, for the preview panel. */
     public static Component generationText() {
         MutableComponent text = Component.empty();
-        int lines = inWorld() ? WORLDGEN_WARNING_LINES : NEW_WORLD_LINES;
+        int lines = generation().lines;
         for (int line = 1; line < lines; line++) {
             if (line > 1) text.append(" ");
             text.append(generationLine(line));

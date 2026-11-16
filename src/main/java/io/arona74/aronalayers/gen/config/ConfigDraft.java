@@ -3,10 +3,12 @@ package io.arona74.aronalayers.gen.config;
 import io.arona74.aronalayers.gen.LayerConfig;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Edits made in the config screen, held apart from the live LayerConfig fields until they are
@@ -56,19 +58,23 @@ public final class ConfigDraft {
     }
 
     /**
-     * Writes every changed value into LayerConfig and saves the file.
+     * Writes every changed value into LayerConfig and saves the files of the scopes that changed:
+     * config.json for GLOBAL options; for WORLD options the open world's generation.json, or
+     * generation_defaults.json outside a world (see {@link LayerConfig#save(Set)}).
      * @return the options that changed
      */
     public List<ConfigOption<?>> commit() {
         List<ConfigOption<?>> changed = new ArrayList<>();
+        Set<ConfigTab.Scope> scopes = EnumSet.noneOf(ConfigTab.Scope.class);
         for (ConfigOption<?> option : LayerConfig.options()) {
             if (!Objects.equals(option.get(), values.get(option))) {
                 changed.add(option);
+                scopes.add(option.tab.scope);
                 apply(option);
             }
         }
         if (!changed.isEmpty()) {
-            LayerConfig.save();
+            LayerConfig.save(scopes);
             LayerConfig.onValuesChanged();
         }
         return changed;

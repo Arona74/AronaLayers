@@ -89,15 +89,16 @@ public class AronaConfigScreen extends Screen {
                     showAdvanced = value;
                     reopen(tab);
                 })).setTooltip(Tooltip.create(Component.translatable("config.aronalayers.advanced.tooltip")));
-        addRenderableWidget(Button.builder(Component.translatable("config.aronalayers.reset_tab"), b -> {
+        Button reset = addRenderableWidget(Button.builder(Component.translatable("config.aronalayers.reset_tab"), b -> {
                     draft.resetToDefaults(tab);
                     reopen(tab);
                 }).bounds(fx + 106, y, 70, 20)
                 .tooltip(Tooltip.create(Component.translatable("config.aronalayers.reset_tab.tooltip"))).build());
+        reset.active = ConfigWidgets.showsOptions(tab);
         addRenderableWidget(Button.builder(Component.translatable("config.aronalayers.open_folder"),
-                        b -> ScreenCompat.openPath(LayerConfig.configDir()))
+                        b -> ScreenCompat.openPath(ConfigWidgets.folder(tab)))
                 .bounds(fx + 182, y, 50, 20)
-                .tooltip(Tooltip.create(Component.translatable("config.aronalayers.open_folder.tooltip"))).build());
+                .tooltip(Tooltip.create(ConfigWidgets.folderTooltip(tab))).build());
         addRenderableWidget(Button.builder(CommonComponents.GUI_CANCEL, b -> {
                     discard = true;
                     onClose();
@@ -107,12 +108,14 @@ public class AronaConfigScreen extends Screen {
 
     /**
      * The open tab's rows: on a world generation tab its heading first (the seam warning in a world,
-     * "defaults for new worlds" outside one), then each group
+     * "defaults for new worlds" outside one, "set by the server" on a remote server, where the
+     * heading is all: that world's settings are in the server's file), then each group
      * under its heading, one option per row. A block-list box has no label of its own, so its name
      * gets a row above it.
      */
     static void fillRows(OptionRows list, ConfigWidgets widgets, ConfigTab tab, net.minecraft.client.gui.Font font) {
         if (tab.generation()) list.add(new StringWidget(ConfigWidgets.WIDTH, ConfigWidgets.HEIGHT, ConfigWidgets.generationHeading(), font));
+        if (!ConfigWidgets.showsOptions(tab)) return;
         String group = null;
         for (ConfigOption<?> option : LayerConfig.options()) {
             if (option.tab != tab || (option.advanced && !showAdvanced)) continue;
