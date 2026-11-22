@@ -130,6 +130,7 @@ public class RTFLayerInjector {
     private static final AtomicInteger debugSkipRiver = new AtomicInteger();
     private static final AtomicInteger debugSkipSubmerged = new AtomicInteger();
     private static boolean debugLogged = false;
+    private static volatile boolean failureLogged = false;
 
     /**
      * Process an entire chunk using RTF data with snow-layer logic.
@@ -190,7 +191,11 @@ public class RTFLayerInjector {
                         cellsNull++;
                     }
                 } catch (Exception e) {
-                    // Silently skip positions that fail
+                    // Skip positions that fail; the first failure is logged once (it was invisible otherwise).
+                    if (!failureLogged) {
+                        failureLogged = true;
+                        AronaLayersGen.LOGGER.warn("[RTF] Layer placement failed at {},{} (logged once; the position is skipped)", worldX, worldZ, e);
+                    }
                 }
             }
         }
