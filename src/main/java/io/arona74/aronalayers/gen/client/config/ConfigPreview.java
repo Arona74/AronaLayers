@@ -141,7 +141,7 @@ public final class ConfigPreview {
 
     private Component title() {
         if (shown != null) return Component.translatable(shown.langKey()).withStyle(ChatFormatting.BOLD);
-        return Component.translatable(tab.langKey()).withStyle(ChatFormatting.BOLD);
+        return widgets.tabLabel(tab).copy().withStyle(ChatFormatting.BOLD);
     }
 
     private Component body() {
@@ -149,7 +149,7 @@ public final class ConfigPreview {
         MutableComponent text = Component.empty();
         if (tab.generation()) {
             text.append(Component.translatable("config.aronalayers.section." + tab.id())).append("\n\n");
-            text.append(ConfigWidgets.generationText()).append("\n\n");
+            text.append(widgets.generationText()).append("\n\n");
         } else {
             text.append(Component.translatable("config.aronalayers.section." + tab.id())).append("\n\n");
         }

@@ -24,7 +24,7 @@ Generation settings become per-world data, editable from the Create World screen
 | 3 | Port extras into AronaLayers, Fabric + NeoForge | AronaLayers | done 2026-11-14: pilot (1.21.1) and fan-out (1.20.1, 1.21.11, 26.1.2, 26.2, 26.3), entry points folded, see notes |
 | 4 | Config: one registry, new tab order, global vs world scope | AronaLayers | done 2026-11-15: two files, six tabs, `trees_on_layers` split, see notes |
 | 5 | Generation config stored in world data | AronaLayers | done 2026-11-16: `<world>/aronalayers/generation.json`, `/aronalayers reload`, see notes |
-| 6 | Generation settings button on the Create World screen | AronaLayers | todo |
+| 6 | Generation settings button on the Create World screen | AronaLayers | done 2026-11-22: "Layers…" on the More tab, draft written as the new world's `generation.json`, see notes |
 | 7 | Cleanup, README, CI, retire the two old mods | all three | todo |
 
 Phases 1 to 3 change no behaviour for a non-CR player; 4 to 6 are the new features. Each phase ends
@@ -1117,3 +1117,106 @@ dedicated-server item was then checked on 1.21.1 Fabric (dev client joining a de
 offline mode, throwaway world, run folder put back afterwards): the generation tabs show only the
 "Set by the server" text, and a flower on a grass layer stays when a block next to it is broken.
 A remote client on the other versions was not tried.
+
+### Phase 6 (2026-11-22)
+
+Done in one session, no subagents. Not committed. Decided with the user before coding: the button
+on the More tab (A), a Re-create copies the old world's `generation.json` (B), Cancel on the
+Layers screen drops only that visit's changes and keeps an earlier Done (C), the generation tabs
+drop the ⚠ in new-world mode (D).
+
+**The button.** One shared mixin, no per-version code: `gen.mixin.CreateWorldMoreTabMixin`,
+`@Mixin(targets = "…CreateWorldScreen$MoreTab")` (a private inner class, so a string target),
+extends `GridLayoutTab` and adds "Layers…" (210 px, as vanilla's three) at row 3 of the tab's
+`layout` at the end of its constructor; the screen lays it out, on resize too. Checked with javap
+on the six Fabric jars and the five patched NeoForge jars: on every version `MoreTab` extends
+`GridLayoutTab`, takes only the outer `CreateWorldScreen`, fills rows 0-2 of a one-column grid
+(Game Rules, Experiments, Data Packs), and `GridLayoutTab.layout` / `GridLayout.addChild(T, int,
+int)` exist. The tab bar itself differs (26.2 on: `MenuTabBar extends TabNavigationBar`), which
+the mixin does not touch. Loom remaps the string target on the obfuscated versions (1.21.1:
+`net/minecraft/class_525$class_8094`); `verify_mixins.py` now also checks `targets` strings (an
+intermediary `class_N` name on obfuscated Fabric, a class present in the Minecraft jar elsewhere).
+Both new mixins are in each version's `aronalayers.gen.mixins.json` `client` list.
+
+**The draft.** `gen.config.NewWorldDraft` (shared, no Minecraft type, synchronized: the integrated
+server takes it on its own thread) holds, for one Create World screen (its owner, a weak
+reference): the WORLD values stored by Done, the world a Re-create copies, the folder Create was
+pressed for. `gen.mixin.CreateWorldScreenMixin` (shared; every target has the same name on every
+version and the handlers take no argument that differs):
+
+| Hook | Effect |
+|---|---|
+| `<init>` TAIL | new owner, everything else dropped; the Re-create source handed over only if `createFromExisting` made this screen |
+| `popScreen` HEAD (Cancel, Escape, and a failed creation: pack copy failure, or 1.21.11+ a `CreateWorldCallback` returning false) | draft dropped |
+| `onCreate` HEAD | armed for `getUiState().getTargetFolder()`, the folder `createNewWorld` uses on every version |
+| `createTempDataPackDirFromExistingWorld(Path, Minecraft)` HEAD (called by Re-create only, with `<old world>/datapacks`) and `createFromExisting` HEAD | the old world's folder, for the next screen (the Path `createFromExisting` gets is a temp copy) |
+
+`LayerConfig.openWorld` calls `NewWorldDraft.take(worldDir)` first, which always empties the
+holder and returns something only if it was armed for that folder name. For a world with no
+`generation.json` yet, the stored values are written as its file (log `[Config] Created …, with the
+settings chosen on the Create World screen`); without stored values, a Re-create's file is the old
+world's `generation.json` read over the defaults (log `a copy of <old>/aronalayers/generation.json
+(the world it re-creates)`); otherwise the copy of the defaults as before. `generation_defaults.json`
+is only read. A world that already has its file ignores the draft.
+
+So: a cancelled creation drops the draft (`popScreen`); a new Create World screen never sees an
+older draft (new owner); a world opened next gets nothing (not armed, or another folder); a
+creation that fails before the server starts leaves an armed draft that the next screen or server
+start clears, and could only reach a folder of that name without a file; a server that fails after
+`openWorld` has already written the draft as that world's file.
+
+**The screen.** `AronaConfigScreen.openForNewWorld(createWorldScreen)` (the shared screen and
+1.20.1's copy): a `ConfigDraft.forNewWorld(values, recreated)` (target `NEW_WORLD` or
+`RECREATED_WORLD`; `commit()` refuses it) seeded from the stored values, else
+`LayerConfig.newWorldValues(source)` (built-in defaults, `generation_defaults.json`, the re-created
+world's file; staged, nothing applied). Only the three generation tabs, opening on Terrain, labels
+without ⚠ (`config.aronalayers.tab.<tab>.plain`); `lastTab` of the normal screen untouched. Heading
+"Settings for this new world" and preview text from `ConfigWidgets.Generation.NEW_WORLD` /
+`RECREATED_WORLD` (lang `config.aronalayers.new_world.1-3`, `recreated_world.1-3`). The
+generation helpers of `ConfigWidgets` (`generation()`, `showsOptions`, `folder`, `folderTooltip`,
+`generationHeading`, `generationText`, new `tabLabel`, `hasFolder`) are now instance methods reading
+the draft's target, so no static says which mode a screen is in. Folder is inactive (tooltip: the
+folder is made when the world is created). Reset Tab resets to the built-in defaults, as elsewhere.
+Done and Escape store the WORLD values for that Create World screen and return to it (which then
+opens on its first tab, as after vanilla's Game Rules); Cancel returns without storing.
+
+Statics: everything of one Create World screen is in `NewWorldDraft` and reset as above; the
+screen's `showAdvanced` stays a session preference; `ConfigWidgets` and `ConfigPreview` have none.
+
+**What was checked.**
+
+- All 11 jars build (JDK 25); `verify_mixins.py` passes on all 11, with the two new mixins in each
+  (the `targets` string checked too).
+- A dev client on every one of the 11 jars, driven by a temporary test driver (a `Minecraft.tick`
+  mixin and a reflection driver, deleted afterwards; each run in its own throwaway `run/client6`,
+  deleted), pressing the real buttons: 24 checks, 0 failures on each. In one client session:
+  (A) More tab shows Game Rules, Experiments, Data Packs, Layers…; Layers… opens the screen in
+  new-world mode, tabs Terrain / Plants & Trees / Structures, Folder inactive, heading "Settings
+  for this new world"; the draft starts from the defaults; `reduce_swamp_layers` on, Done, back on
+  the same Create World screen; Layers… again shows it on; `skip_snowy_biomes` on, Cancel; Create:
+  the world's `generation.json` has `reduce_swamp_layers` true and `skip_snowy_biomes` false, and the
+  running value is true. Leave (vanilla's Save and Quit path): "World closed". (B) a changed draft,
+  Done, then the Create World screen cancelled; a new screen creates a world: defaults. (C) a
+  second world without the button: defaults. (R) Re-create of world A from the world list: the
+  screen knows A's folder, the draft is a re-created world starting from A's values, Cancel on the
+  Layers screen, Create: the new world's file is a copy of A's (`reduce_swamp_layers` true). Then
+  `generation_defaults.json` byte for byte as before the session.
+- No ERROR in the client logs but vanilla's offline "Failed to retrieve profile key pair".
+
+Not checked: a creation that fails (pack copy, server start); the 1.21.11+ Realms create flow;
+how the button and screen look (the driver reads widgets, it does not see them).
+
+**JDK paths** on this machine are now `jdk-25.0.5.8-hotspot` (the 25.0.4.7 folder holds only `lib`)
+and `jdk-21.0.13.9-hotspot`.
+
+**For the user to check in a client** (each version: 1.20.1, 1.21.1, 1.21.11, 26.1.2, 26.2, 26.3,
+both loaders where there are two): Create World → More tab: "Layers…" under Data Packs, same width,
+tooltip; it opens a screen with three tabs (no ⚠), the heading "Settings for this new world" centred,
+the preview text, Folder greyed with its tooltip; change an option, Done, back on the Create World
+screen; Create; `saves/<world>/aronalayers/generation.json` has the change,
+`config/aronalayers/generation_defaults.json` does not; resize the window on the More tab (the button
+stays in place); Re-create that world (Edit → Re-Create) and open Layers…: the change is there and
+the text says the settings start from the world being re-created.
+
+Client test by the user (2026-11-22) on 1.21.1 and 26.3: all fine. The other versions were checked
+only by the automated client run above.

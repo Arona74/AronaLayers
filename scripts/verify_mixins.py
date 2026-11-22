@@ -36,6 +36,9 @@ import zipfile
 NEVER_OBFUSCATED = {"close", "toString", "equals", "hashCode", "run", "get", "accept"}
 
 INTERMEDIARY = re.compile(r"^(?:<init>|<clinit>|method_\d+)(?:\(.*)?$")
+# A Minecraft class named by string (@Mixin(targets = ...), e.g. a private inner class), as Loom
+# leaves it on an obfuscated version: an intermediary class name.
+INTERMEDIARY_CLASS = re.compile(r"^net/minecraft/class_\d+(?:\$class_\d+)*$")
 
 
 def javap(path, cls=None):
@@ -72,19 +75,28 @@ def find_neoforge_jar(module):
 
 
 def targets_of(out):
-    """(mixin target classes, method= values) parsed from a compiled mixin."""
+    """(mixin target classes, of them those named by a targets= string, method= values) parsed from
+    a compiled mixin."""
     pool = re.findall(r"=\s+Utf8\s+(\S+)", out)
-    classes = []
+    classes, named = [], []
     for i, s in enumerate(pool):
         if s == "Lorg/spongepowered/asm/mixin/Mixin;":
             for nxt in pool[i + 1:i + 4]:
                 m = re.fullmatch(r"L(net/minecraft/[\w/$]+);", nxt)
                 if m:
                     classes.append(m.group(1))
+    # @Mixin(targets = "...") stores a string; only Minecraft classes are checked (other mods'
+    # targets are remap = false and resolved by that mod being present).
+    for m in re.finditer(r"targets=\[([^\]]*)\]", out):
+        for x in m.group(1).split(","):
+            name = x.strip().strip('"').replace(".", "/")
+            if name.startswith("net/minecraft/"):
+                classes.append(name)
+                named.append(name)
     methods = []
     for m in re.finditer(r"method=\[([^\]]*)\]", out):
         methods += [x.strip().strip('"') for x in m.group(1).split(",") if x.strip()]
-    return classes, methods
+    return classes, named, methods
 
 
 def check(jar, mc_jar, deobf):
@@ -108,7 +120,14 @@ def check(jar, mc_jar, deobf):
         p = os.path.join(tmp, cls.replace("/", ".") + ".class")
         open(p, "wb").write(z.read(entry))
         out = javap(p)
-        tgt_classes, methods = targets_of(out)
+        tgt_classes, named, methods = targets_of(out)
+        for tc in named:
+            checked += 1
+            if not deobf:
+                if not INTERMEDIARY_CLASS.match(tc):
+                    problems.append((cls, f'targets="{tc}" not remapped'))
+            elif mc_jar and "Compiled from" not in javap(mc_jar, tc.replace("/", ".")):
+                problems.append((cls, f'targets="{tc}" not found in the Minecraft jar'))
 
         for name in methods:
             checked += 1

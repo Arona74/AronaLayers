@@ -5,6 +5,7 @@ import io.arona74.aronalayers.gen.LayerConfig;
 import io.arona74.aronalayers.gen.config.ConfigDraft;
 import io.arona74.aronalayers.gen.config.ConfigOption;
 import io.arona74.aronalayers.gen.config.ConfigTab;
+import io.arona74.aronalayers.gen.config.NewWorldDraft;
 import io.arona74.aronalayers.gen.platform.Platform;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -15,8 +16,10 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -29,6 +32,11 @@ import java.util.Objects;
  * <p>The option list and the preview panel are drawn by each version's {@link OptionRows} and
  * {@link PreviewPanel}, as drawing differs between versions. Switching tab opens a new screen on
  * the same draft.
+ *
+ * <p>Opened from the Create World screen's "Layers…" button ({@link #openForNewWorld}), it edits
+ * the generation settings of the world about to be created: only the generation tabs, a draft
+ * started from the defaults for new worlds (or the re-created world's settings), and Done keeps
+ * them for that world ({@link NewWorldDraft}) instead of saving any file.
  */
 public class AronaConfigScreen extends Screen {
     private static final int LIST_TOP = 50;
@@ -53,7 +61,20 @@ public class AronaConfigScreen extends Screen {
         this.lastScreen = parent;
         this.draft = draft;
         this.tab = tab;
-        lastTab = tab;
+        if (!draft.newWorld()) lastTab = tab;
+    }
+
+    /**
+     * Opens the generation settings of the world being created on {@code createWorldScreen}: what
+     * an earlier Done kept for it, else the defaults for new worlds, or the settings of the world it
+     * re-creates. Done and Escape return there keeping the values; Cancel drops this visit's changes.
+     */
+    public static void openForNewWorld(Screen createWorldScreen) {
+        Path source = NewWorldDraft.source(createWorldScreen);
+        Map<ConfigOption<?>, Object> values = NewWorldDraft.values(createWorldScreen);
+        if (values == null) values = LayerConfig.newWorldValues(source);
+        ConfigDraft draft = ConfigDraft.forNewWorld(values, source != null);
+        ScreenCompat.setScreen(new AronaConfigScreen(createWorldScreen, draft, ConfigTab.TERRAIN));
     }
 
     @Override
@@ -61,11 +82,12 @@ public class AronaConfigScreen extends Screen {
         int titleWidth = font.width(title);
         addRenderableWidget(new StringWidget((width - titleWidth) / 2, 8, titleWidth, 9, title, font));
 
-        List<ConfigTab> tabs = visibleTabs();
+        ConfigWidgets widgets = new ConfigWidgets(draft, font);
+        List<ConfigTab> tabs = visibleTabs(draft.newWorld());
         int buttonWidth = Math.min(80, (width - 20) / tabs.size() - 4);
         int x = (width - tabs.size() * (buttonWidth + 4) + 4) / 2;
         for (ConfigTab t : tabs) {
-            Button button = addRenderableWidget(Button.builder(Component.translatable(t.langKey()), b -> reopen(t))
+            Button button = addRenderableWidget(Button.builder(widgets.tabLabel(t), b -> reopen(t))
                     .bounds(x, 22, buttonWidth, 20).build());
             button.active = t != tab;
             x += buttonWidth + 4;
@@ -74,7 +96,6 @@ public class AronaConfigScreen extends Screen {
         int half = width / 2;
         int listBottom = height - FOOTER_HEIGHT;
         OptionRows list = new OptionRows(Minecraft.getInstance(), half, listBottom - LIST_TOP, LIST_TOP);
-        ConfigWidgets widgets = new ConfigWidgets(draft, font);
         fillRows(list, widgets, tab, font);
         addRenderableWidget(list);
 
@@ -94,11 +115,12 @@ public class AronaConfigScreen extends Screen {
                     reopen(tab);
                 }).bounds(fx + 106, y, 70, 20)
                 .tooltip(Tooltip.create(Component.translatable("config.aronalayers.reset_tab.tooltip"))).build());
-        reset.active = ConfigWidgets.showsOptions(tab);
-        addRenderableWidget(Button.builder(Component.translatable("config.aronalayers.open_folder"),
-                        b -> ScreenCompat.openPath(ConfigWidgets.folder(tab)))
+        reset.active = widgets.showsOptions(tab);
+        Button folder = addRenderableWidget(Button.builder(Component.translatable("config.aronalayers.open_folder"),
+                        b -> ScreenCompat.openPath(widgets.folder(tab)))
                 .bounds(fx + 182, y, 50, 20)
-                .tooltip(Tooltip.create(ConfigWidgets.folderTooltip(tab))).build());
+                .tooltip(Tooltip.create(widgets.folderTooltip(tab))).build());
+        folder.active = widgets.hasFolder();
         addRenderableWidget(Button.builder(CommonComponents.GUI_CANCEL, b -> {
                     discard = true;
                     onClose();
@@ -114,8 +136,8 @@ public class AronaConfigScreen extends Screen {
      * gets a row above it.
      */
     static void fillRows(OptionRows list, ConfigWidgets widgets, ConfigTab tab, net.minecraft.client.gui.Font font) {
-        if (tab.generation()) list.add(new StringWidget(ConfigWidgets.WIDTH, ConfigWidgets.HEIGHT, ConfigWidgets.generationHeading(), font));
-        if (!ConfigWidgets.showsOptions(tab)) return;
+        if (tab.generation()) list.add(new StringWidget(ConfigWidgets.WIDTH, ConfigWidgets.HEIGHT, widgets.generationHeading(), font));
+        if (!widgets.showsOptions(tab)) return;
         String group = null;
         for (ConfigOption<?> option : LayerConfig.options()) {
             if (option.tab != tab || (option.advanced && !showAdvanced)) continue;
@@ -151,10 +173,16 @@ public class AronaConfigScreen extends Screen {
         ScreenCompat.setScreen(new AronaConfigScreen(lastScreen, draft, target));
     }
 
-    /** Done and Escape save, as in vanilla's options screens; Cancel discards. */
+    /**
+     * Done and Escape save, as in vanilla's options screens; Cancel discards. For a world not created
+     * yet, "save" keeps the values for it until it is created.
+     */
     @Override
     public void onClose() {
-        if (!discard) commit(draft);
+        if (!discard) {
+            if (draft.newWorld()) NewWorldDraft.store(lastScreen, draft.worldValues());
+            else commit(draft);
+        }
         ScreenCompat.setScreen(lastScreen);
     }
 
@@ -169,9 +197,11 @@ public class AronaConfigScreen extends Screen {
         }
     }
 
-    static List<ConfigTab> visibleTabs() {
+    /** The tabs shown: for a world not created yet ({@code newWorld}), only the generation ones. */
+    static List<ConfigTab> visibleTabs(boolean newWorld) {
         List<ConfigTab> tabs = new ArrayList<>();
         for (ConfigTab t : ConfigTab.values()) {
+            if (newWorld && !t.generation()) continue;
             if (t.requiredMod == null || Platform.isModLoaded(t.requiredMod)) tabs.add(t);
         }
         return tabs;

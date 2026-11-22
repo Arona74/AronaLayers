@@ -82,7 +82,11 @@ public final class ConfigWidgets {
         /** In singleplayer or as LAN host: the open world's generation.json; changes leave seams. */
         WORLD("config.aronalayers.worldgen_warning.", 4),
         /** On a server this client does not run: its world's file, which this client cannot see. */
-        SERVER("config.aronalayers.server_generation.", 3);
+        SERVER("config.aronalayers.server_generation.", 3),
+        /** From the Create World screen: the world about to be created, saved as its generation.json. */
+        NEW_WORLD("config.aronalayers.new_world.", 3),
+        /** The same, for a world re-created from an existing one, whose settings it starts from. */
+        RECREATED_WORLD("config.aronalayers.recreated_world.", 3);
 
         private final String langKey;
         private final int lines;
@@ -93,26 +97,49 @@ public final class ConfigWidgets {
         }
     }
 
-    /** What the generation tabs edit right now. */
-    public static Generation generation() {
-        Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.level != null && !minecraft.hasSingleplayerServer()) return Generation.SERVER;
-        return LayerConfig.worldOpen() ? Generation.WORLD : Generation.DEFAULTS;
+    /** What the generation tabs of this screen's draft edit. */
+    public Generation generation() {
+        return switch (draft.target()) {
+            case NEW_WORLD -> Generation.NEW_WORLD;
+            case RECREATED_WORLD -> Generation.RECREATED_WORLD;
+            case LIVE -> {
+                Minecraft minecraft = Minecraft.getInstance();
+                if (minecraft.level != null && !minecraft.hasSingleplayerServer()) yield Generation.SERVER;
+                yield LayerConfig.worldOpen() ? Generation.WORLD : Generation.DEFAULTS;
+            }
+        };
     }
 
     /** Whether {@code tab}'s options are shown: not a remote server's generation settings, which are its own. */
-    public static boolean showsOptions(ConfigTab tab) {
+    public boolean showsOptions(ConfigTab tab) {
         return !tab.generation() || generation() != Generation.SERVER;
     }
 
+    /**
+     * The tab's button label and preview title. A world not created yet has no seams to warn
+     * about, so its generation tabs drop the warning sign.
+     */
+    public Component tabLabel(ConfigTab tab) {
+        return Component.translatable(draft.newWorld() && tab.generation() ? tab.langKey() + ".plain" : tab.langKey());
+    }
+
+    /**
+     * Whether the Folder button has a folder to open: not for a world not created yet, whose folder
+     * does not exist.
+     */
+    public boolean hasFolder() {
+        return !draft.newWorld();
+    }
+
     /** The folder the screen's Folder button opens on {@code tab}: the open world's on a generation tab. */
-    public static Path folder(ConfigTab tab) {
+    public Path folder(ConfigTab tab) {
         Path world = LayerConfig.worldConfigDir();
         return tab.generation() && world != null && generation() == Generation.WORLD ? world : LayerConfig.configDir();
     }
 
     /** The Folder button's tooltip on {@code tab}. */
-    public static Component folderTooltip(ConfigTab tab) {
+    public Component folderTooltip(ConfigTab tab) {
+        if (!hasFolder()) return Component.translatable("config.aronalayers.open_folder.new_world.tooltip");
         return Component.translatable(folder(tab).equals(LayerConfig.configDir())
                 ? "config.aronalayers.open_folder.tooltip" : "config.aronalayers.open_folder.world.tooltip");
     }
@@ -123,18 +150,18 @@ public final class ConfigWidgets {
      * its settings are. The first line is the heading, kept as a row at the top of the option list;
      * the preview panel shows the whole text until an option is hovered.
      */
-    private static Component generationLine(int line) {
+    private Component generationLine(int line) {
         MutableComponent text = Component.translatable(generation().langKey + (line + 1));
         return line == 0 ? text.withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD) : text.withStyle(ChatFormatting.YELLOW);
     }
 
     /** The heading row of a world generation tab. */
-    public static Component generationHeading() {
+    public Component generationHeading() {
         return generationLine(0);
     }
 
     /** The rest of that text, for the preview panel. */
-    public static Component generationText() {
+    public Component generationText() {
         MutableComponent text = Component.empty();
         int lines = generation().lines;
         for (int line = 1; line < lines; line++) {

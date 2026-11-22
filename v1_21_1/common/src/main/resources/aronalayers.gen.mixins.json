@@ -30,7 +30,9 @@
     "DripstoneSurviveMixin"
   ],
   "client": [
-    "GroundedParticleMixin"
+    "GroundedParticleMixin",
+    "CreateWorldScreenMixin",
+    "CreateWorldMoreTabMixin"
   ],
   "injectors": {
     "defaultRequire": 1

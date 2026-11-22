@@ -10,6 +10,7 @@ import io.arona74.aronalayers.gen.config.ConfigOption.Apply;
 import io.arona74.aronalayers.gen.config.ConfigOption.Side;
 import io.arona74.aronalayers.gen.config.ConfigTab;
 import io.arona74.aronalayers.gen.config.ConfigFiles;
+import io.arona74.aronalayers.gen.config.NewWorldDraft;
 import io.arona74.aronalayers.gen.platform.Platform;
 
 import java.io.IOException;
@@ -1069,22 +1070,40 @@ public class LayerConfig {
      *
      * <p>The world's generation.json is read over generation_defaults.json, so a key it lacks (an
      * option added by an update) takes the defaults' value. A world without the file gets a copy of
-     * the defaults: what every world generated with before worlds kept their own. The file is then
-     * rewritten in the current layout, unless it could not be read or held an invalid value.
+     * the defaults: what every world generated with before worlds kept their own. A world just made
+     * on the Create World screen gets instead what was chosen there ({@link NewWorldDraft}): the
+     * values of its "Layers…" screen, or for a re-created world, a copy of the old world's file. The
+     * file is then rewritten in the current layout, unless it could not be read or held an invalid
+     * value.
      */
     public static synchronized void openWorld(Path worldDir) {
         Path file = worldDir.resolve(WORLD_DIR).resolve(WORLD_GENERATION_FILE).toAbsolutePath().normalize();
+        NewWorldDraft.Pending chosen = NewWorldDraft.take(worldDir);
         Map<ConfigOption<?>, Object> values = defaults(ConfigTab.Scope.WORLD);
         List<String> errors = new ArrayList<>();
         stage(ConfigTab.Scope.WORLD, CONFIG_DIR.resolve(WORLD_FILE), values, null, errors);
         int defaultsErrors = errors.size();
         boolean exists = Files.exists(file);
         JsonObject extra = new JsonObject();
-        if (exists) stage(ConfigTab.Scope.WORLD, file, values, extra, errors);
+        String createdFrom = "a copy of " + WORLD_FILE;
+        if (exists) {
+            stage(ConfigTab.Scope.WORLD, file, values, extra, errors);
+        } else if (chosen != null && chosen.values() != null) {
+            for (Map.Entry<ConfigOption<?>, Object> entry : chosen.values().entrySet()) {
+                if (entry.getKey().tab.scope == ConfigTab.Scope.WORLD) values.put(entry.getKey(), copyOf(entry.getKey(), entry.getValue()));
+            }
+            createdFrom = "with the settings chosen on the Create World screen";
+        } else if (chosen != null && chosen.source() != null) {
+            Path old = chosen.source().resolve(WORLD_DIR).resolve(WORLD_GENERATION_FILE);
+            if (Files.exists(old)) {
+                stage(ConfigTab.Scope.WORLD, old, values, extra, errors);
+                createdFrom = "a copy of " + old + " (the world it re-creates)";
+            }
+        }
         set(values);
         worldFile = file;
         if (!exists) {
-            if (write(ConfigTab.Scope.WORLD, extra)) AronaLayersGen.LOGGER.info("[Config] Created {}, a copy of {}", file, WORLD_FILE);
+            if (write(ConfigTab.Scope.WORLD, extra)) AronaLayersGen.LOGGER.info("[Config] Created {}, {}", file, createdFrom);
         } else if (errors.size() == defaultsErrors) {
             write(ConfigTab.Scope.WORLD, extra);
         }
@@ -1092,6 +1111,21 @@ public class LayerConfig {
         AronaLayersGen.LOGGER.info("[Config] World generation settings from {}: layer_injection={} plant_injection={} tree_injection={}"
                 + " (each dimension's layer source is detected when it first generates)",
                 file, LAYER_INJECTION, PLANT_INJECTION, TREE_INJECTION);
+    }
+
+    /**
+     * The WORLD values a new world starts with on the Create World screen, without applying them:
+     * the defaults for new worlds, or for a re-created world ({@code sourceWorld} not null), the
+     * settings of the world it re-creates, read over them as {@link #openWorld} would.
+     */
+    public static synchronized Map<ConfigOption<?>, Object> newWorldValues(Path sourceWorld) {
+        Map<ConfigOption<?>, Object> values = defaults(ConfigTab.Scope.WORLD);
+        List<String> errors = new ArrayList<>();
+        stage(ConfigTab.Scope.WORLD, CONFIG_DIR.resolve(WORLD_FILE), values, null, errors);
+        if (sourceWorld != null) {
+            stage(ConfigTab.Scope.WORLD, sourceWorld.resolve(WORLD_DIR).resolve(WORLD_GENERATION_FILE), values, null, errors);
+        }
+        return values;
     }
 
     /** The world has closed (its server stopped): the WORLD values are the defaults for new worlds again. */
