@@ -558,6 +558,142 @@ public class TellusCompat {
         return Math.min(8, layers);
     }
 
+    // ===================== Direct Distant Horizons LODs =====================
+    //
+    // Tellus's default DH generator builds LOD columns straight from elevation data, without
+    // chunks, so the injection above never runs for them. Tellus builds that carry the LOD surface
+    // hook (TellusLodHooks / TellusLodSurfaceDecorator, Arona74's fork) ask for the block above
+    // each column's bare ground: lodSurfaceCover answers with the layer the chunk path would place
+    // there. Reached through a Proxy, so neither mod needs the other's jar.
+
+    private static final String LOD_HOOKS_CLASS = "com.yucareux.tellus.integration.distant_horizons.TellusLodHooks";
+    private static final String LOD_DECORATOR_CLASS = "com.yucareux.tellus.integration.distant_horizons.TellusLodSurfaceDecorator";
+    private static final java.util.concurrent.atomic.AtomicBoolean lodFailureLogged = new java.util.concurrent.atomic.AtomicBoolean();
+    private static final java.util.concurrent.atomic.AtomicBoolean lodFirstLayerLogged = new java.util.concurrent.atomic.AtomicBoolean();
+
+    /** Registers {@link #lodSurfaceCover} with Tellus's LOD surface hook, when this Tellus has one. */
+    public static void registerLodSurfaceHook() {
+        if (!isAvailable()) return;
+        Class<?> hooks;
+        Class<?> decorator;
+        try {
+            ClassLoader loader = TellusCompat.class.getClassLoader();
+            hooks = Class.forName(LOD_HOOKS_CLASS, true, loader);
+            decorator = Class.forName(LOD_DECORATOR_CLASS, true, loader);
+        } catch (ClassNotFoundException | LinkageError e) {
+            AronaLayersGen.LOGGER.info("[Tellus] This Tellus has no LOD surface hook: its direct Distant Horizons LODs get no layers");
+            return;
+        }
+        try {
+            Object proxy = java.lang.reflect.Proxy.newProxyInstance(decorator.getClassLoader(), new Class<?>[]{decorator},
+                (self, method, args) -> switch (method.getName()) {
+                    case "surfaceCover" -> lodSurfaceCoverSafe(args);
+                    case "toString" -> "AronaLayers layer injection";
+                    case "hashCode" -> System.identityHashCode(self);
+                    case "equals" -> self == args[0];
+                    default -> null;
+                });
+            hooks.getMethod("registerSurfaceDecorator", decorator).invoke(null, proxy);
+            AronaLayersGen.LOGGER.info("[Tellus] Layers registered for Tellus's direct Distant Horizons LODs");
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            AronaLayersGen.LOGGER.warn("[Tellus] Could not register with Tellus's LOD surface hook: {}", e.toString());
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static BlockState lodSurfaceCoverSafe(Object[] args) {
+        try {
+            return lodSurfaceCover((ChunkGenerator) args[0], (int) args[1], (int) args[2], (int) args[3],
+                (BlockState) args[4], (net.minecraft.core.Holder<net.minecraft.world.level.biome.Biome>) args[5],
+                (double) args[6], (java.util.function.DoubleSupplier) args[7]);
+        } catch (Throwable t) {
+            if (lodFailureLogged.compareAndSet(false, true)) {
+                AronaLayersGen.LOGGER.warn("[Tellus] LOD layer decision failed at {},{} (logged once): {}", args[1], args[2], t.toString(), t);
+            }
+            return null;
+        }
+    }
+
+    /**
+     * The layer for the block above a direct LOD column's bare ground at {@code surfaceY}, or null.
+     * Same decisions as the chunk path ({@link #injectLayersWithTellus} and
+     * {@code LayerPlacementHelper.injectLayerAtTellus}) for a column with nothing on its ground:
+     * the count from the fraction of Tellus's unrounded surface height, the snow choices, the
+     * swamp reduction and the block mapping. Columns whose rounded height is not {@code surfaceY}
+     * (a preload package, a surface repair, a sea floor) are left alone, as their fraction would not
+     * describe that block. Runs on Distant Horizons' generator threads.
+     */
+    static BlockState lodSurfaceCover(ChunkGenerator generator, int worldX, int worldZ, int surfaceY, BlockState surface,
+                                      net.minecraft.core.Holder<net.minecraft.world.level.biome.Biome> biome,
+                                      double sampleResolutionMeters, java.util.function.DoubleSupplier continuousSurface)
+            throws ReflectiveOperationException {
+        if (!LayerConfig.LAYER_INJECTION || !bind(generator)) return null;
+
+        Block surfaceBlock = surface.getBlock();
+        boolean snowSurface = surfaceBlock == net.minecraft.world.level.block.Blocks.SNOW_BLOCK
+            || surfaceBlock == net.minecraft.world.level.block.Blocks.SNOW;
+        if (!snowSurface && (LayerPlacementHelper.isTreePart(surface) || LayerPlacementHelper.hasLayerProperty(surface)
+                || !LayerPlacementHelper.hasMappingFor(surfaceBlock))) {
+            return null;
+        }
+
+        double continuous = continuousSurface.getAsDouble();
+        if (Double.isNaN(continuous) || (int) Math.ceil(continuous) != surfaceY) return null;
+        double depth = continuous - Math.floor(continuous);
+
+        Object settings = settingsMethod.invoke(generator);
+        double worldScale = (double) worldScaleMethod.invoke(settings);
+        int coverClass = (int) sampleCoverClassMemoryOnly.invoke(
+            landCoverSource, (double) worldX, (double) worldZ, worldScale, sampleResolutionMeters);
+
+        // The chunk path's first decisions (injectLayersWithTellus): cold biome or snow cover.
+        boolean isSnowyBiome = Compat.coldEnoughToSnow(biome.value(), new BlockPos(worldX, Math.min(surfaceY + 1, 80), worldZ));
+        boolean useSnowLayers = (isSnowyBiome || coverClass == 70) && LayerConfig.IMPROVE_SNOWY_BIOMES;
+        boolean skipReduction = useSnowLayers || !LayerConfig.TELLUS_REDUCE_LAYER_COUNT;
+        int layerCount = calculateLayerCount(depth, skipReduction);
+        if (layerCount <= 0) return null;
+
+        // Tellus's snow cover: a snow layer stacked on it (injectLayerAtImpl, tellusOverSnow).
+        if (snowSurface) {
+            return snowLayer(layerCount);
+        }
+
+        layerCount = LayerPlacementHelper.applySwampReduction(layerCount, biome);
+        if (layerCount <= 0) return null;
+
+        boolean powderSnow = surfaceBlock == net.minecraft.world.level.block.Blocks.POWDER_SNOW
+            && LayerPlacementHelper.hasMappingFor(surfaceBlock);
+        if (LayerConfig.SKIP_SNOWY_BIOMES && isSnowyBiome && !powderSnow) return null;
+
+        boolean ice = surfaceBlock == net.minecraft.world.level.block.Blocks.ICE
+            || surfaceBlock == net.minecraft.world.level.block.Blocks.FROSTED_ICE
+            || surfaceBlock == net.minecraft.world.level.block.Blocks.PACKED_ICE
+            || surfaceBlock == net.minecraft.world.level.block.Blocks.BLUE_ICE && LayerPlacementHelper.hasMappingFor(surfaceBlock);
+        if (LayerPlacementHelper.superSnowy(biome, isSnowyBiome) && !powderSnow && !ice) {
+            useSnowLayers = true;
+        } else if (ice || powderSnow) {
+            useSnowLayers = false;
+        } else if (LayerConfig.IMPROVE_SNOWY_BIOMES && LayerConfig.SUPER_SNOWY_MODE == LayerConfig.SuperSnowyMode.CONTROLLED_BY_LIST) {
+            useSnowLayers = false;
+        }
+
+        if (useSnowLayers) return snowLayer(layerCount);
+        Block layerBlock = LayerPlacementHelper.getMappedLayerBlock(surfaceBlock, layerCount);
+        if (layerBlock == null) return null;
+        layerBlock = LayerPlacementHelper.resolveMaxedLayerBlock(layerBlock, layerCount);
+        BlockState layer = LayerPlacementHelper.applyLayerCount(layerBlock.defaultBlockState(), layerBlock, layerCount);
+        if (lodFirstLayerLogged.compareAndSet(false, true)) {
+            AronaLayersGen.LOGGER.info("[Tellus] First direct LOD layer: {} on {} at {},{},{}",
+                layer, Compat.blockId(surfaceBlock), worldX, surfaceY + 1, worldZ);
+        }
+        return layer;
+    }
+
+    private static BlockState snowLayer(int layerCount) {
+        return net.minecraft.world.level.block.Blocks.SNOW.defaultBlockState()
+            .setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.LAYERS, Math.min(8, layerCount));
+    }
+
     /**
      * Layer count for replace-surface mode.
      *

@@ -339,7 +339,7 @@ public class LayerPlacementHelper {
      * onBlockAdded conversion (which can hang during chunk init). Returns the input unchanged for
      * sub-8 counts and for AronaLayers layer blocks, which keep their own layers=8 model.
      */
-    private static Block resolveMaxedLayerBlock(Block layerBlock, int layerCount) {
+    static Block resolveMaxedLayerBlock(Block layerBlock, int layerCount) {
         if (layerCount < 8) return layerBlock;
         if (layerBlock == io.arona74.aronalayers.block.ModBlocks.POWDER_SNOW_LAYER) return Blocks.POWDER_SNOW;
         if (layerBlock instanceof io.arona74.aronalayers.custom_blocks.ConvertingLayerBlock lb) {

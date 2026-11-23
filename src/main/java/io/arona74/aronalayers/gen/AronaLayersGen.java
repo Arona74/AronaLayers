@@ -37,6 +37,9 @@ public final class AronaLayersGen {
         // injection; runs at chunk-load so it catches spawn/cross-border chunks the in-init pass misses.
         Platform.onChunkLoad(RTFLayerInjector::onChunkLoadRemap);
 
+        // Layers in the Distant Horizons LODs Tellus builds without chunks (Tellus builds with the hook).
+        io.arona74.aronalayers.gen.injection.TellusCompat.registerLodSurfaceHook();
+
         // Plant grounding answers "not grounded" until now: shapes are queried during vanilla's
         // block bootstrap, before the config can safely load (see GroundingFlags).
         GroundingFlags.ready = true;
