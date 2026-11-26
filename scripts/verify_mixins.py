@@ -172,6 +172,7 @@ def main():
         jars = [x for x in glob.glob(os.path.join(mod, "build/libs/*.jar")) if "sources" not in x]
         if not jars:
             print(f"{mod}: no jar built")
+            bad += 1
             continue
         jar = max(jars, key=os.path.getmtime)
         version = module_version(mod)

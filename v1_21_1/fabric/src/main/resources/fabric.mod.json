@@ -2,8 +2,8 @@
 	"schemaVersion": 1,
 	"id": "aronalayers",
 	"version": "${version}",
-	"name": "AronaLayers: Blocks",
-	"description": "Layer blocks (stackable two pixel tall blocks) and 3D layers for most vanilla blocks. Based on Vanilla+ Layers by Fellter.",
+	"name": "AronaLayers",
+	"description": "Layer blocks (stackable two pixel tall blocks) and 3D layers for most vanilla blocks, terrain generation that smooths slopes with layers, and vanilla mechanics for layers (grass spreading, sheep, falling with sand, small ores). Based on Vanilla+ Layers by Fellter.",
 	"authors": [
 		"Arona74"
 	],
@@ -11,10 +11,11 @@
 		"Fellter (original Vanilla+ Layers)"
 	],
 	"contact": {
+		"homepage": "https://github.com/Arona74/AronaLayers",
 		"sources": "https://github.com/Arona74/AronaLayers",
 		"issues": "https://github.com/Arona74/AronaLayers/issues"
 	},
-	"license": "CC-BY-NC-4.0",
+	"license": "CC-BY-NC-4.0 AND MIT",
 	"icon": "assets/aronalayers/icon.png",
 	"environment": "*",
 	"entrypoints": {
@@ -42,6 +43,9 @@
 		"minecraft": "1.21.1",
 		"java": ">=21",
 		"fabric-api": "*"
+	},
+	"suggests": {
+		"modmenu": "*"
 	},
 	"breaks": {
 		"aronalayersgen": "*",

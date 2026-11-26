@@ -25,7 +25,7 @@ Generation settings become per-world data, editable from the Create World screen
 | 4 | Config: one registry, new tab order, global vs world scope | AronaLayers | done 2026-11-15: two files, six tabs, `trees_on_layers` split, see notes |
 | 5 | Generation config stored in world data | AronaLayers | done 2026-11-16: `<world>/aronalayers/generation.json`, `/aronalayers reload`, see notes |
 | 6 | Generation settings button on the Create World screen | AronaLayers | done 2026-11-22: "Layers…" on the More tab, draft written as the new world's `generation.json`, see notes |
-| 7 | Cleanup, README, CI, retire the two old mods | all three | todo |
+| 7 | Cleanup, README, CI, retire the two old mods | all three | done 2026-11-26: jars `aronalayers-<loader>-1.0.0-alpha.2+mc…`, metadata, CI verify step, READMEs, LSL, see notes |
 
 Phases 1 to 3 change no behaviour for a non-CR player; 4 to 6 are the new features. Each phase ends
 with all 11 jars building, so the user can commit after every phase (the user commits, never Claude).
@@ -1220,3 +1220,73 @@ the text says the settings start from the world being re-created.
 
 Client test by the user (2026-11-22) on 1.21.1 and 26.3: all fine. The other versions were checked
 only by the automated client run above.
+
+### Phase 7 (2026-11-26)
+
+Done in one session, no subagents. Not committed (the user commits each repo). Decided with the user
+before changing anything: version 1.0.0-alpha.2; gen's final README on its GitHub default branch
+`AronaLayersGen` (not `merge`); a banner on top of each old README with the old text kept below; LSL
+updated in this session; the duplicate Compat and Platform classes left as they are; the carry-over of
+the old config files kept until 1.0.0 final.
+
+**Names and metadata.** `settings.gradle` `rootProject.name` and `gradle.properties`
+`archives_base_name` are `aronalayers`, `mod_version=1.0.0-alpha.2`: jars
+`aronalayers-<loader>-1.0.0-alpha.2+mc<mc>.jar`, licence files in the jar `LICENSE_aronalayers` and
+`LICENSE-MIT_aronalayers`. No `build.gradle` changed; nothing else (CI glob, verify_mixins, test scripts)
+depended on the old name. The 22 old `aronalayers-blocks-*` jars were deleted from `build/libs`. In the
+six `fabric.mod.json`: name "AronaLayers", a description covering blocks, generation and gameplay,
+`contact.homepage`, licence `CC-BY-NC-4.0 AND MIT`, `suggests modmenu`. In the five `neoforge.mods.toml`:
+the same display name, description and licence. `breaks` / `incompatible` for `aronalayersgen` and
+`aronalayersextras` kept.
+
+**CI.** `build.yml` runs `python3 scripts/verify_mixins.py` after the build, before the upload.
+`verify_mixins.py` now fails on a module with no jar (it printed and passed before).
+
+**READMEs.** This repo's README is the merged one: versions table, install, features (blocks,
+generation, live world), the three config files and per-world `generation.json`, the "Layers…" button,
+dedicated servers and `/aronalayers reload`, mapping files, every option per tab (defaults taken from
+the files a fresh server writes), commands, upgrading from the old mods, LSL and `LayersApi`, building,
+licence split, credits. The licence section lists what is MIT: the `gen` and `gameplay` packages,
+`api/LayersApi`, the gen blocks that moved into the blocks packages (`ConvertingLayerBlock`,
+`PowderSnowLayerBlockBase`, each version's `PowderSnowLayerBlock`, `EntityTouchingPowderSnowAccessor`,
+the powder snow and zinc layer blockstates and models), `models/item/small_ore.json`,
+`assets/aronalayers_config/`, `textures/gui/config/`, the four mapping files and `scripts/`.
+Gen (`AronaLayersGen`, CRLF kept) and extras (`main`) READMEs start with an archive banner: now part of
+AronaLayers, what carries over, ids not converted, Conquest Reforged and wet sand gone with a link to
+the last release (gen: its releases page, the last tag is 2.0.0a5 although `gradle.properties` says
+2.0.0a6; extras: 1.3.0). Gen's local checkout is now on `AronaLayersGen`; its `merge` branch is
+unchanged.
+
+**LSL** (`C:\Users\alexa\OneDrive\Documents\GitHub\lsl`, `main`): `LayerInfo` tries
+`io.arona74.aronalayers.api.LayersApi` first, then the old `io.arona74.aronalayersgen.api.LayersApi`;
+`VoxyGate.groundPlants` counts `aronalayersgen` loaded or the API found (the blocks-only AronaLayers
+before alpha.2 has neither, and no plant grounding); `LslConfig.importFromGen` reads `dh_*` from
+`config/aronalayers/config.json`, then `config/aronalayers/layer_config.json`, then
+`config/aronalayersgen/layer_config.json`; the six `fabric.mod.json` suggest `aronalayers`; README.
+`GenDh` (gen up to 2.0.0a3's own DH support) is unchanged. wgaccel already used the new names.
+
+**Left as they are.** Per version: three Compat classes (blocks, gen, gameplay) and two Platform
+classes per loader (blocks, gen). They share no method except a min-Y helper; merging the Platforms
+would make `GenMixinPlugin` load the blocks Platform, which names Fabric impl classes and Minecraft
+types: the phase 3 crash. Carry-over code (`ConfigFiles` copying `config/aronalayersgen/`,
+`ConfigLoader` reading `aronalayersgen:` ids, `LayerConfig` turning `layer_config.json` and
+`aronalayersextras.json` into the two files, `OBSOLETE_KEYS`): to delete at 1.0.0 final. No
+`TODO`/`TEMPORARY` marker and no unused Compat or Platform method was found.
+
+**What was checked.**
+
+- All 11 jars build (JDK 25) under the new names; `verify_mixins.py` passes on all 11 (Fabric 36 on
+  1.20.1 and 1.21.1, 37 on 1.21.11 / 26.1.2 / 26.2, 34 on 26.3; NeoForge 33 on 1.21.1, 34 on the
+  others).
+- The metadata read back from each built jar: id, name, expanded version, licence, homepage,
+  suggests, breaks / incompatible, both licence files.
+- A dedicated server on each of the 11 (JDK 21 for 1.20.1 and 1.21.1), throwaway world, no
+  `config/aronalayers/` so the default files are written: the mod listed as 1.0.0-alpha.2, the
+  world's `generation.json` written, `/aronalayers reload` answered "settings reloaded: nothing
+  changed", "World closed" at stop, no line with "error" in any log. Each run folder's
+  `server.properties` and `config/aronalayers/` (still with its `layer_config.json`) put back, the
+  world deleted.
+- LSL builds with the changes.
+
+Not checked: CI itself (it runs on the next push); a client of the renamed jars (only the name in
+the mod list changed); LSL in game with the merged mod; how the READMEs render on GitHub.

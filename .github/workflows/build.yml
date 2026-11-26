@@ -35,6 +35,11 @@ jobs:
       - name: build
         run: ./gradlew build -Porg.gradle.java.installations.fromEnv=JAVA_HOME_21_X64,JAVA_HOME_25_X64
 
+      # A mixin whose target does not exist still builds and only fails when the game loads:
+      # check every mixin of the 11 jars against its Minecraft jar (javap from the JDK on PATH).
+      - name: verify mixins
+        run: python3 scripts/verify_mixins.py
+
       - name: capture build artifacts
         uses: actions/upload-artifact@v4
         with:

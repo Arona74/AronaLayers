@@ -9,7 +9,7 @@ pluginManagement {
 	}
 }
 
-rootProject.name = 'aronalayers-blocks'
+rootProject.name = 'aronalayers'
 
 include ':v1_20_1:fabric'
 include ':v1_21_1:fabric'
