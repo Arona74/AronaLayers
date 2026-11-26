@@ -25,7 +25,7 @@ Generation settings become per-world data, editable from the Create World screen
 | 4 | Config: one registry, new tab order, global vs world scope | AronaLayers | done 2026-11-15: two files, six tabs, `trees_on_layers` split, see notes |
 | 5 | Generation config stored in world data | AronaLayers | done 2026-11-16: `<world>/aronalayers/generation.json`, `/aronalayers reload`, see notes |
 | 6 | Generation settings button on the Create World screen | AronaLayers | done 2026-11-22: "Layers…" on the More tab, draft written as the new world's `generation.json`, see notes |
-| 7 | Cleanup, README, CI, retire the two old mods | all three | done 2026-11-26: jars `aronalayers-<loader>-1.0.0-alpha.2+mc…`, metadata, CI verify step, READMEs, LSL, see notes |
+| 7 | Cleanup, README, CI, retire the two old mods | all three | done 2026-11-26: jars `aronalayers-<loader>-1.0.0-alpha.2+mc…` (also collected in `build/libs`), metadata, CI workflow removed, READMEs, LSL, see notes |
 
 Phases 1 to 3 change no behaviour for a non-CR player; 4 to 6 are the new features. Each phase ends
 with all 11 jars building, so the user can commit after every phase (the user commits, never Claude).
@@ -1232,7 +1232,7 @@ the old config files kept until 1.0.0 final.
 **Names and metadata.** `settings.gradle` `rootProject.name` and `gradle.properties`
 `archives_base_name` are `aronalayers`, `mod_version=1.0.0-alpha.2`: jars
 `aronalayers-<loader>-1.0.0-alpha.2+mc<mc>.jar`, licence files in the jar `LICENSE_aronalayers` and
-`LICENSE-MIT_aronalayers`. No `build.gradle` changed; nothing else (CI glob, verify_mixins, test scripts)
+`LICENSE-MIT_aronalayers`. No module `build.gradle` changed; nothing else (CI glob, verify_mixins, test scripts)
 depended on the old name. The 22 old `aronalayers-blocks-*` jars were deleted from `build/libs`. In the
 six `fabric.mod.json`: name "AronaLayers", a description covering blocks, generation and gameplay,
 `contact.homepage`, licence `CC-BY-NC-4.0 AND MIT`, `suggests modmenu`. In the five `neoforge.mods.toml`:
@@ -1246,8 +1246,10 @@ removes jars of an older version from it. It takes the files without depending o
 `:vX:<loader>:build` still builds only that module. Checked: a full build gives the 11 jars there,
 byte for byte the modules' own.
 
-**CI.** `build.yml` runs `python3 scripts/verify_mixins.py` after the build, before the upload.
-`verify_mixins.py` now fails on a module with no jar (it printed and passed before).
+**CI removed.** The user builds the jars locally and publishes releases by hand, so
+`.github/workflows/build.yml` (build on every push, jars as a download) was deleted on their decision;
+`verify_mixins.py` is run by Claude after code changes, as in every phase. It now fails on a module
+with no jar (it printed and passed before).
 
 **READMEs.** This repo's README is the merged one: versions table, install, features (blocks,
 generation, live world), the three config files and per-world `generation.json`, the "Layers…" button,
@@ -1295,5 +1297,5 @@ types: the phase 3 crash. Carry-over code (`ConfigFiles` copying `config/aronala
   world deleted.
 - LSL builds with the changes.
 
-Not checked: CI itself (it runs on the next push); a client of the renamed jars (only the name in
+Not checked: a client of the renamed jars (only the name in
 the mod list changed); LSL in game with the merged mod; how the READMEs render on GitHub.

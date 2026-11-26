@@ -297,8 +297,8 @@ for LOD generators.
 ./gradlew build
 ```
 
-Gradle needs JDK 25 to run, and JDK 21 for the 1.20.1 to 1.21.11 projects (CI passes both with
-`-Porg.gradle.java.installations.fromEnv=JAVA_HOME_21_X64,JAVA_HOME_25_X64`). `runServer`,
+Gradle needs JDK 25 to run, and JDK 21 for the 1.20.1 to 1.21.11 projects (Gradle finds installed
+JDKs itself; elsewhere, pass them with `-Porg.gradle.java.installations.paths=<jdk21>,<jdk25>`). `runServer`,
 `runClient` and `runDatagen` for 1.20.1 and 1.21.1 must run with `JAVA_HOME` set to JDK 21.
 
 | Folder | Contents |
@@ -312,8 +312,8 @@ Jars land in `vX/<loader>/build/libs/`, and after every build all of them are al
 `build/libs/` at the root, in one folder. Build one with `./gradlew :v1_21_1:fabric:build`.
 
 `python scripts/verify_mixins.py` checks that every mixin target in the built jars exists in its
-Minecraft version. A wrong target still builds and only fails when the game loads, so CI runs it
-after every build.
+Minecraft version (run it after a build, from the repository root). A wrong target still builds and
+only fails when the game loads.
 
 ## A note on how this mod is developed
 
