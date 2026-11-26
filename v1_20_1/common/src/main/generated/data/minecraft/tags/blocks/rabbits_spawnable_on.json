@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    "aronalayers:grass_layer",
+    "aronalayers:sand_layer",
+    "aronalayers:snow_layer",
+    "aronalayers:snow_3d_layer"
+  ]
+}

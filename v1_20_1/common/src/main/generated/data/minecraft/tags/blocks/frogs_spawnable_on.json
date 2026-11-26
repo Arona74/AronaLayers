@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    "aronalayers:grass_layer",
+    "aronalayers:mud_layer",
+    "aronalayers:muddy_mangrove_roots_layer"
+  ]
+}

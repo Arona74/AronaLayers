@@ -1,0 +1,16 @@
+{
+  "values": [
+    "aronalayers:stone_layer",
+    "aronalayers:granite_layer",
+    "aronalayers:diorite_layer",
+    "aronalayers:andesite_layer",
+    "aronalayers:deepslate_layer",
+    "aronalayers:tuff_layer",
+    "aronalayers:stone_3d_layer",
+    "aronalayers:granite_3d_layer",
+    "aronalayers:diorite_3d_layer",
+    "aronalayers:andesite_3d_layer",
+    "aronalayers:deepslate_3d_layer",
+    "aronalayers:tuff_3d_layer"
+  ]
+}

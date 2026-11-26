@@ -1,0 +1,22 @@
+{
+  "values": [
+    "aronalayers:terracotta_layer",
+    "aronalayers:white_terracotta_layer",
+    "aronalayers:light_gray_terracotta_layer",
+    "aronalayers:brown_terracotta_layer",
+    "aronalayers:red_terracotta_layer",
+    "aronalayers:orange_terracotta_layer",
+    "aronalayers:yellow_terracotta_layer",
+    "aronalayers:grass_layer",
+    "aronalayers:coarse_dirt_layer",
+    "aronalayers:red_sand_layer",
+    "aronalayers:terracotta_3d_layer",
+    "aronalayers:white_terracotta_3d_layer",
+    "aronalayers:light_gray_terracotta_3d_layer",
+    "aronalayers:brown_terracotta_3d_layer",
+    "aronalayers:red_terracotta_3d_layer",
+    "aronalayers:orange_terracotta_3d_layer",
+    "aronalayers:yellow_terracotta_3d_layer",
+    "aronalayers:coarse_dirt_3d_layer"
+  ]
+}

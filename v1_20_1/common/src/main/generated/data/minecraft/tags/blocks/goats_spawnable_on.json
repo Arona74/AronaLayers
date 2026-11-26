@@ -1,0 +1,13 @@
+{
+  "replace": false,
+  "values": [
+    "aronalayers:stone_layer",
+    "aronalayers:grass_layer",
+    "aronalayers:gravel_layer",
+    "aronalayers:packed_ice_layer",
+    "aronalayers:snow_layer",
+    "aronalayers:packed_ice_3d_layer",
+    "aronalayers:stone_3d_layer",
+    "aronalayers:snow_3d_layer"
+  ]
+}
