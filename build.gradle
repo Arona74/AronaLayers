@@ -2,3 +2,26 @@
 // All build logic lives in the loader subprojects of each Minecraft version (v1_21_1/fabric/, ...).
 // Each compiles the shared src/main/ tree, its loader's src/<loader>/ tree, and its version's
 // common/ folder (code and generated data shared by both loaders) together with its own src/.
+
+// After a build, every built jar (not the sources jars) is also put in build/libs/ here, so all the
+// versions and loaders sit in one folder. Sync: jars of an older mod_version are removed from it.
+// It takes the jar files as they are, without depending on their tasks, so building one module
+// (./gradlew :v1_21_1:fabric:build) does not build the others: their last-built jars are copied.
+def collectJars = tasks.register('collectJars', Sync) {
+	description = 'Puts the jar of every version and loader in build/libs/.'
+	into layout.buildDirectory.dir('libs')
+}
+
+subprojects { sub ->
+	sub.afterEvaluate {
+		// The release jar: remapJar on the remapping Loom (obfuscated versions), jar elsewhere.
+		def jarTask = sub.tasks.findByName('remapJar') ?: sub.tasks.findByName('jar')
+		if (jarTask == null || sub.tasks.findByName('build') == null) return
+		def jarFile = jarTask.archiveFile.get().asFile
+		collectJars.configure {
+			from(jarFile)
+			mustRunAfter(sub.tasks.named('build'))
+		}
+		sub.tasks.named('build') { finalizedBy(collectJars) }
+	}
+}

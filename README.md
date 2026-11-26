@@ -308,7 +308,8 @@ Gradle needs JDK 25 to run, and JDK 21 for the 1.20.1 to 1.21.11 projects (CI pa
 | `vX/common/` | one version's code for every loader (`Compat` classes, version mixins) and the data written by datagen |
 | `vX/fabric/`, `vX/neoforge/` | one version's loader code (`Platform`, datagen, client models) and its Gradle project |
 
-Jars land in `vX/<loader>/build/libs/`. Build one with `./gradlew :v1_21_1:fabric:build`.
+Jars land in `vX/<loader>/build/libs/`, and after every build all of them are also copied to
+`build/libs/` at the root, in one folder. Build one with `./gradlew :v1_21_1:fabric:build`.
 
 `python scripts/verify_mixins.py` checks that every mixin target in the built jars exists in its
 Minecraft version. A wrong target still builds and only fails when the game loads, so CI runs it

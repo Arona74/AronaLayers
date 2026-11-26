@@ -1239,6 +1239,13 @@ six `fabric.mod.json`: name "AronaLayers", a description covering blocks, genera
 the same display name, description and licence. `breaks` / `incompatible` for `aronalayersgen` and
 `aronalayersextras` kept.
 
+**Jars in one folder** (asked by the user after the phase): the root `build.gradle` has a
+`collectJars` Sync task that every module's `build` is finalized by; it puts each module's release jar
+(`remapJar` on the remapping Loom, `jar` elsewhere; no sources jars) in the root `build/libs/`, and
+removes jars of an older version from it. It takes the files without depending on their tasks, so
+`:vX:<loader>:build` still builds only that module. Checked: a full build gives the 11 jars there,
+byte for byte the modules' own.
+
 **CI.** `build.yml` runs `python3 scripts/verify_mixins.py` after the build, before the upload.
 `verify_mixins.py` now fails on a module with no jar (it printed and passed before).
 
